@@ -89,6 +89,6 @@ export const router = createBrowserRouter([
 
   {
     path: "try-on-v2-beta",
-    element: <TryOnV2BetaPage />,
+    element: <ProtectedRoute component={TryOnV2BetaPage} />,
   },
 ]);
