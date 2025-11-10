@@ -8,6 +8,8 @@ import commonService from "../../services/commonService"
 import MultiSelect from "../common/MultiSelect"
 import { IOption } from "../ModelGenerator/ModelConfigForm/ModelConfigForm"
 import { toast } from "sonner"
+import { defaultExt, downloadBlob, resizeImage, ResizeOptions } from "./resizeImage"
+import JSZip from "jszip"
 
 interface ModelEditorProps {
   selectedModel: string
@@ -39,7 +41,7 @@ let FEMALE_POSES = [
   { id: "female-front-hand-hat-glasses", label: "Playful Hand on Hat or Glasses", description: "Female - Stylish accessory highlight" },
   { id: "female-front-smile-hands-waist", label: "Soft Smile with Hands Resting on Waist", description: "Female - Casual elegance" },
   { id: "female-front-arms-behind-head", label: "Arms Behind Head Relaxed", description: "Female - For showing dress or top length" },
-  
+
   // Female - Side Profile Poses
   { id: "female-side-leg-forward", label: "Straight-On to Side One Leg Forward", description: "Female - Lean into the side, perfect for dresses" },
   { id: "female-side-hand-waist", label: "Profile with Hand on Waist", description: "Female - Emphasize silhouette" },
@@ -61,7 +63,7 @@ let FEMALE_POSES = [
   { id: "female-side-hand-chest-tilt", label: "Hand Resting on Chest Head Tilted", description: "Female - Graceful pose" },
   { id: "female-side-hand-hip-tilt", label: "One Hand on Hip Slight Tilt to the Side", description: "Female - Dynamic, accentuating shape" },
   { id: "female-side-hand-face", label: "Side Profile with Soft Hand on Face", description: "Female - Subtle elegance" },
-  
+
   // Female - Back Poses
   { id: "female-back-full-arms", label: "Full Back Arms Relaxed by Sides", description: "Female - Neutral, minimalist" },
   { id: "female-back-hands-hips-tall", label: "Hands on Hips Standing Tall", description: "Female - Emphasize back details, like dress/train" },
@@ -98,39 +100,39 @@ let MALE_POSES = [
   { id: "male-front-arms-relaxed-side", label: "Arms Relaxed Looking to the Side", description: "Male - Slightly neutral but confident" },
   { id: "male-front-arms-behind-lean", label: "Arms Behind Back Slightly Leaned", description: "Male - Elegant and composed" },
   { id: "male-front-hands-thighs-shoulders", label: "Hands Resting on Thighs Shoulders Back", description: "Male - Strong stance" },
-    // Male - Side Profile Poses
-    { id: "male-side-full-pockets", label: "Full Side Hands in Pockets", description: "Male - Casual, sleek look" },
-    { id: "male-side-lean-leg-forward", label: "Side Lean with One Leg Forward", description: "Male - Stylized, focus on fit" },
-    { id: "male-side-arm-across-chest", label: "One Arm Across Chest Other Relaxed", description: "Male - Strong yet balanced" },
-    { id: "male-side-hand-hair", label: "Side Profile with Hand in Hair", description: "Male - Stylish and youthful" },
-    { id: "male-side-foot-forward", label: "Side View One Foot Forward", description: "Male - Dynamic, emphasizing lines" },
-    { id: "male-side-hand-neck-tilt", label: "Hand on Neck Head Tilted", description: "Male - Soft, natural vibe" },
-    { id: "male-side-hand-waist-lean", label: "One Hand on Waist Side Lean", description: "Male - Powerful and confident" },
-    { id: "male-side-head-turned", label: "Side Profile Head Slightly Turned Looking Forward", description: "Male - Gives a clean, polished feel" },
-    { id: "male-side-relaxed-hands", label: "Relaxed Side Hands by Sides", description: "Male - Simple, clean lines" },
-    { id: "male-side-hand-pocket", label: "One Hand Resting on Pocket Other Relaxed", description: "Male - Casual and approachable" },
-    { id: "male-side-head-turned-smile", label: "Side Head Slightly Turned with Soft Smile", description: "Male - Friendly, approachable look" },
-    { id: "male-side-hand-lower-back", label: "Hand Resting on Lower Back Slight Lean", description: "Male - Elegant, flowing pose" },
-    { id: "male-side-crossed-arms", label: "Side Profile with Softly Crossed Arms", description: "Male - Structured and calm" },
-    { id: "male-side-legs-crossed", label: "Legs Crossed at the Ankle Hands Relaxed", description: "Male - Casual and strong" },
-    { id: "male-side-head-forward-hands", label: "Head Facing Forward Hands Relaxed by Sides", description: "Male - Neutral, balanced stance" },
-    { id: "male-side-pocket-lean-back", label: "Hand Resting on Pocket Lean Back Slightly", description: "Male - Relaxed, confident stance" },
-    { id: "male-side-foot-forward-arms-back", label: "One Foot Forward Arms Behind Back", description: "Male - Elegant, structured" },
-    { id: "male-side-arched-back", label: "Relaxed Side Slightly Arched Back", description: "Male - Creates an appealing silhouette" },
-    { id: "male-side-hands-waist", label: "Side Profile with Hands Resting on Waist", description: "Male - Strong, confident stance" },
-    { id: "male-side-lean-distance", label: "Slight Lean Looking Off into Distance", description: "Male - Contemplative, stylish" },
-    
-    // Male - Back Poses
-    { id: "male-back-full-arms-relaxed", label: "Full Back Arms Relaxed by Sides", description: "Male - Neutral and clean" },
-    { id: "male-back-hand-waist", label: "Back to Camera One Hand on Waist", description: "Male - Emphasizes body shape" },
-    { id: "male-back-arms-behind", label: "Standing Tall with Arms Behind Back", description: "Male - Strong and composed" },
-    { id: "male-back-leg-forward", label: "One Leg Slightly Forward Hands Relaxed by Sides", description: "Male - Dynamic and bold" },
-    { id: "male-back-hands-lower-back", label: "Back View Hands on Lower Back", description: "Male - Elegant and poised" },
-    { id: "male-back-head-over-shoulder", label: "Back to Camera Head Over Shoulder", description: "Male - Gives a soft yet confident look" },
-    { id: "male-back-hands-pockets", label: "Full Back with Hands in Pockets", description: "Male - Relaxed yet confident" },
-    { id: "male-back-arms-behind-head", label: "Arms Behind Head Slight Lean", description: "Male - Powerful, showcasing garment details" },
-    { id: "male-back-arm-raised", label: "Back to Camera One Arm Raised", description: "Male - For showing jacket sleeve or detailing" },
-    { id: "male-back-hand-collar", label: "Straight Back One Hand Resting on Collar or Neck", description: "Male - Casual elegance" },
+  // Male - Side Profile Poses
+  { id: "male-side-full-pockets", label: "Full Side Hands in Pockets", description: "Male - Casual, sleek look" },
+  { id: "male-side-lean-leg-forward", label: "Side Lean with One Leg Forward", description: "Male - Stylized, focus on fit" },
+  { id: "male-side-arm-across-chest", label: "One Arm Across Chest Other Relaxed", description: "Male - Strong yet balanced" },
+  { id: "male-side-hand-hair", label: "Side Profile with Hand in Hair", description: "Male - Stylish and youthful" },
+  { id: "male-side-foot-forward", label: "Side View One Foot Forward", description: "Male - Dynamic, emphasizing lines" },
+  { id: "male-side-hand-neck-tilt", label: "Hand on Neck Head Tilted", description: "Male - Soft, natural vibe" },
+  { id: "male-side-hand-waist-lean", label: "One Hand on Waist Side Lean", description: "Male - Powerful and confident" },
+  { id: "male-side-head-turned", label: "Side Profile Head Slightly Turned Looking Forward", description: "Male - Gives a clean, polished feel" },
+  { id: "male-side-relaxed-hands", label: "Relaxed Side Hands by Sides", description: "Male - Simple, clean lines" },
+  { id: "male-side-hand-pocket", label: "One Hand Resting on Pocket Other Relaxed", description: "Male - Casual and approachable" },
+  { id: "male-side-head-turned-smile", label: "Side Head Slightly Turned with Soft Smile", description: "Male - Friendly, approachable look" },
+  { id: "male-side-hand-lower-back", label: "Hand Resting on Lower Back Slight Lean", description: "Male - Elegant, flowing pose" },
+  { id: "male-side-crossed-arms", label: "Side Profile with Softly Crossed Arms", description: "Male - Structured and calm" },
+  { id: "male-side-legs-crossed", label: "Legs Crossed at the Ankle Hands Relaxed", description: "Male - Casual and strong" },
+  { id: "male-side-head-forward-hands", label: "Head Facing Forward Hands Relaxed by Sides", description: "Male - Neutral, balanced stance" },
+  { id: "male-side-pocket-lean-back", label: "Hand Resting on Pocket Lean Back Slightly", description: "Male - Relaxed, confident stance" },
+  { id: "male-side-foot-forward-arms-back", label: "One Foot Forward Arms Behind Back", description: "Male - Elegant, structured" },
+  { id: "male-side-arched-back", label: "Relaxed Side Slightly Arched Back", description: "Male - Creates an appealing silhouette" },
+  { id: "male-side-hands-waist", label: "Side Profile with Hands Resting on Waist", description: "Male - Strong, confident stance" },
+  { id: "male-side-lean-distance", label: "Slight Lean Looking Off into Distance", description: "Male - Contemplative, stylish" },
+
+  // Male - Back Poses
+  { id: "male-back-full-arms-relaxed", label: "Full Back Arms Relaxed by Sides", description: "Male - Neutral and clean" },
+  { id: "male-back-hand-waist", label: "Back to Camera One Hand on Waist", description: "Male - Emphasizes body shape" },
+  { id: "male-back-arms-behind", label: "Standing Tall with Arms Behind Back", description: "Male - Strong and composed" },
+  { id: "male-back-leg-forward", label: "One Leg Slightly Forward Hands Relaxed by Sides", description: "Male - Dynamic and bold" },
+  { id: "male-back-hands-lower-back", label: "Back View Hands on Lower Back", description: "Male - Elegant and poised" },
+  { id: "male-back-head-over-shoulder", label: "Back to Camera Head Over Shoulder", description: "Male - Gives a soft yet confident look" },
+  { id: "male-back-hands-pockets", label: "Full Back with Hands in Pockets", description: "Male - Relaxed yet confident" },
+  { id: "male-back-arms-behind-head", label: "Arms Behind Head Slight Lean", description: "Male - Powerful, showcasing garment details" },
+  { id: "male-back-arm-raised", label: "Back to Camera One Arm Raised", description: "Male - For showing jacket sleeve or detailing" },
+  { id: "male-back-hand-collar", label: "Straight Back One Hand Resting on Collar or Neck", description: "Male - Casual elegance" },
 ]
 
 export default function ModelEditor({ selectedModel, dressImage, onBack, onComplete, gender }: ModelEditorProps) {
@@ -144,7 +146,8 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
   const [downloadWidth, setDownloadWidth] = useState<string>("1024")
   const [downloadHeight, setDownloadHeight] = useState<string>("1280")
   const [downloadRatio, setDownloadRatio] = useState<string>("custom")
-  const [isDownloading, setIsDownloading] = useState<{index: number | undefined, isDownloading: boolean}>({index: undefined, isDownloading: false})
+  const [fitMode, setFitMode] = useState<"contain" | "cover" | "stretch">("contain")
+  const [isDownloading, setIsDownloading] = useState<{ index: number | undefined, isDownloading: boolean }>({ index: undefined, isDownloading: false })
 
   const [replacedModel, setReplacedModel] = useState<string | null>(null)
   const [isHoveringModel, setIsHoveringModel] = useState(false)
@@ -157,7 +160,7 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
 
 
   const handleAddPose = () => {
-    if(poses.length >= 8){
+    if (poses.length >= 8) {
       toast.info("Maximum 8 poses reached")
       return
     }
@@ -166,15 +169,15 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
       if (!poses.includes(normalized)) {
         setPoses([...poses, normalized])
         setNewPose("")
-      }else{
+      } else {
         toast.info("Pose already exists")
       }
     }
 
-    if(gender === "female"){
-      FEMALE_POSES.push({id:`${new Date().getTime()}`,label:newPose,description:newPose})
-    }else{
-      MALE_POSES.push({id:`${new Date().getTime()}`,label:newPose,description:newPose})
+    if (gender === "female") {
+      FEMALE_POSES.push({ id: `${new Date().getTime()}`, label: newPose, description: newPose })
+    } else {
+      MALE_POSES.push({ id: `${new Date().getTime()}`, label: newPose, description: newPose })
     }
   }
 
@@ -239,7 +242,7 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
       toast.info("No model selected")
       return
     }
-    
+
     setIsGenerating(true)
     try {
       let modelFile: File | Blob
@@ -256,23 +259,23 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
         // Fallback: treat as data URL
         modelFile = dataURLtoFile(currentModel, `model-${Date.now()}.jpg`)
       }
-    
+
       // Create FormData
       const formData = new FormData()
       formData.append("file", modelFile)
-      
+
       // Add poses array - can be added multiple times or as comma-separated values
       poses.forEach((pose) => {
         formData.append("poses", pose)
       })
-      
+
       if (useCustomPosePrompt && posePromptOverride) {
         formData.append("pose_prompt_override", posePromptOverride)
       }
 
       // Get token from localStorage
       const token = localStorage.getItem(appConstant.JWT_AUTH_TOKEN)
-      
+
       // Make API call
       const response = await axios.post(
         `${appConstant.BACKEND_API_URL}/generate/generate-pose-variants-beta`,
@@ -306,92 +309,65 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
       toast.info("No images to download")
       return
     }
-    setIsDownloading({index: imageIndex, isDownloading: true})
+    setIsDownloading({ index: imageIndex, isDownloading: true })
     try {
-    // for direct download with custom ratio
-    
-    if(imageIndex !== undefined){
-      const image = generatedImages[imageIndex]
-      const blob = await commonService.downloadSingleFile(image)
-      const downloadUrl = URL.createObjectURL(blob)
-      const link = document.createElement("a")
-      link.href = downloadUrl
-      link.download = `ai4fi-pose-${imageIndex + 1}-${Date.now()}.jpg`
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      URL.revokeObjectURL(downloadUrl)
-      return
-    }else{
-      await commonService.downloadFileFromAPI(generatedImages, "ai4fi-pose", "ai4fi-poses.zip")
-      return
-    }
+      // Validate dimensions
+      const width = Number(downloadWidth)
+      const height = Number(downloadHeight)
 
-      // Get the images to download
-      const imagesToDownload = imageIndex !== undefined 
-        ? [generatedImages[imageIndex as number]] 
-        : generatedImages
-
-      // Extract filenames from URLs
-      const filenames = imagesToDownload.map(url => url)
-
-      // Get dimensions if both are provided
-      const width = Number.parseInt(downloadWidth)
-      const height = Number.parseInt(downloadHeight)
-      
-      // Prepare request body
-      const requestBody: {
-        filenames: string[]
-        height?: number
-        width?: number
-      } = {
-        filenames,
+      if (isNaN(width) || width <= 0 || !isFinite(width)) {
+        toast.error("Invalid width. Please enter a valid positive number.")
+        return
       }
 
-      // Add dimensions if both are provided
-      if (width && height) {
-        requestBody.width = width
-        requestBody.height = height
+      if (isNaN(height) || height <= 0 || !isFinite(height)) {
+        toast.error("Invalid height. Please enter a valid positive number.")
+        return
       }
 
-      // Get token from localStorage
-      const token = localStorage.getItem(appConstant.JWT_AUTH_TOKEN)
+      const opts: ResizeOptions = {
+        width: Math.round(width),
+        height: Math.round(height),
+        keepAspect: false,
+        fit: fitMode,
+        mimeType: "image/png",
+        quality: 0.92,
+        background: fitMode === "contain" ? "#FFFFFF" : "#00000000",
+      };
 
-      // Make API call
-      try {
-        const response = await axios.post(
-          `${appConstant.BACKEND_API_URL}/download/download_poses`,
-          requestBody,
-          {
-            responseType: "blob", // Expecting binary data (ZIP file)
-            headers: {
-              "Content-Type": "application/json",
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-          }
-        )
-
-        // Create download link from blob response
-        const downloadUrl = URL.createObjectURL(new Blob([response.data]))
-        const link = document.createElement("a")
-        link.href = downloadUrl
-        link.download = imageIndex !== undefined 
-          ? `pose-${(imageIndex as number) + 1}-${Date.now()}.zip`
-          : `poses-${Date.now()}.zip`
-        document.body.appendChild(link) // Append to DOM for Firefox compatibility
-        link.click()
-        link.remove() // Clean up
-        URL.revokeObjectURL(downloadUrl) // Release the object URL
-      } catch (apiError: any) {
-        // If API call fails, fall back to downloading images directly with original dimensions
-        console.warn("API download failed, falling back to direct download:", apiError)
-        await commonService.downloadFileFromAPI(imagesToDownload, "ai4fi-pose", "ai4fi-poses.zip")
+      // Download single image with custom size
+      if (imageIndex !== undefined) {
+        const image = generatedImages[imageIndex]
+        const blob = await commonService.downloadSingleFile(image)
+        const resizeBlob = await resizeImage(blob, opts);
+        const ext = defaultExt(opts.mimeType || "image/png");
+        downloadBlob(resizeBlob, `ai4fi-pose-${imageIndex + 1}-${Date.now()}.${ext}`);
+        return
       }
+
+      // Download all images with custom size
+      const imageBlobs = await Promise.all(
+        generatedImages.map(async (image) => {
+          const blob = await commonService.downloadSingleFile(image)
+          return await resizeImage(blob, opts)
+        })
+      )
+
+      // Create a zip file from all resized images
+      const zip = new JSZip()
+
+      imageBlobs.forEach((blob, index) => {
+        const ext = defaultExt(opts.mimeType || "image/png")
+        zip.file(`ai4fi-pose-${index + 1}.${ext}`, blob)
+      })
+
+      const zipBlob = await zip.generateAsync({ type: "blob" })
+      downloadBlob(zipBlob, `ai4fi-poses-${width}x${height}-${Date.now()}.zip`)
     } catch (error: any) {
       console.error("Error downloading poses:", error)
       toast.error(error?.response?.data?.message || error?.message || "Failed to download poses. Please try again.")
     } finally {
-      setIsDownloading({index:undefined, isDownloading: false})
+      setIsDownloading({ index: undefined, isDownloading: false })
     }
   }
 
@@ -525,54 +501,54 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
                 )} */}
 
                 {/* Predefined Poses Select */}
-             
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-2">
-                      Select Predefined Poses (max {8 - poses.length} remaining)
-                    </label>
-                    <MultiSelect
-                      options={[...getPoses().map((pose) => ({
-                        value: pose.label.toLowerCase(),
-                        label: `${pose.label}`
-                      }))]}
-                      noOfposes={8 - poses.filter((pose) => 
+
+                <div>
+                  <label className="block text-sm font-medium text-white mb-2">
+                    Select Predefined Poses (max {8 - poses.length} remaining)
+                  </label>
+                  <MultiSelect
+                    options={[...getPoses().map((pose) => ({
+                      value: pose.label.toLowerCase(),
+                      label: `${pose.label}`
+                    }))]}
+                    noOfposes={8 - poses.filter((pose) =>
+                      !getPoses().some((p) => p.label.toLowerCase() === pose)
+                    ).length}
+                    onChange={(selectedOptions: IOption[]) => {
+                      const selectedPredefinedPoses = selectedOptions.map((option: IOption) => option.value)
+                      const customPoses = poses.filter((pose) =>
                         !getPoses().some((p) => p.label.toLowerCase() === pose)
-                      ).length}
-                      onChange={(selectedOptions: IOption[]) => {
-                        const selectedPredefinedPoses = selectedOptions.map((option: IOption) => option.value)
-                        const customPoses = poses.filter((pose) => 
-                          !getPoses().some((p) => p.label.toLowerCase() === pose)
-                        )
-                        // Combine custom poses with selected predefined poses
-                        setPoses([...customPoses, ...selectedPredefinedPoses].slice(0, 8))
-                      }}
-                      selectedPoses={poses}
-                      />
-                  </div>
-              
+                      )
+                      // Combine custom poses with selected predefined poses
+                      setPoses([...customPoses, ...selectedPredefinedPoses].slice(0, 8))
+                    }}
+                    selectedPoses={poses}
+                  />
+                </div>
+
 
                 {/* Custom Pose Input */}
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-2">Or Add Custom Pose</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newPose}
-                        onChange={(e) => setNewPose(e.target.value)}
-                        onKeyPress={(e) => e.key === "Enter" && handleAddPose()}
-                        placeholder="Enter custom pose (e.g., stretching, leaning)"
-                        className="flex-1 px-3 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
-                      />
-                      <button
-                        onClick={handleAddPose}
-                        disabled={!newPose.trim()}
-                        className="px-3 py-2 rounded-lg border border-white text-white hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
+                <div>
+                  <label className="block text-sm font-medium text-white mb-2">Or Add Custom Pose</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newPose}
+                      onChange={(e) => setNewPose(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && handleAddPose()}
+                      placeholder="Enter custom pose (e.g., stretching, leaning)"
+                      className="flex-1 px-3 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                    />
+                    <button
+                      onClick={handleAddPose}
+                      disabled={!newPose.trim()}
+                      className="px-3 py-2 rounded-lg border border-white text-white hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
                   </div>
-              
+                </div>
+
               </div>
             </div>
 
@@ -629,7 +605,7 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {generatedImages.map((img, idx) => (
                   <div key={idx} className="space-y-3">
-                    <div 
+                    <div
                       className="rounded-lg overflow-hidden border border-gray-700 bg-gray-700/20 relative group cursor-pointer"
                       onClick={() => {
                         setZoomedImage(img)
@@ -650,7 +626,7 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
                       disabled={isDownloading.index === idx && isDownloading.isDownloading}
                       className="w-full border border-gray-500 text-white hover:bg-gray-900/50  font-semibold px-2 py-1 rounded-lg gap-2 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      { isDownloading.index === idx && isDownloading.isDownloading ? (
+                      {isDownloading.index === idx && isDownloading.isDownloading ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
                           Downloading...
@@ -682,24 +658,59 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
                       <button
                         key={ratio}
                         onClick={() => handleRatioChange(ratio)}
-                        className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                          downloadRatio === ratio
-                            ? "text-white bg-gray-900/50 border border-gray-300"
-                            : "border border-gray-700 text-white hover:bg-gray-700/30"
-                        }`}
+                        className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${downloadRatio === ratio
+                          ? "text-white bg-gray-900/50 border border-gray-300"
+                          : "border border-gray-700 text-white hover:bg-gray-700/30"
+                          }`}
                       >
                         {ratio}
                       </button>
                     ))}
                     <button
                       onClick={() => setDownloadRatio("custom")}
-                      className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                        downloadRatio === "custom"
-                          ? "bg-white text-gray-800"
-                          : "border border-gray-700 text-white hover:bg-gray-700/30"
-                      }`}
+                      className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${downloadRatio === "custom"
+                        ? "bg-white text-gray-800"
+                        : "border border-gray-700 text-white hover:bg-gray-700/30"
+                        }`}
                     >
                       Custom
+                    </button>
+                  </div>
+                </div>
+
+                {/* Fit Mode Selector */}
+                <div>
+                  <label className="block text-xs font-medium text-white mb-2">Resize Mode</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => setFitMode("contain")}
+                      className={`px-3 py-2 rounded-md text-xs font-medium transition-colors ${fitMode === "contain"
+                        ? "bg-white text-gray-800 border border-gray-300"
+                        : "border border-gray-700 text-white hover:bg-gray-700/30"
+                        }`}
+                      title="Fits entire image without cropping (may have padding)"
+                    >
+                      Contain
+                    </button>
+                    <button
+                      onClick={() => setFitMode("cover")}
+                      className={`px-3 py-2 rounded-md text-xs font-medium transition-colors ${fitMode === "cover"
+                        ? "bg-white text-gray-800 border border-gray-300"
+                        : "border border-gray-700 text-white hover:bg-gray-700/30"
+                        }`}
+                      title="Fills entire area (may crop image)"
+                    >
+                      Cover
+                    </button>
+                    <button
+                      onClick={() => setFitMode("stretch")}
+                      className={`px-3 py-2 rounded-md text-xs font-medium transition-colors ${fitMode === "stretch"
+                        ? "bg-white text-gray-800 border border-gray-300"
+                        : "border border-gray-700 text-white hover:bg-gray-700/30"
+                        }`}
+                      title="Stretches to exact dimensions (may distort)"
+                    >
+                      Stretch
                     </button>
                   </div>
                 </div>

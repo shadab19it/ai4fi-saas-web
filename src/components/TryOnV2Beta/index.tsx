@@ -43,7 +43,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-background">
-        <div className='p-3 bg-gray-900 flex justify-between'>
+      <div className='p-3 bg-gray-900 flex justify-between'>
         <h2 className='text-xl font-bold flex items-center gap-2'>
           <Link to={"/"}>
             <img src={DarkLogo} className='w-20 h-8' alt='AI4FI' />
@@ -59,7 +59,7 @@ export default function Home() {
             Back
           </button>
          </Link>
-        </div>
+       </div>
       </div>
       {step === "dress" && <DressUpload onUploadComplete={handleDressUpload} />}
       {step === "selection" && dressImage && (

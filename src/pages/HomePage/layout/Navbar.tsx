@@ -31,11 +31,12 @@ const Navbar = () => {
     { name: "Gallery", icon: "gallery", link: "/model-gallery", isLink: true },
     { name: "Contact", icon: "contact", link: "/contact", isLink: true },
   ];
-
+  
   const dropdownItems = [
     { name: "Model Generator", href: "/model" },
     { name: "Virtual Try Room", href: "/virtualtryon" },
     { name: "Try On V2 (beta)", href: "/try-on-v2-beta" },
+    { name: "Ads Generator", href: "/ads-generator" },
   ];
 
   return (

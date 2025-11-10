@@ -67,6 +67,8 @@ const HeroSection = () => {
             backgroundImage: "url('/hero-bg.jpg')",
             backgroundSize: "cover",
           }}></div>
+
+
         {/* <div
           className='absolute inset-0 opacity-20'
           style={{
