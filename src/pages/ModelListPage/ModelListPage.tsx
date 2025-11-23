@@ -41,6 +41,9 @@ const ModelListPage: FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [zoomedImage, setZoomedImage] = useState<string>("");
+  const [flowsList, setFlowsList] = useState<any[]>([]);
+  const [selectedFlow, setSelectedFlow] = useState<any | null>(null);
+  const [isFlowModalOpen, setIsFlowModalOpen] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const getModelList = async () => {
@@ -58,8 +61,27 @@ const ModelListPage: FC = () => {
     }
   };
 
+  const getFlowsList = async () => {
+    setLoading(true);
+    try {
+      const res = await modelService.getFlowsList(pageSize, limit);
+      setFlowsList(res.flows || []);
+      setTotalCount(res.totalCount);
+      setTotalPages(res.totalPages);
+      setPageSize(res.currentPage);
+      setLoading(false);
+    } catch (error: any) {
+      toast.error(error.message);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    getModelList();
+    if (activeTab === "ads") {
+      getFlowsList();
+    } else {
+      getModelList();
+    }
   }, [pageSize, imageType, activeTab, refreh]);
   useEffect(() => {
     dispatch(clearSelectedModel());
@@ -147,7 +169,18 @@ const ModelListPage: FC = () => {
       navigate("/model-gallery");
     } else if (tab === "tryon") {
       setImageType("tryon");
+    } else if (tab === "tryon_beta") {
+      setImageType("tryon_beta");
+    } else if (tab === "pose_variants") {
+      setImageType("pose_variants");
+    } else if (tab === "ads") {
+      setImageType("ads");
     }
+  };
+
+  const handleFlowClick = (flow: any) => {
+    setSelectedFlow(flow);
+    setIsFlowModalOpen(true);
   };
 
   const onPrv = () => {
@@ -183,7 +216,7 @@ const ModelListPage: FC = () => {
           <h1 className='text-2xl font-bold text-white'>Select model images</h1>
           <div className='flex  items-center gap-2 '>
             <button
-              onClick={() => navigate("/choose-option")}
+              onClick={() => navigate("/features")}
               className='flex items-center text-white hover:text-gray-300 transition-colors'>
               <ArrowLeft className='w-5 h-5 mr-2' />
               Back
@@ -196,7 +229,7 @@ const ModelListPage: FC = () => {
 
         {/* Tab Navigation */}
         <div className='flex justify-between items-start'>
-          <div className='flex space-x-8 mb-8'>
+          <div className='flex flex-wrap space-x-8 mb-8'>
             <button
               className={`text-lg font-medium ${activeTab === "existingModels" ? "text-blue-500" : "text-white"}`}
               onClick={() => onChangeTab("existingModels")}>
@@ -212,11 +245,26 @@ const ModelListPage: FC = () => {
               onClick={() => onChangeTab("tryon")}>
               Virtual Try On
             </button>
+            <button
+              className={`text-lg font-medium ${activeTab === "tryon_beta" ? "text-blue-500" : "text-white"}`}
+              onClick={() => onChangeTab("tryon_beta")}>
+              Try On Beta
+            </button>
+            <button
+              className={`text-lg font-medium ${activeTab === "pose_variants" ? "text-blue-500" : "text-white"}`}
+              onClick={() => onChangeTab("pose_variants")}>
+              Pose Variants
+            </button>
+            <button
+              className={`text-lg font-medium ${activeTab === "ads" ? "text-blue-500" : "text-white"}`}
+              onClick={() => onChangeTab("ads")}>
+              Ads
+            </button>
           </div>
-          {modelList.length > 0 && (
+          {((activeTab === "ads" && flowsList.length > 0) || (activeTab !== "ads" && modelList.length > 0)) && (
             <div className='pt-2 flex gap-3 text-gray-100'>
               <h2 className='text-xl'>
-                {pageSize * modelList.length}/{totalCount}
+                {pageSize * (activeTab === "ads" ? flowsList.length : modelList.length)}/{totalCount}
               </h2>
               <div className='flex items-center'>
                 <ChevronLeft className='cursor-pointer hover:text-blue-400' onClick={onPrv} />
@@ -230,7 +278,7 @@ const ModelListPage: FC = () => {
         <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-24'>
           {!loading &&
             modelList.length > 0 &&
-            imageType === "model" &&
+            (imageType === "model" || imageType === "tryon" || imageType === "tryon_beta" || imageType === "pose_variants") &&
             modelList.map(
               (model, i) =>
                 model?.generatedImages?.image_urls?.length > 0 &&
@@ -376,6 +424,186 @@ const ModelListPage: FC = () => {
                   </div>
                 ))
             )}
+          {!loading &&
+            modelList.length > 0 &&
+            imageType === "tryon_beta" &&
+            modelList.map(
+              (model, i) =>
+                model?.generatedImages?.length > 0 &&
+                model?.generatedImages?.map((url: string, index: number) => (
+                  <div
+                    key={`${i}_${index}`}
+                    className='relative cursor-pointer group'
+                    onClick={() => {
+                      dispatch(setSelectedModel(`${i}_${index}`));
+                      onSelectResult(`${i}_${index}`);
+                    }}>
+                    <div className='relative aspect-square overflow-hidden rounded-xl'>
+                      <img
+                        src={url && url}
+                        alt={`Model ${i}_${index}`}
+                        className='w-auto h-auto max-w-full max-h-[500px] mx-auto object-contain rounded-xl transition-transform duration-300 group-hover:scale-105'
+                      />
+                      <div
+                        className={`absolute inset-0 bg-black/40 transition-opacity ${
+                          selectedModel.includes(`${i}_${index}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                        }`}>
+                        <div className='absolute top-4 right-4'>
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              selectedModel.includes(`${i}_${index}`) ? "bg-blue-500" : "bg-white"
+                            }`}>
+                            <Check className={`w-5 h-5 ${selectedModel.includes(`${i}_${index}`) ? "text-white" : "text-gray-900"}`} />
+                          </div>
+                        </div>
+
+                        {/* Delete Image */}
+                        <div
+                          className={`absolute inset-0 bg-black/40 transition-opacity ${
+                            zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                          }`}>
+                          <div className='absolute top-4 left-4'>
+                            <div className='flex space-x-4'>
+                              <Trash
+                                className='h-6 w-6 z-[10] cursor-pointer text-red-400 hover:text-red-700'
+                                onClick={() => {
+                                  onDeleteImage(model._id, url);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`absolute inset-0 bg-black/40 transition-opacity ${
+                            zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                          }`}>
+                          <div className='flex items-center h-full justify-center'>
+                            <div className='flex space-x-4'>
+                              <ZoomIn
+                                className='h-6 w-6 z-[10] cursor-pointer text-gray-100 hover:text-blue-400'
+                                onClick={() => {
+                                  setZoomedImage(url);
+                                  setIsModalOpen(true);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+            )}
+          {!loading &&
+            modelList.length > 0 &&
+            imageType === "pose_variants" &&
+            modelList.map(
+              (model, i) =>
+                model?.generatedImages?.length > 0 &&
+                model?.generatedImages?.map((url: string, index: number) => (
+                  <div
+                    key={`${i}_${index}`}
+                    className='relative cursor-pointer group'
+                    onClick={() => {
+                      dispatch(setSelectedModel(`${i}_${index}`));
+                      onSelectResult(`${i}_${index}`);
+                    }}>
+                    <div className='relative aspect-square overflow-hidden rounded-xl'>
+                      <img
+                        src={url && url}
+                        alt={`Model ${i}_${index}`}
+                        className='w-auto h-auto max-w-full max-h-[500px] mx-auto object-contain rounded-xl transition-transform duration-300 group-hover:scale-105'
+                      />
+                      <div
+                        className={`absolute inset-0 bg-black/40 transition-opacity ${
+                          selectedModel.includes(`${i}_${index}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                        }`}>
+                        <div className='absolute top-4 right-4'>
+                          <div
+                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              selectedModel.includes(`${i}_${index}`) ? "bg-blue-500" : "bg-white"
+                            }`}>
+                            <Check className={`w-5 h-5 ${selectedModel.includes(`${i}_${index}`) ? "text-white" : "text-gray-900"}`} />
+                          </div>
+                        </div>
+
+                        {/* Delete Image */}
+                        <div
+                          className={`absolute inset-0 bg-black/40 transition-opacity ${
+                            zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                          }`}>
+                          <div className='absolute top-4 left-4'>
+                            <div className='flex space-x-4'>
+                              <Trash
+                                className='h-6 w-6 z-[10] cursor-pointer text-red-400 hover:text-red-700'
+                                onClick={() => {
+                                  onDeleteImage(model._id, url);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`absolute inset-0 bg-black/40 transition-opacity ${
+                            zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                          }`}>
+                          <div className='flex items-center h-full justify-center'>
+                            <div className='flex space-x-4'>
+                              <ZoomIn
+                                className='h-6 w-6 z-[10] cursor-pointer text-gray-100 hover:text-blue-400'
+                                onClick={() => {
+                                  setZoomedImage(url);
+                                  setIsModalOpen(true);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+            )}
+          {/* Flows/Ads Card List */}
+          {!loading &&
+            activeTab === "ads" &&
+            flowsList.length > 0 &&
+            flowsList.map((flow, index) => {
+              const productName = flow?.step1_generatePrompt?.product_name || "Unknown Product";
+              const flowStatus = flow?.flowStatus || "pending";
+              const thumbnailUrl = flow?.step3_createAdFromProduct?.urls?.[0] || flow?.step2_productPreprocessing?.urls?.[0] || "";
+              const createdAt = flow?.createdAt ? new Date(flow.createdAt).toLocaleDateString() : "";
+
+              return (
+                <div
+                  key={index}
+                  onClick={() => handleFlowClick(flow)}
+                  className='bg-gray-800 rounded-xl p-4 cursor-pointer hover:bg-gray-700 transition-colors border border-gray-700'>
+                  {thumbnailUrl && (
+                    <img
+                      src={thumbnailUrl}
+                      alt={productName}
+                      className='w-full h-48 object-cover rounded-lg mb-3'
+                    />
+                  )}
+                  <div>
+                    <h3 className='text-white font-semibold text-lg mb-2'>{productName}</h3>
+                    <div className='flex items-center gap-4 text-sm text-gray-400'>
+                      <span className={`px-2 py-1 rounded ${
+                        flowStatus === "completed" ? "bg-green-500/20 text-green-400" :
+                        flowStatus === "pending" ? "bg-yellow-500/20 text-yellow-400" :
+                        "bg-gray-500/20 text-gray-400"
+                      }`}>
+                        {flowStatus}
+                      </span>
+                      {createdAt && <span>Created: {createdAt}</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
         </div>
 
         {/* Continue Button */}
@@ -427,6 +655,172 @@ const ModelListPage: FC = () => {
                   <path strokeLinecap='round' strokeLinejoin='round' d='M6 18L18 6M6 6l12 12' />
                 </svg>
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Flow Details Modal */}
+        {isFlowModalOpen && selectedFlow && (
+          <div
+            className='fixed inset-0 bg-black bg-opacity-75 !ml-0 flex items-center justify-center z-50 p-4'
+            onClick={() => setIsFlowModalOpen(false)}>
+            <div
+              className='bg-gray-900 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto'
+              onClick={(e) => e.stopPropagation()}>
+              <div className='sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex justify-between items-center'>
+                <h2 className='text-2xl font-bold text-white'>
+                  {selectedFlow?.step1_generatePrompt?.product_name || "Flow Details"}
+                </h2>
+                <button
+                  onClick={() => {
+                    setIsFlowModalOpen(false);
+                    setSelectedFlow(null);
+                  }}
+                  className='bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700'>
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    strokeWidth={1.5}
+                    stroke='currentColor'
+                    className='w-6 h-6'>
+                    <path strokeLinecap='round' strokeLinejoin='round' d='M6 18L18 6M6 6l12 12' />
+                  </svg>
+                </button>
+              </div>
+
+              <div className='p-6 space-y-6'>
+                {/* Step 1: Generate Prompt */}
+                {selectedFlow?.step1_generatePrompt && (
+                  <div className='bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500'>
+                    <h3 className='text-xl font-semibold text-white mb-3'>Step 1: Generate Prompt</h3>
+                    <div className='space-y-2 text-gray-300'>
+                      <p><span className='font-semibold'>Product:</span> {selectedFlow.step1_generatePrompt.product_name}</p>
+                      <p><span className='font-semibold'>Description:</span> {selectedFlow.step1_generatePrompt.description}</p>
+                      <p><span className='font-semibold'>Tagline:</span> {selectedFlow.step1_generatePrompt.product_tagline}</p>
+                      <p><span className='font-semibold'>Model Gender:</span> {selectedFlow.step1_generatePrompt.model_gender}</p>
+                      <p><span className='font-semibold'>Model Ethnicity:</span> {selectedFlow.step1_generatePrompt.model_ethnicity}</p>
+                      <p><span className='font-semibold'>Tone:</span> {selectedFlow.step1_generatePrompt.tone}</p>
+                      {/* <div className='mt-3'>
+                        <p className='font-semibold mb-2'>Prompt:</p>
+                        <p className='bg-gray-700 p-3 rounded text-sm'>{selectedFlow.step1_generatePrompt.prompt}</p>
+                      </div> */}
+                      <p className='text-green-400 text-sm mt-2'>
+                        ✓ Completed at: {new Date(selectedFlow.step1_generatePrompt.completedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Product Preprocessing */}
+                {selectedFlow?.step2_productPreprocessing && (
+                  <div className='bg-gray-800 rounded-lg p-4 border-l-4 border-purple-500'>
+                    <h3 className='text-xl font-semibold text-white mb-3'>Step 2: Product Preprocessing</h3>
+                    <div className='space-y-2 text-gray-300'>
+                      <p><span className='font-semibold'>Mode:</span> {selectedFlow.step2_productPreprocessing.mode}</p>
+                      <p><span className='font-semibold'>Requested Count:</span> {selectedFlow.step2_productPreprocessing.requested_count}</p>
+                      {selectedFlow.step2_productPreprocessing.urls && selectedFlow.step2_productPreprocessing.urls.length > 0 && (
+                        <div className='mt-3'>
+                          <p className='font-semibold mb-2'>Processed Images:</p>
+                          <div className='grid grid-cols-2 gap-4'>
+                            {selectedFlow.step2_productPreprocessing.urls.map((url: string, idx: number) => (
+                              <img key={idx} src={url} alt={`Preprocessed ${idx + 1}`} className='w-full rounded-lg' />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <p className='text-green-400 text-sm mt-2'>
+                        ✓ Completed at: {new Date(selectedFlow.step2_productPreprocessing.completedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Create Ad From Product */}
+                {selectedFlow?.step3_createAdFromProduct && (
+                  <div className='bg-gray-800 rounded-lg p-4 border-l-4 border-green-500'>
+                    <h3 className='text-xl font-semibold text-white mb-3'>Step 3: Create Ad From Product</h3>
+                    <div className='space-y-2 text-gray-300'>
+                      <p><span className='font-semibold'>Mode:</span> {selectedFlow.step3_createAdFromProduct.mode}</p>
+                      <p><span className='font-semibold'>Requested Count:</span> {selectedFlow.step3_createAdFromProduct.requested_count}</p>
+                      {/* {selectedFlow.step3_createAdFromProduct.prompt && (
+                        <div className='mt-3'>
+                          <p className='font-semibold mb-2'>Prompt Used:</p>
+                          <p className='bg-gray-700 p-3 rounded text-sm'>{selectedFlow.step3_createAdFromProduct.prompt}</p>
+                        </div>
+                      )} */}
+                      {selectedFlow.step3_createAdFromProduct.urls && selectedFlow.step3_createAdFromProduct.urls.length > 0 && (
+                        <div className='mt-3'>
+                          <p className='font-semibold mb-2'>Generated Ad Images:</p>
+                          <div className='grid grid-cols-2 gap-4'>
+                            {selectedFlow.step3_createAdFromProduct.urls.map((url: string, idx: number) => (
+                              <img key={idx} src={url} alt={`Ad ${idx + 1}`} className='w-full rounded-lg' />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <p className='text-green-400 text-sm mt-2'>
+                        ✓ Completed at: {new Date(selectedFlow.step3_createAdFromProduct.completedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Generate Video Ad Prompt */}
+                {selectedFlow?.step4_generateVideoAdPrompt && (
+                  <div className='bg-gray-800 rounded-lg p-4 border-l-4 border-yellow-500'>
+                    <h3 className='text-xl font-semibold text-white mb-3'>Step 4: Generate Video Ad Prompt</h3>
+                    <div className='space-y-2 text-gray-300'>
+                      <p><span className='font-semibold'>Product Name:</span> {selectedFlow.step4_generateVideoAdPrompt.product_name}</p>
+                      {selectedFlow.step4_generateVideoAdPrompt.audio_script && (
+                        <p><span className='font-semibold'>Audio Script:</span> {selectedFlow.step4_generateVideoAdPrompt.audio_script}</p>
+                      )}
+                      {/* {selectedFlow.step4_generateVideoAdPrompt.video_prompt && (
+                        <div className='mt-3'>
+                          <p className='font-semibold mb-2'>Video Prompt:</p>
+                          <p className='bg-gray-700 p-3 rounded text-sm whitespace-pre-wrap'>{selectedFlow.step4_generateVideoAdPrompt.video_prompt}</p>
+                        </div>
+                      )} */}
+                      <p className='text-green-400 text-sm mt-2'>
+                        ✓ Completed at: {new Date(selectedFlow.step4_generateVideoAdPrompt.completedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 5: Generate Ad Video */}
+                {selectedFlow?.step5_generateAdVideo && (
+                  <div className='bg-gray-800 rounded-lg p-4 border-l-4 border-red-500'>
+                    <h3 className='text-xl font-semibold text-white mb-3'>Step 5: Generate Ad Video</h3>
+                    <div className='space-y-2 text-gray-300'>
+                      {selectedFlow.step5_generateAdVideo.video_url && (
+                        <div className='mt-3'>
+                          <p className='font-semibold mb-2'>Video:</p>
+                          <video
+                            src={selectedFlow.step5_generateAdVideo.video_url}
+                            controls
+                            className='w-full rounded-lg'
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        </div>
+                      )}
+                      {/* {selectedFlow.step5_generateAdVideo.prompt && (
+                        <div className='mt-3'>
+                          <p className='font-semibold mb-2'>Prompt:</p>
+                          <p className='bg-gray-700 p-3 rounded text-sm whitespace-pre-wrap'>{selectedFlow.step5_generateAdVideo.prompt}</p>
+                        </div>
+                      )} */}
+                      {selectedFlow.step5_generateAdVideo.duration_seconds && (
+                        <p><span className='font-semibold'>Duration:</span> {selectedFlow.step5_generateAdVideo.duration_seconds} seconds</p>
+                      )}
+                      <p className='text-green-400 text-sm mt-2'>
+                        ✓ Completed at: {new Date(selectedFlow.step5_generateAdVideo.completedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

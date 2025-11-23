@@ -18,6 +18,7 @@ import TryOnV2BetaPage from "./pages/TryOnV2Beta";
 import ProductGeneratorPage from "./pages/ProductModelGenerator";
 import AdsGenerator from "./pages/AdsGenerator";
 import CreateAds from "./components/CreateAds";
+import FeaturesPage from "./pages/FeaturesCardPage/FeaturesCardPage";
 
 export const router = createBrowserRouter([
   {
@@ -105,5 +106,9 @@ export const router = createBrowserRouter([
   {
     path: "/create-ads",
     element: <ProtectedRoute component={CreateAds} />,
+  },
+  {
+    path: "/features",
+    element: <ProtectedRoute component={FeaturesPage} />,
   }
 ]);

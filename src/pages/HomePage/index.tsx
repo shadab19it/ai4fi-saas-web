@@ -7,11 +7,12 @@ import HeroSection from "./sections/HeroSection";
 import HowItWorks from "./sections/HowItWorks";
 import TestimonialsSection from "./sections/Testimonial";
 import AboutUs from "./sections/AboutUs";
+import HeroSection2 from "./sections/HeroSection2";
 
 const HomePage: FC = () => {
   return (
     <div>
-      <HeroSection />
+      <HeroSection2 />
       <HowItWorks />
       <DemoSection />
       <Features />

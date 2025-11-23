@@ -442,7 +442,7 @@ const ModelGeneratorUI: React.FC = () => {
         {/* Back to Home Button */}
         <div className='absolute top-4 right-4'>
           <div className='flex  gap-4 items-center'>
-            <Link to='/choose-option'>
+            <Link to='/features'>
               <button className='flex items-center text-white hover:text-gray-300 transition-colors'>
                 <ArrowLeft className='w-5 h-5 mr-2' />
                 Back

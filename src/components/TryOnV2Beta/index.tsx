@@ -54,7 +54,7 @@ export default function Home() {
           {/* Model Generator */}
         </h2>
         <div className='flex items-center gap-2'>
-         <Link to={"/"}>
+         <Link to={"/features"}>
           <button className='bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-800 hover:to-indigo-800 text-white  px-4 py-2  rounded-lg shadow-lg transition-transform transform hover:scale-105'>
             Back
           </button>

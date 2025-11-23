@@ -81,9 +81,9 @@ export function AdProvider({ children }: { children: React.ReactNode }) {
   const resetFlow = () => {
     setFlowId(null)
     setProductImage(null)
-    setProductName("Orange Juice")
-    setProductDescription("Cold-pressed 100% orange juice, no sugar added.")
-    setProductTagline("Pure Sunshine in Every Sip")
+    setProductName("")
+    setProductDescription("")
+    setProductTagline("")
     setStep1Prompt("")
     setStep1Error(null)
     setOriginalImageUrl(null)

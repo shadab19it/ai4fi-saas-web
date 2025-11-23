@@ -342,7 +342,7 @@ const VirtualTryon: FC = () => {
           <h1 className=' font-bold md:text-xl text-md'>TryOn Room</h1>
         </div>
         <div className='flex gap-2 items-center'>
-          <Link to='/choose-option'>
+          <Link to='/features'>
             <button className='flex items-center text-white hover:text-gray-300 transition-colors'>
               <ArrowLeft className='w-5 h-5 mr-2' />
               Back

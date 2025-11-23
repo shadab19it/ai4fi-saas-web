@@ -53,7 +53,7 @@ function CreateAdContent() {
           {/* Model Generator */}
         </h2>
         <div className='flex items-center gap-2'>
-         <Link to={"/"}>
+         <Link to={"/features"}>
           <button className='bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-800 hover:to-indigo-800 text-white  px-4 py-2  rounded-lg shadow-lg transition-transform transform hover:scale-105'>
             Back
           </button>
@@ -65,7 +65,7 @@ function CreateAdContent() {
           {/* <ProgressBar currentStep={step} totalSteps={3} /> */}
 
           {/* Main Content */}
-          <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             {step === 1 && <Step1Form onNext={() => setStep(2)} />}
             {step === 2 && <Step2Slider onNext={() => setStep(3)} onBack={() => setStep(1)} />}
             {step === 3 && <Step3Video onBack={() => setStep(2)} />}

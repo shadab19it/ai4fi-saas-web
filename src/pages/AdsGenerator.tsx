@@ -7,6 +7,7 @@ import ProductWithModelVideo from "../assets/ads_generated_video.mp4"
 import { Link, useNavigate } from "react-router-dom"
 import DarkLogo from "../../public/dark-logo.png"
 import { Sparkles } from "lucide-react"
+import BorderBeamAnimation from "../components/common/AnimatedBorder"
 
 
 const AdsGenerator: FC = () => {
@@ -48,7 +49,7 @@ const AdsGenerator: FC = () => {
           {/* Model Generator */}
         </h2>
         <div className='flex items-center gap-2'>
-         <Link to={"/"}>
+         <Link to={"/features"}>
           <button className='bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-800 hover:to-indigo-800 text-white  px-4 py-2  rounded-lg shadow-lg transition-transform transform hover:scale-105'>
             Back
           </button>
@@ -71,7 +72,8 @@ const AdsGenerator: FC = () => {
               </p>
             </div>
             <div className="flex justify-center md:col-span-4 col-span-1 mt-8 md:mt-0">
-              <button onClick={()=> navigate("/create-ads")} className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 rounded-full font-semibold text-lg shadow-lg hover:shadow-purple-500/50 transition transform hover:scale-105">
+              <button onClick={()=> navigate("/create-ads")} className="relative px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 rounded-full font-semibold text-lg shadow-lg hover:shadow-purple-500/50 transition transform hover:scale-105">
+                <BorderBeamAnimation size={100} />
                 Try Now – Create Your Ad in Minutes
               </button>
             </div>

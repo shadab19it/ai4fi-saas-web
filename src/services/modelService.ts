@@ -26,6 +26,12 @@ interface ModelListResponse extends ApiResponse {
   currentPage: number;
   totalCount: number;
 }
+interface FlowsListResponse extends ApiResponse {
+  flows: any[];
+  totalPages: number;
+  currentPage: number;
+  totalCount: number;
+}
 interface IVirtualTryOnResult extends ApiResponse {
   tryonResult: any[];
 }
@@ -95,6 +101,20 @@ class ModelService extends BaseService {
     try {
       const response = await this.axiosInstance.post<IModelResponse>(`/generate/generated-image/delete`, { id, imageUrl });
       return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+  async getFlowsList(page: number, limit: number): Promise<FlowsListResponse> {
+    try {
+      const response = await this.axiosInstance.get<FlowsListResponse>(`/product-ad/flows`, {
+        params: {
+          page,
+          limit,
+        },
+      });
+      return response.data;
     } catch (error) {
       const errInfo = this.handleCommonError(error as any);
       throw new Error(errInfo.error);

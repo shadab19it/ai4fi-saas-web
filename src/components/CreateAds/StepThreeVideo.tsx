@@ -1,6 +1,8 @@
 import type React from "react"
+import { useRef } from "react"
 import { useAd } from "../../store/AdsContext"
 import appConstant from "../../services/appConstant"
+import commonService from "../../services/commonService"
 
 interface Step3VideoProps {
   onBack: () => void
@@ -8,6 +10,7 @@ interface Step3VideoProps {
 
 export default function Step3Video({ onBack }: Step3VideoProps) {
   const ad = useAd()
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   const handleGenerateVideo = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,22 +47,25 @@ export default function Step3Video({ onBack }: Step3VideoProps) {
       const formData = new FormData()
 
       // Convert ad image URL to blob
-      const response = await fetch(ad.generatedAdImage!)
-      const blob = await response.blob()
-      const file = new File([blob], "ad-image.jpg", { type: "image/jpeg" })
-      formData.append("file", file)
+      const blobImgRes = await commonService.downloadSingleFile(ad.generatedAdImage!);
+      const productWithModel = new File([blobImgRes], "product-ad.jpg", { type: "image/jpeg" })
+
+      const productImage = await commonService.downloadSingleFile(ad.cleanedImageUrl!.toString());
+      const productImageFile = new File([productImage], "product-image.jpg", { type: "image/jpeg" })
+
+      formData.append("first_image", productWithModel)
+      formData.append("last_image", productImageFile)
       formData.append("prompt", promptData.video_prompt)
-      formData.append("audio_script", ad.audioScript)
       
       // Include flowId if available
       if (ad.flowId) {
         formData.append("flowId", ad.flowId)
       }
 
-      const videoResponse = await fetch(`${appConstant.BACKEND_API_URL}/product-ad/generate-video`, {
+      const videoResponse = await fetch(`${appConstant.BACKEND_API_URL}/product-ad/generate-ad-video`, {
         method: "POST",
         body: formData,
-        headers: { "Content-Type": "multipart/form-data",Authorization: `${localStorage.getItem(appConstant.JWT_AUTH_TOKEN)}` },
+        headers: { Authorization: `${localStorage.getItem(appConstant.JWT_AUTH_TOKEN)}` },
       })
 
       if (!videoResponse.ok) throw new Error("Failed to generate video")
@@ -80,17 +86,20 @@ export default function Step3Video({ onBack }: Step3VideoProps) {
     }
   }
 
-  const handleDownload = (url: string, filename: string) => {
-    const a = document.createElement("a")
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
+  const handleDownload = async (url: string, filename: string) => {
+   const videoRes = await commonService.downloadSingleFile(url);
+   const blobUrl = URL.createObjectURL(videoRes);
+   const link = document.createElement("a");
+   link.href = blobUrl;
+   link.download = filename;
+   document.body.appendChild(link);
+   link.click();
+   document.body.removeChild(link);
+   URL.revokeObjectURL(blobUrl);
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 max-w-4xl mx-auto">
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
           <span className="bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent">
@@ -122,7 +131,7 @@ export default function Step3Video({ onBack }: Step3VideoProps) {
               <img
                 src={ad.generatedAdImage || "/placeholder.svg"}
                 alt="Current Ad"
-                className="w-full max-h-64 object-cover rounded-lg"
+                className="w-full max-h-80 object-contain rounded-lg overflow-hidden"
               />
             </div>
           </div>
@@ -145,11 +154,32 @@ export default function Step3Video({ onBack }: Step3VideoProps) {
 
       {/* Video Preview */}
       {ad.generatedVideoUrl && (
-        <div className="relative group cursor-pointer">
+        <div 
+          className="relative group cursor-pointer"
+          onMouseEnter={() => {
+            if (videoRef.current) {
+              videoRef.current.muted = false
+              videoRef.current.play().catch(console.error)
+            }
+          }}
+          onMouseLeave={() => {
+            if (videoRef.current) {
+              videoRef.current.pause()
+              videoRef.current.currentTime = 0
+            }
+          }}
+        >
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl opacity-0 group-hover:opacity-20 transition blur-xl"></div>
           <div className="relative bg-slate-900/50 border border-purple-500/30 rounded-xl p-8">
             <h3 className="text-lg font-semibold mb-4 text-purple-300">Your Generated Video</h3>
-            <video src={ad.generatedVideoUrl} controls className="w-full rounded-lg mb-4" />
+            <video 
+              ref={videoRef}
+              src={ad.generatedVideoUrl} 
+              controls 
+              muted
+              loop
+              className="w-full rounded-lg mb-4" 
+            />
             <button
               onClick={() => handleDownload(ad.generatedVideoUrl!, "ad-video.mp4")}
               className="w-full px-4 py-3 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500 rounded-lg font-semibold transition"
@@ -169,7 +199,7 @@ export default function Step3Video({ onBack }: Step3VideoProps) {
           Back
         </button>
         <a
-          href="/"
+          href="/featuress"
           className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 rounded-lg font-semibold text-center transition"
         >
           Back to Home
