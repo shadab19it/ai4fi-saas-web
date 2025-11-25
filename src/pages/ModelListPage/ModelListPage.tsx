@@ -101,7 +101,7 @@ const ModelListPage: FC = () => {
     setDownloadLoading(true);
     const filterModel: any[] = [];
     let fileExt: string = ".png";
-    if (imageType === "model") {
+    if (imageType === "model" || imageType === "tryon_beta" || imageType === "pose_variants") {
       fileExt = ".jpeg";
       selectedModel.forEach((key, i1) => {
         const [leftIndex, rightIndex] = key.split("_").map(Number);
@@ -596,7 +596,7 @@ const ModelListPage: FC = () => {
                         flowStatus === "pending" ? "bg-yellow-500/20 text-yellow-400" :
                         "bg-gray-500/20 text-gray-400"
                       }`}>
-                        {flowStatus}
+                        <span className="capitalize">{flowStatus}</span>
                       </span>
                       {createdAt && <span>Created: {createdAt}</span>}
                     </div>

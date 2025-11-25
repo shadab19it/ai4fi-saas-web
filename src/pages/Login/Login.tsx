@@ -34,7 +34,7 @@ const LoginPage: React.FC = () => {
       toast.success(res.message, { position: "bottom-right" });
       setLoading(false);
       dispatch(setUserRefresh());
-      navigate("/choose-option");
+      navigate("/features");
     } catch (error: any) {
       toast.error(error.message);
       setLoading(false);

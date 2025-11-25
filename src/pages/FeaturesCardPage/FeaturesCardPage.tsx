@@ -17,15 +17,16 @@ export default function FeaturesPage() {
 
   const tools = [
     {
-      id: 1,
-      title: "AI MODEL GENERATOR",
-      description: "Create custom virtual models for any need.",
-      icon: "👤",
-      color: "from-cyan-500 to-blue-500",
+      id: 5,
+      title: "AI FASHION STUDIO",
+      description: "All-one platform for design & creation",
+      icon: "✨",
+      color: "from-cyan-400 to-purple-500",
       borderColor: "border-cyan-500/30 hover:border-cyan-400",
-      path: "/model",
-      image: CardImage1,
+      path: "/product-model-generator",
+      image: CardImage6,
     },
+
     {
       id: 2,
       title: "VIRTUAL TRY-ON",
@@ -47,6 +48,16 @@ export default function FeaturesPage() {
       image: CardImage3,
     },
     {
+      id: 1,
+      title: "AI MODEL GENERATOR",
+      description: "Create custom virtual models for any need.",
+      icon: "👤",
+      color: "from-cyan-500 to-blue-500",
+      borderColor: "border-cyan-500/30 hover:border-cyan-400",
+      path: "/model",
+      image: CardImage1,
+    },
+    {
       id: 4,
       title: "MODEL & ASSET GALLERY",
       description: "Access a vast collection of models & digital assets",
@@ -56,16 +67,7 @@ export default function FeaturesPage() {
       path: "/generated-model",
       image: CardImage5,
     },
-    {
-      id: 5,
-      title: "AI FASHION STUDIO",
-      description: "All-one platform for design & creation",
-      icon: "✨",
-      color: "from-cyan-400 to-purple-500",
-      borderColor: "border-cyan-500/30 hover:border-cyan-400",
-      path: "/product-model-generator",
-      image: CardImage6,
-    },
+
   ]
 
   return (

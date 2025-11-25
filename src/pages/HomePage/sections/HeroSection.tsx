@@ -51,7 +51,7 @@ const HeroSection = () => {
 
   const onClickStarted = () => {
     if (authService.isAuthenticated()) {
-      navigate("/choose-option");
+      navigate("/features");
     } else {
       navigate("/login");
     }
