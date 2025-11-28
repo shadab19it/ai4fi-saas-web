@@ -19,11 +19,11 @@ function CreateAdContent() {
     <>
       <LoadingOverlay isVisible={ad.isLoading} messages={ad.loadingMessage} />
 
-      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-purple-950 to-slate-950 text-white overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-black to-slate-950 text-white overflow-hidden">
         {/* Animated starfield background */}
         <div className="fixed inset-0 z-0">
           <div className="absolute inset-0 opacity-40">
-            {[...Array(100)].map((_, i) => (
+            {[...Array(50)].map((_, i) => (
               <div
                 key={i}
                 className="absolute w-1 h-1 bg-white rounded-full"
@@ -36,8 +36,8 @@ function CreateAdContent() {
               />
             ))}
           </div>
-          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+          {/* <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur-3xl opacity-20 animate-pulse"></div>
+          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur-3xl opacity-20 animate-pulse"></div> */}
         </div>
 
         {/* Content */}

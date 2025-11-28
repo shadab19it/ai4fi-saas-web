@@ -23,7 +23,7 @@ export default function FeaturesPage() {
       icon: "✨",
       color: "from-cyan-400 to-purple-500",
       borderColor: "border-cyan-500/30 hover:border-cyan-400",
-      path: "/product-model-generator",
+      path: "/try-on-v2-beta",
       image: CardImage6,
     },
 

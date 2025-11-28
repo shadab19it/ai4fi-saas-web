@@ -1,16 +1,13 @@
-import React, { useState } from 'react'
-import RightGirlImg from '../../../assets/LandingPage/img1.png'
 import { Link } from 'react-router-dom'
 import HeroRightVideo from '../../../../public/hero-right-video.mp4'
 import BorderBeamAnimation from '../../../components/common/AnimatedBorder'
 
 const HeroSection2 = () => {
-const [hoveredFeature, setHoveredFeature] = useState<number | null>(null)
   return (
-    <div className="h-screen bg-gradient-to-br from-sky-950 via-black to-black text-white overflow-hidden">
+    <div className="md:h-screen min-h-screen bg-gradient-to-br from-black via-black to-black text-white overflow-hidden">
     {/* Animated starfield background */}
     <div className="fixed inset-0 z-0">
-      {[...Array(120)].map((_, i) => (
+      {[...Array(80)].map((_, i) => (
         <div
           key={i}
           className="absolute w-1 h-1 bg-white rounded-full"
@@ -35,7 +32,7 @@ const [hoveredFeature, setHoveredFeature] = useState<number | null>(null)
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div className="space-y-8 mt-20">
-            <h1 className="text-5xl md:text-6xl font-bold leading-tight">
+            <h1 className="text-[2.6rem] md:text-6xl font-bold leading-tight">
               <span className="text-white">REVOLUTIONIZE</span>
               <br />
               <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -50,13 +47,13 @@ const [hoveredFeature, setHoveredFeature] = useState<number | null>(null)
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/features">
-              <button className="px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg font-semibold transition transform hover:scale-105 shadow-lg hover:shadow-cyan-500/50">
+              <button className="px-8 py-3 w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg font-semibold transition transform hover:scale-105 shadow-lg hover:shadow-cyan-500/50">
                 EXPLORE FEATURES
               </button>
               </Link>
 
               <Link to="/contact">
-              <button className="relative px-8 py-3 border-2 border-white/30 hover:border-white/60 rounded-lg font-semibold transition hover:bg-white/5">
+              <button className="relative w-full sm:w-auto px-8 py-3 border-2 border-white/30 hover:border-white/60 rounded-lg font-semibold transition hover:bg-white/5">
               <BorderBeamAnimation />
                 BOOK A DEMO
               </button>

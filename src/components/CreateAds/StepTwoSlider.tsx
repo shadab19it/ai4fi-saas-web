@@ -10,9 +10,9 @@ interface Step2SliderProps {
 
 export default function Step2Slider({ onNext, onBack }: Step2SliderProps) {
   const ad = useAd()
-  const [sliderValue, setSliderValue] = useState(50)
   const [originalPrompt, setOriginalPrompt] = useState<string>("")
-  const [isDragging, setIsDragging] = useState(false)
+  const [viewMode, setViewMode] = useState<"side-by-side" | "toggle">("side-by-side")
+  const [showOriginal, setShowOriginal] = useState(true)
 
   // Store the original prompt when component mounts
   useEffect(() => {
@@ -20,48 +20,6 @@ export default function Step2Slider({ onNext, onBack }: Step2SliderProps) {
       setOriginalPrompt(ad.step1Prompt)
     }
   }, [ad.step1Prompt, originalPrompt])
-
-  // Handle mouse drag for slider
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    setIsDragging(true)
-    const container = e.currentTarget
-    const rect = container.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100))
-    setSliderValue(100 - percentage)
-  }
-
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
-
-  // Add event listeners for drag
-  useEffect(() => {
-    if (isDragging) {
-      const handleGlobalMouseMove = (e: MouseEvent) => {
-        const container = document.querySelector('.slider-container') as HTMLElement
-        if (!container) return
-        
-        const rect = container.getBoundingClientRect()
-        const x = e.clientX - rect.left
-        const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100))
-        setSliderValue(100 - percentage)
-      }
-
-      const handleGlobalMouseUp = () => {
-        setIsDragging(false)
-      }
-
-      document.addEventListener('mousemove', handleGlobalMouseMove)
-      document.addEventListener('mouseup', handleGlobalMouseUp)
-
-      return () => {
-        document.removeEventListener('mousemove', handleGlobalMouseMove)
-        document.removeEventListener('mouseup', handleGlobalMouseUp)
-      }
-    }
-  }, [isDragging])
 
   const handleGenerateAd = async () => {
     if (!ad.cleanedImageUrl) return
@@ -137,147 +95,131 @@ export default function Step2Slider({ onNext, onBack }: Step2SliderProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 ">
           {/* Left Side: Image Slider and Prompt Editor */}
           <div className="space-y-8">
-            {/* Image Slider Comparison Card */}
+            {/* Image Comparison Card */}
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl opacity-0 group-hover:opacity-10 transition blur-xl"></div>
               <div className="relative bg-slate-900/50 border border-purple-500/30 rounded-xl p-6 overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-300">Before & After Comparison</h3>
-                  <div className="flex items-center gap-2 text-xs text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <div className="w-3 h-3 rounded bg-blue-500"></div>
-                      Original
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <div className="w-3 h-3 rounded bg-purple-500"></div>
-                      Cleaned
-                    </span>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-white">Before & After Comparison</h3>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setViewMode("side-by-side")}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        viewMode === "side-by-side"
+                          ? "bg-purple-600 text-white"
+                          : "bg-slate-700/50 text-gray-300 hover:bg-slate-700"
+                      }`}
+                    >
+                      Side by Side
+                    </button>
+                    <button
+                      onClick={() => setViewMode("toggle")}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        viewMode === "toggle"
+                          ? "bg-purple-600 text-white"
+                          : "bg-slate-700/50 text-gray-300 hover:bg-slate-700"
+                      }`}
+                    >
+                      Toggle View
+                    </button>
                   </div>
                 </div>
 
-                {/* Slider Container */}
-                <div 
-                  className="slider-container relative h-[400px] bg-slate-800 rounded-lg overflow-hidden shadow-2xl cursor-col-resize select-none"
-                  onMouseDown={handleMouseDown}
-                  onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
-                >
-                  {/* Cleaned Image (Base - Right Side) */}
-                  {ad.cleanedImageUrl && (
-                    <div className="absolute inset-0">
-                      <img
-                        src={ad.cleanedImageUrl || "/placeholder.svg"}
-                        alt="Cleaned"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-purple-900/20"></div>
+                {/* Side by Side View */}
+                {viewMode === "side-by-side" ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Original Image */}
+                    <div className="relative bg-slate-800 rounded-xl overflow-hidden shadow-xl">
+                      <div className="absolute top-4 left-4 z-10 bg-gradient-to-br from-blue-500/20 to-blue-600/20 backdrop-blur-md px-4 py-2 rounded-lg border border-blue-400/40 shadow-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                          <span className="text-sm font-semibold text-blue-300">Before</span>
+                        </div>
+                      </div>
+                      {ad.originalImageUrl ? (
+                        <img
+                          src={ad.originalImageUrl}
+                          alt="Original"
+                          className="w-full h-[450px] object-contain bg-slate-900"
+                        />
+                      ) : (
+                        <div className="w-full h-[450px] flex items-center justify-center text-gray-500">
+                          No original image
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  {/* Original Image (Overlay - Left Side) */}
-                  {ad.originalImageUrl && (
-                    <div 
-                      className="absolute inset-0 overflow-hidden transition-all duration-150"
-                      style={{ width: `${100 - sliderValue}%`, clipPath: `inset(0 ${100 - (100 - sliderValue)}% 0 0)` }}
-                    >
-                      <img
-                        src={ad.originalImageUrl || "/placeholder.svg"}
-                        alt="Original"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-transparent to-transparent"></div>
+                    {/* Cleaned Image */}
+                    <div className="relative bg-slate-800 rounded-xl overflow-hidden shadow-xl">
+                      <div className="absolute top-4 right-4 z-10 bg-gradient-to-br from-purple-500/20 to-purple-600/20 backdrop-blur-md px-4 py-2 rounded-lg border border-purple-400/40 shadow-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                          <span className="text-sm font-semibold text-purple-300">After</span>
+                        </div>
+                      </div>
+                      {ad.cleanedImageUrl ? (
+                        <img
+                          src={ad.cleanedImageUrl}
+                          alt="Cleaned"
+                          className="w-full h-[450px] object-contain bg-slate-900"
+                        />
+                      ) : (
+                        <div className="w-full h-[450px] flex items-center justify-center text-gray-500">
+                          No cleaned image
+                        </div>
+                      )}
                     </div>
-                  )}
-
-                  {/* Slider Handle */}
-                  <div
-                    className={`absolute top-0 bottom-0 w-1 bg-gradient-to-b from-purple-400 via-purple-500 to-blue-400 cursor-col-resize transition-all ${isDragging ? 'w-1.5 shadow-lg' : ''}`}
-                    style={{ left: `${100 - sliderValue}%` }}
-                  >
-                    {/* Handle Circle */}
-                    <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full shadow-2xl transition-all ${isDragging ? 'scale-110 ring-4 ring-purple-500/50' : 'hover:scale-105'}`}>
-                      <div className="p-3 flex items-center justify-center">
-                        <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                  </div>
+                ) : (
+                  /* Toggle View */
+                  <div className="relative bg-slate-800 rounded-xl overflow-hidden shadow-xl">
+                    <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+                      <button
+                        onClick={() => setShowOriginal(!showOriginal)}
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center gap-2"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
+                        Switch to {showOriginal ? "After" : "Before"}
+                      </button>
+                    </div>
+                    <div className="absolute top-4 left-4 z-10 bg-gradient-to-br from-slate-900/90 to-slate-800/90 backdrop-blur-md px-4 py-2 rounded-lg border border-purple-400/40 shadow-lg">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${showOriginal ? 'bg-blue-400' : 'bg-purple-400'}`}></div>
+                        <span className={`text-sm font-semibold ${showOriginal ? 'text-blue-300' : 'text-purple-300'}`}>
+                          {showOriginal ? "Before - Original" : "After - Cleaned"}
+                        </span>
                       </div>
                     </div>
-
-                    {/* Handle Line Extension */}
-                    <div className="absolute top-0 bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 bg-white/30"></div>
+                    {showOriginal ? (
+                      ad.originalImageUrl ? (
+                        <img
+                          src={ad.originalImageUrl}
+                          alt="Original"
+                          className="w-full h-[450px] object-contain bg-slate-900"
+                        />
+                      ) : (
+                        <div className="w-full h-[450px] flex items-center justify-center text-gray-500">
+                          No original image
+                        </div>
+                      )
+                    ) : (
+                      ad.cleanedImageUrl ? (
+                        <img
+                          src={ad.cleanedImageUrl}
+                          alt="Cleaned"
+                          className="w-full h-[450px] object-contain bg-slate-900"
+                        />
+                      ) : (
+                        <div className="w-full h-[450px] flex items-center justify-center text-gray-500">
+                          No cleaned image
+                        </div>
+                      )
+                    )}
                   </div>
-
-                  {/* Labels with Icons */}
-                  <div className="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-blue-500/30 shadow-lg">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span className="text-sm font-semibold text-blue-300">Original</span>
-                    </div>
-                  </div>
-                  <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-purple-500/30 shadow-lg">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-sm font-semibold text-purple-300">Cleaned</span>
-                    </div>
-                  </div>
-
-                  {/* Percentage Indicator */}
-                  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-900/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-purple-500/30 shadow-lg">
-                    <span className="text-sm font-semibold text-purple-300">
-                      {Math.round(100 - sliderValue)}% Original / {Math.round(sliderValue)}% Cleaned
-                    </span>
-                  </div>
-                </div>
-
-                {/* Slider Input (Alternative Control) */}
-                <div className="mt-6">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={sliderValue}
-                    onChange={(e) => setSliderValue(Number(e.target.value))}
-                    className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider-thumb"
-                    style={{
-                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${100 - sliderValue}%, #a855f7 ${100 - sliderValue}%, #a855f7 100%)`
-                    }}
-                  />
-                  <style>{`
-                    .slider-thumb::-webkit-slider-thumb {
-                      appearance: none;
-                      width: 20px;
-                      height: 20px;
-                      border-radius: 50%;
-                      background: white;
-                      cursor: pointer;
-                      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-                      transition: all 0.2s;
-                    }
-                    .slider-thumb::-webkit-slider-thumb:hover {
-                      transform: scale(1.2);
-                      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.5);
-                    }
-                    .slider-thumb::-moz-range-thumb {
-                      width: 20px;
-                      height: 20px;
-                      border-radius: 50%;
-                      background: white;
-                      cursor: pointer;
-                      border: none;
-                      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-                      transition: all 0.2s;
-                    }
-                    .slider-thumb::-moz-range-thumb:hover {
-                      transform: scale(1.2);
-                      box-shadow: 0 4px 12px rgba(168, 85, 247, 0.5);
-                    }
-                  `}</style>
-                </div>
+                )}
               </div>
             </div>
 
@@ -287,7 +229,7 @@ export default function Step2Slider({ onNext, onBack }: Step2SliderProps) {
               <div className="relative bg-slate-900/50 border border-purple-500/30 rounded-xl p-6">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="block text-sm font-semibold text-gray-300">AI Prompt</label>
+                    <label className="block text-sm font-semibold text-gray-300">Product Description</label>
                     {originalPrompt && ad.step1Prompt !== originalPrompt && (
                       <button
                         type="button"
@@ -303,12 +245,12 @@ export default function Step2Slider({ onNext, onBack }: Step2SliderProps) {
                   <textarea
                     value={ad.step1Prompt}
                     onChange={(e) => ad.setStep1Prompt(e.target.value)}
-                    placeholder="Enter or edit the AI prompt for generating your ad image..."
+                    placeholder="Enter or edit the product description for generating your ad image..."
                     rows={5}
                     className="w-full px-4 py-3 bg-slate-800/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-400 transition resize-none text-sm"
                   />
                   <p className="text-xs text-gray-500">
-                    Customize the prompt to refine how the AI generates your ad image
+                    Customize the product description to refine how the AI generates your ad image
                   </p>
                 </div>
               </div>
@@ -323,7 +265,7 @@ export default function Step2Slider({ onNext, onBack }: Step2SliderProps) {
               <img
                 src={ad.generatedAdImage || "/placeholder.svg"}
                 alt="Generated Ad"
-                className="w-full rounded-lg mb-4"
+                className="w-full  rounded-lg mb-4"
               />
               <button
                 onClick={() => handleDownload(ad.generatedAdImage!, "ad-image.jpg")}
@@ -336,147 +278,131 @@ export default function Step2Slider({ onNext, onBack }: Step2SliderProps) {
         </div>
       ) : (
         <>
-          {/* Image Slider Comparison Card */}
+          {/* Image Comparison Card */}
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl opacity-0 group-hover:opacity-10 transition blur-xl"></div>
             <div className="relative bg-slate-900/50 border border-purple-500/30 rounded-xl p-6 overflow-hidden">
               {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-300">Before & After Comparison</h3>
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded bg-blue-500"></div>
-                    Original
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <div className="w-3 h-3 rounded bg-purple-500"></div>
-                    Cleaned
-                  </span>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-white">Before & After Comparison</h3>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setViewMode("side-by-side")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      viewMode === "side-by-side"
+                        ? "bg-purple-600 text-white"
+                        : "bg-slate-700/50 text-gray-300 hover:bg-slate-700"
+                    }`}
+                  >
+                    Side by Side
+                  </button>
+                  <button
+                    onClick={() => setViewMode("toggle")}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      viewMode === "toggle"
+                        ? "bg-purple-600 text-white"
+                        : "bg-slate-700/50 text-gray-300 hover:bg-slate-700"
+                    }`}
+                  >
+                    Toggle View
+                  </button>
                 </div>
               </div>
 
-              {/* Slider Container */}
-              <div 
-                className="slider-container relative h-[500px] bg-slate-800 rounded-lg overflow-hidden shadow-2xl cursor-col-resize select-none"
-                onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-              >
-                {/* Cleaned Image (Base - Right Side) */}
-                {ad.cleanedImageUrl && (
-                  <div className="absolute inset-0">
-                    <img
-                      src={ad.cleanedImageUrl || "/placeholder.svg"}
-                      alt="Cleaned"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-purple-900/20"></div>
+              {/* Side by Side View */}
+              {viewMode === "side-by-side" ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Original Image */}
+                  <div className="relative bg-slate-800 rounded-xl overflow-hidden shadow-xl">
+                    <div className="absolute top-4 left-4 z-10 bg-gradient-to-br from-blue-500/20 to-blue-600/20 backdrop-blur-md px-4 py-2 rounded-lg border border-blue-400/40 shadow-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                        <span className="text-sm font-semibold text-blue-300">Before</span>
+                      </div>
+                    </div>
+                    {ad.originalImageUrl ? (
+                      <img
+                        src={ad.originalImageUrl}
+                        alt="Original"
+                        className="w-full h-[500px] object-contain bg-slate-900"
+                      />
+                    ) : (
+                      <div className="w-full h-[500px] flex items-center justify-center text-gray-500">
+                        No original image
+                      </div>
+                    )}
                   </div>
-                )}
 
-                {/* Original Image (Overlay - Left Side) */}
-                {ad.originalImageUrl && (
-                  <div 
-                    className="absolute inset-0 overflow-hidden transition-all duration-150"
-                    style={{ width: `${100 - sliderValue}%`, clipPath: `inset(0 ${100 - (100 - sliderValue)}% 0 0)` }}
-                  >
-                    <img
-                      src={ad.originalImageUrl || "/placeholder.svg"}
-                      alt="Original"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-transparent to-transparent"></div>
+                  {/* Cleaned Image */}
+                  <div className="relative bg-slate-800 rounded-xl overflow-hidden shadow-xl">
+                    <div className="absolute top-4 right-4 z-10 bg-gradient-to-br from-purple-500/20 to-purple-600/20 backdrop-blur-md px-4 py-2 rounded-lg border border-purple-400/40 shadow-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                        <span className="text-sm font-semibold text-purple-300">After</span>
+                      </div>
+                    </div>
+                    {ad.cleanedImageUrl ? (
+                      <img
+                        src={ad.cleanedImageUrl}
+                        alt="Cleaned"
+                        className="w-full h-[500px] object-contain bg-slate-900"
+                      />
+                    ) : (
+                      <div className="w-full h-[500px] flex items-center justify-center text-gray-500">
+                        No cleaned image
+                      </div>
+                    )}
                   </div>
-                )}
-
-                {/* Slider Handle */}
-                <div
-                  className={`absolute top-0 bottom-0 w-1 bg-gradient-to-b from-purple-400 via-purple-500 to-blue-400 cursor-col-resize transition-all ${isDragging ? 'w-1.5 shadow-lg' : ''}`}
-                  style={{ left: `${100 - sliderValue}%` }}
-                >
-                  {/* Handle Circle */}
-                  <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full shadow-2xl transition-all ${isDragging ? 'scale-110 ring-4 ring-purple-500/50' : 'hover:scale-105'}`}>
-                    <div className="p-3 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                </div>
+              ) : (
+                /* Toggle View */
+                <div className="relative bg-slate-800 rounded-xl overflow-hidden shadow-xl">
+                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <button
+                      onClick={() => setShowOriginal(!showOriginal)}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-6 py-3 rounded-lg font-semibold shadow-lg transition-all flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                       </svg>
+                      Switch to {showOriginal ? "After" : "Before"}
+                    </button>
+                  </div>
+                  <div className="absolute top-4 left-4 z-10 bg-gradient-to-br from-slate-900/90 to-slate-800/90 backdrop-blur-md px-4 py-2 rounded-lg border border-purple-400/40 shadow-lg">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full ${showOriginal ? 'bg-blue-400' : 'bg-purple-400'}`}></div>
+                      <span className={`text-sm font-semibold ${showOriginal ? 'text-blue-300' : 'text-purple-300'}`}>
+                        {showOriginal ? "Before - Original" : "After - Cleaned"}
+                      </span>
                     </div>
                   </div>
-
-                  {/* Handle Line Extension */}
-                  <div className="absolute top-0 bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 bg-white/30"></div>
+                  {showOriginal ? (
+                    ad.originalImageUrl ? (
+                      <img
+                        src={ad.originalImageUrl}
+                        alt="Original"
+                        className="w-full h-[500px] object-contain bg-slate-900"
+                      />
+                    ) : (
+                      <div className="w-full h-[500px] flex items-center justify-center text-gray-500">
+                        No original image
+                      </div>
+                    )
+                  ) : (
+                    ad.cleanedImageUrl ? (
+                      <img
+                        src={ad.cleanedImageUrl}
+                        alt="Cleaned"
+                        className="w-full h-[500px] object-contain bg-slate-900"
+                      />
+                    ) : (
+                      <div className="w-full h-[500px] flex items-center justify-center text-gray-500">
+                        No cleaned image
+                      </div>
+                    )
+                  )}
                 </div>
-
-                {/* Labels with Icons */}
-                <div className="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-blue-500/30 shadow-lg">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span className="text-sm font-semibold text-blue-300">Original</span>
-                  </div>
-                </div>
-                <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-purple-500/30 shadow-lg">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-sm font-semibold text-purple-300">Cleaned</span>
-                  </div>
-                </div>
-
-                {/* Percentage Indicator */}
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-slate-900/90 backdrop-blur-sm px-4 py-2 rounded-lg border border-purple-500/30 shadow-lg">
-                  <span className="text-sm font-semibold text-purple-300">
-                    {Math.round(100 - sliderValue)}% Original / {Math.round(sliderValue)}% Cleaned
-                  </span>
-                </div>
-              </div>
-
-              {/* Slider Input (Alternative Control) */}
-              <div className="mt-6">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={sliderValue}
-                  onChange={(e) => setSliderValue(Number(e.target.value))}
-                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer slider-thumb"
-                  style={{
-                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${100 - sliderValue}%, #a855f7 ${100 - sliderValue}%, #a855f7 100%)`
-                  }}
-                />
-                <style>{`
-                  .slider-thumb::-webkit-slider-thumb {
-                    appearance: none;
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 50%;
-                    background: white;
-                    cursor: pointer;
-                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-                    transition: all 0.2s;
-                  }
-                  .slider-thumb::-webkit-slider-thumb:hover {
-                    transform: scale(1.2);
-                    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.5);
-                  }
-                  .slider-thumb::-moz-range-thumb {
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 50%;
-                    background: white;
-                    cursor: pointer;
-                    border: none;
-                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-                    transition: all 0.2s;
-                  }
-                  .slider-thumb::-moz-range-thumb:hover {
-                    transform: scale(1.2);
-                    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.5);
-                  }
-                `}</style>
-              </div>
+              )}
             </div>
           </div>
 
@@ -486,7 +412,7 @@ export default function Step2Slider({ onNext, onBack }: Step2SliderProps) {
             <div className="relative bg-slate-900/50 border border-purple-500/30 rounded-xl p-6">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="block text-sm font-semibold text-gray-300">AI Prompt</label>
+                  <label className="block text-sm font-semibold text-gray-300">Product Description</label>
                   {originalPrompt && ad.step1Prompt !== originalPrompt && (
                     <button
                       type="button"
@@ -502,12 +428,12 @@ export default function Step2Slider({ onNext, onBack }: Step2SliderProps) {
                 <textarea
                   value={ad.step1Prompt}
                   onChange={(e) => ad.setStep1Prompt(e.target.value)}
-                  placeholder="Enter or edit the AI prompt for generating your ad image..."
+                  placeholder="Enter or edit the product description for generating your ad image..."
                   rows={5}
                   className="w-full px-4 py-3 bg-slate-800/50 border border-purple-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-400 transition resize-none text-sm"
                 />
                 <p className="text-xs text-gray-500">
-                  Customize the prompt to refine how the AI generates your ad image
+                  Customize the product description to refine how the AI generates your ad image
                 </p>
               </div>
             </div>
@@ -530,7 +456,7 @@ export default function Step2Slider({ onNext, onBack }: Step2SliderProps) {
         </button>
         <button
           onClick={handleGenerateAd}
-          disabled={ad.isLoading}
+          disabled={ad.isLoading || ad?.generatedAdImage !== null}
           className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:opacity-50 rounded-lg font-semibold transition"
         >
           {ad.isLoading ? "Generating..." : "Generate Ad Image"}

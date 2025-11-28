@@ -2,6 +2,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useAd } from "../../store/AdsContext"
 import appConstant from "../../services/appConstant"
+import { toast } from "sonner"
 
 interface Step1FormProps {
   onNext: () => void
@@ -20,9 +21,18 @@ export default function Step1Form({ onNext }: Step1FormProps) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+
+      // Supported file types: png, jpeg, jpg, webp
+      const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        toast.info("Supported image types: PNG, JPEG, JPG, WEBP");
+        return;
+      }
+
+
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        alert("Please select an image file")
+        toast.info("Please select an image file")
         return
       }
 
@@ -34,7 +44,7 @@ export default function Step1Form({ onNext }: Step1FormProps) {
         ad.setProductImage(file)
       }
       reader.onerror = () => {
-        alert("Failed to read image file")
+        toast.info("Failed to read image file")
       }
       reader.readAsDataURL(file)
     }
@@ -113,7 +123,7 @@ export default function Step1Form({ onNext }: Step1FormProps) {
     <div className="space-y-8">
       <div className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          <span className="bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent">
+          <span className="text-white bg-clip-text text-transparent">
             Create Your Ad in 3 Steps
           </span>
         </h1>

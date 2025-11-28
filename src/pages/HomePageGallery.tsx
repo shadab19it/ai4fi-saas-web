@@ -51,18 +51,25 @@ const HomePageGallery: React.FC = () => {
   const [gender, setGender] = useState<string>("all");
   const [images, setImages] = useState<ListImages>({ category: "", female: [], male: [] });
   const [renderImages, setRenderImages] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { selectedModel } = useSelector((state: RootState) => state.modelList);
   const categories: Categories = {
     formal: [],
     casual: [],
     lingerie: [],
+    PlusSize:[]
   };
 
   useEffect(() => {
-    const imageDataList: ListImages = modelGalleryList.find((c) => c.category === activeCategory) as ListImages;
-    const data = mergeAndShuffle(imageDataList?.female, imageDataList.male, gender);
-    setRenderImages(data);
-    setImages(() => imageDataList as ListImages);
+    setIsLoading(true);
+    // Small delay to ensure smooth transition
+    setTimeout(() => {
+      const imageDataList: ListImages = modelGalleryList.find((c) => c.category === activeCategory) as ListImages;
+      const data = mergeAndShuffle(imageDataList?.female, imageDataList.male, gender);
+      setRenderImages(data);
+      setImages(() => imageDataList as ListImages);
+      setIsLoading(false);
+    }, 300);
   }, [modelGalleryList, activeCategory, gender]);
 
   useEffect(() => {
@@ -117,9 +124,19 @@ const HomePageGallery: React.FC = () => {
         </div>
       </div>
 
+      {/* Loader Overlay */}
+      {isLoading && (
+        <div className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 !ml-0'>
+          <div className='flex flex-col items-center gap-4'>
+            <div className='w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
+            <p className='text-white text-lg font-semibold'>Loading category...</p>
+          </div>
+        </div>
+      )}
+
       {/* Image Grid */}
       <div className='pt-5'>
-        <section className={`transition-all duration-300 block min-h-screen`}>
+        <section className={`transition-all duration-300 block min-h-screen ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
           {/* Image Grid */}
           <div className='flex gap-3 flex-wrap items-start justify-around'>
             {renderImages.map((image, index) => (
