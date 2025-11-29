@@ -32,13 +32,13 @@ function mergeAndShuffle(arr1: string[], arr2: string[], gender: string) {
   } else if (gender === "female") {
     merged.push(...arr1);
   } else {
-    merged.push(...[...arr1, ...arr2]);
+    merged.push(...[...arr2, ...arr1]);
   }
 
-  for (let i = merged.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
-    [merged[i], merged[j]] = [merged[j], merged[i]];
-  }
+  // for (let i = merged.length - 1; i > 0; i--) {
+  //   let j = Math.floor(Math.random() * (i + 1));
+  //   [merged[i], merged[j]] = [merged[j], merged[i]];
+  // }
   return merged;
 }
 

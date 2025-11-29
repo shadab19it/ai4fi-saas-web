@@ -9,43 +9,43 @@ const FeaturedGallery = () => {
   const row1Images = [
     {
       id: 1,
-      src: "https://ai4fi-bucket.s3.amazonaws.com/casual/female/getimg_ai_img-0WvbUxvJsUqa5WJHmitpt.jpeg",
+      src: "https://ai4fi-bucket.s3.amazonaws.com/formal/male/male_model_007.png",
       alt: "AI Model 1",
     },
     {
       id: 2,
-      src: "https://ai4fi-bucket.s3.amazonaws.com/casual/female/getimg_ai_img-z6q53IYtZrqn1ZlQwr6cn.jpeg",
+      src: "https://ai4fi-bucket.s3.amazonaws.com/formal/female/female_model_012.png",
       alt: "AI Model 2",
     },
     {
       id: 3,
-      src: "https://ai4fi-bucket.s3.amazonaws.com/formal/male/getimg_ai_img-sio9DlQxKxgJZ9DgruYIh.jpeg",
+      src: "https://ai4fi-bucket.s3.amazonaws.com/formal/male/male_model_012.png",
       alt: "AI Model 3",
     },
     {
       id: 4,
-      src: "https://ai4fi-bucket.s3.amazonaws.com/formal/female/getimg_ai_img-Xf4QZfk4bsjvxZYYJGjiY.jpeg",
+      src: "https://ai4fi-bucket.s3.amazonaws.com/formal/male/male_model_023.png",
       alt: "AI Model 4",
     },
     {
       id: 5,
-      src: "https://ai4fi-bucket.s3.amazonaws.com/formal/male/getimg_ai_img-dy3WmVOyGvn7cFzp4YN9r.jpeg",
+      src: "https://ai4fi-bucket.s3.amazonaws.com/formal/male/male_model_035.png",
       alt: "AI Model 5",
     },
     {
       id: 6,
-      src: "https://ai4fi-bucket.s3.amazonaws.com/casual/female/getimg_ai_img-yh9ikFujg6mWNM5o5HifC.jpeg",
+      src: "https://ai4fi-bucket.s3.amazonaws.com/formal/female/female_model_005.png",
       alt: "AI Model 6",
     },
   ];
 
   const row2Images = [
-    { id: 7, src: "/1.jpeg", alt: "Plus-Size Model 1" },
-    { id: 8, src: "/2.jpeg", alt: "Plus-Size Model 2" },
-    { id: 9, src: "/3.jpeg", alt: "Plus-Size Model 3" },
-    { id: 10, src: "/4.jpeg", alt: "Plus-Size Model 4" },
-    { id: 11, src: "/5.jpeg", alt: "Plus-Size Model 5" },
-    { id: 12, src: "/6.jpeg", alt: "Plus-Size Model 6" },
+    { id: 7, src: "https://ai4fi-bucket.s3.amazonaws.com/PlusSize/male/male_model_039.png", alt: "Plus-Size Model 1" },
+    { id: 8, src: "https://ai4fi-bucket.s3.amazonaws.com/PlusSize/female/female_model_006.png", alt: "Plus-Size Model 2" },
+    { id: 9, src: "https://ai4fi-bucket.s3.amazonaws.com/PlusSize/male/male_model_014.png", alt: "Plus-Size Model 3" },
+    { id: 10, src: "https://ai4fi-bucket.s3.amazonaws.com/PlusSize/female/female_model_011.png", alt: "Plus-Size Model 4" },
+    { id: 11, src: "https://ai4fi-bucket.s3.amazonaws.com/PlusSize/male/male_model_018.png", alt: "Plus-Size Model 5" },
+    { id: 12, src: "https://ai4fi-bucket.s3.amazonaws.com/PlusSize/female/female_model_023.png", alt: "Plus-Size Model 6" },
   ];
 
   const duplicatedRow1 = [...row1Images, ...row1Images];

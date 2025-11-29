@@ -28,7 +28,7 @@ const Navbar = () => {
     { name: "Home", icon: "home", link: "/", isLink: true },
     // { name: "Features", icon: "features", link: "/#features", isLink: false },
     { name: "About", icon: "about", link: "/about", isLink: true },
-    { name: "Gallery", icon: "gallery", link: "/model-gallery", isLink: true },
+    { name: "Portfolio", icon: "gallery", link: "/model-gallery", isLink: true },
     { name: "Contact", icon: "contact", link: "/contact", isLink: true },
   ];
   

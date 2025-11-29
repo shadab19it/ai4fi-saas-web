@@ -1,8 +1,37 @@
 import { Link } from 'react-router-dom'
+import { useRef, useEffect } from 'react'
 import HeroRightVideo from '../../../../public/hero-right-video.mp4'
 import BorderBeamAnimation from '../../../components/common/AnimatedBorder'
 
 const HeroSection2 = () => {
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (video) {
+      // Set webkit-playsinline for older iOS versions
+      video.setAttribute('webkit-playsinline', 'true')
+      video.setAttribute('playsinline', 'true')
+      
+      // Force play on iOS devices
+      const playPromise = video.play()
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Auto-play was prevented, try again on user interaction
+          const handleUserInteraction = () => {
+            video.play().catch(() => {
+              // Silently handle if still prevented
+            })
+            document.removeEventListener('touchstart', handleUserInteraction)
+            document.removeEventListener('click', handleUserInteraction)
+          }
+          document.addEventListener('touchstart', handleUserInteraction, { once: true })
+          document.addEventListener('click', handleUserInteraction, { once: true })
+        })
+      }
+    }
+  }, [])
+
   return (
     <div className="md:h-screen min-h-screen bg-gradient-to-br from-black via-black to-black text-white overflow-hidden">
     {/* Animated starfield background */}
@@ -63,7 +92,22 @@ const HeroSection2 = () => {
 
           {/* Right - Digital Figure (Placeholder) */}
           <div className="relative flex items-start justify-center -mt-5">
-           <video src={HeroRightVideo} autoPlay muted loop className="w-full  h-96 md:h-[620px]  object-contain " />
+           <video 
+             ref={videoRef}
+             src={HeroRightVideo} 
+             autoPlay 
+             muted 
+             loop 
+             playsInline 
+             preload="auto"
+             onLoadedMetadata={(e) => {
+               const video = e.currentTarget
+               video.play().catch(() => {
+                 // Silently handle autoplay prevention
+               })
+             }}
+             className="w-full  h-96 md:h-[620px]  object-contain " 
+           />
           </div>
         </div>
       </section>
