@@ -29,7 +29,7 @@ const CTASection = () => {
             <button
               onClick={() => {
                 if (authService.isAuthenticated()) {
-                  navigate("/virtualtryon");
+                  navigate("/features");
                 } else {
                   navigate("/login");
                 }
