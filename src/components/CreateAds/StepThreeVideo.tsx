@@ -18,6 +18,10 @@ export default function Step3Video({ onBack }: Step3VideoProps) {
       ad.setStep3Error("Please enter an audio script")
       return
     }
+    if (ad.audioScript.length > 75) {
+      ad.setStep3Error("Audio script must be less than 75 characters")
+      return
+    }
 
     ad.setIsLoading(true)
     ad.setLoadingMessage("Analyzing audio script and generating video prompt...")
