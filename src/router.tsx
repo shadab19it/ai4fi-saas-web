@@ -19,6 +19,8 @@ import ProductGeneratorPage from "./pages/ProductModelGenerator";
 import AdsGenerator from "./pages/AdsGenerator";
 import CreateAds from "./components/CreateAds";
 import FeaturesPage from "./pages/FeaturesCardPage/FeaturesCardPage";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 
 export const router = createBrowserRouter([
   {
@@ -49,7 +51,14 @@ export const router = createBrowserRouter([
         path: "model-gallery",
         element: <HomePageGallery />,
       },
-
+      {
+        path: "terms-of-service",
+        element: <TermsOfService />,
+      },
+      {
+        path: "privacy-policy",
+        element: <PrivacyPolicy />,
+      },
     ],
   },
   {

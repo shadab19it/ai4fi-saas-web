@@ -1,15 +1,19 @@
 "use client";
-import React from "react";
-import { Twitter, Instagram, LinkedinIcon, GithubIcon, Mail, Phone, MapPin, Youtube } from "lucide-react";
+import { Instagram, LinkedinIcon, Youtube } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
   const footerSections = {
-    company: ["About", "Careers", "Press", "Blog"],
-    product: ["Features", "Pricing", "Case Studies", "Documentation"],
-    resources: ["Help Center", "API Docs", "Terms of Service", "Privacy Policy"],
+    company: [
+      { name: "About", link: "/about" },
+      { name: "Contact", link: "/contact" },
+      { name: "Model Gallery", link: "/model-gallery" },
+    ],
+    resources: [
+      { name: "Terms of Service", link: "/terms-of-service" },
+      { name: "Privacy Policy", link: "/privacy-policy" },
+    ],
     social: [
-      // { name: "Twitter", icon: Twitter, link: "" },
       { name: "Instagram", icon: Instagram, link: "https://www.instagram.com/ai4fi.in?igsh=cTlvYmlhYmNpeWts&utm_source=qr" },
       { name: "LinkedIn", icon: LinkedinIcon, link: "https://www.linkedin.com/showcase/ai4fi/" },
       { name: "Youtube", icon: Youtube, link: "https://www.youtube.com/@welcome_to_ai4fi" },
@@ -17,7 +21,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className='bg-gradient-to-tr to-black from-cyan-950 text-gray-400 pt-20 pb-8 px-6'>
+    <footer className='relative bg-gradient-to-tr to-black from-cyan-950 text-gray-400 pt-20 pb-8 px-6 z-[99999]'>
       <div className='max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12'>
         <div>
           <h3 className=' text-sky-400 mb-4'>
@@ -37,9 +41,9 @@ const Footer = () => {
           <h4 className='text-lg font-semibold mb-4 text-white'>Company</h4>
           <ul className='space-y-2'>
             {footerSections.company.map((item) => (
-              <li key={item}>
-                <Link to='#' className='hover:text-white'>
-                  {item}
+              <li key={item.name}>
+                <Link to={item.link} className='hover:text-white transition-colors duration-200'>
+                  {item.name}
                 </Link>
               </li>
             ))}
@@ -47,12 +51,12 @@ const Footer = () => {
         </div>
 
         <div>
-          <h4 className='text-lg font-semibold mb-4 text-white'>Resources</h4>
+          <h4 className='text-lg font-semibold mb-4 text-white'>Legal</h4>
           <ul className='space-y-2'>
             {footerSections.resources.map((item) => (
-              <li key={item}>
-                <Link to='#' className='hover:text-white'>
-                  {item}
+              <li key={item.name}>
+                <Link to={item.link} className='hover:text-white transition-colors duration-200'>
+                  {item.name}
                 </Link>
               </li>
             ))}
@@ -74,19 +78,16 @@ const Footer = () => {
         </div>
       </div>
 
-      <div className='mt-12 border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-center items-center'>
+      <div className='mt-12 border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center'>
         <p className='text-sm'>© {new Date().getFullYear()} AI4FI. All rights reserved.</p>
-        {/* <div className='flex space-x-6 mt-4 md:mt-0'>
-          <a href='#' className='text-sm hover:text-white'>
+        <div className='flex space-x-6 mt-4 md:mt-0'>
+          <Link to='/terms-of-service' className='text-sm hover:text-white transition-colors duration-200'>
             Terms of Service
-          </a>
-          <a href='#' className='text-sm hover:text-white'>
+          </Link>
+          <Link to='/privacy-policy' className='text-sm hover:text-white transition-colors duration-200'>
             Privacy Policy
-          </a>
-          <a href='#' className='text-sm hover:text-white'>
-            Cookie Policy
-          </a>
-        </div> */}
+          </Link>
+        </div>
       </div>
     </footer>
   );
