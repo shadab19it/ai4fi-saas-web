@@ -9,6 +9,14 @@ export interface Subscription {
   points: number;
   status: "active" | "inactive" | "expired"; // Possible statuses
 }
+export interface CreditHistoryEntry {
+  amount: number;
+  balance: number;
+  reason: string;
+  type: "grant" | "usage" | "adjustment";
+  adminId?: string | null;
+  createdAt: string;
+}
 export interface IUser {
   _id: string;
   organizationName?: string;
@@ -22,6 +30,8 @@ export interface IUser {
   role?: UserRole;
   username: string;
   subscription: Subscription;
+  credits?: number;
+  creditHistory?: CreditHistoryEntry[];
 }
 
 export interface IResponse {

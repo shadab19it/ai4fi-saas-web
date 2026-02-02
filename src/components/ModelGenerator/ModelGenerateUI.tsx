@@ -42,7 +42,7 @@ export interface ModelConfig {
   num_images: number;
   customBackground: string;
   lighting_condition: string;
-  requiredPoints: number;
+  requiredCredits: number;
 }
 
 export interface IFastGenModelGenerateConfig {
@@ -51,7 +51,7 @@ export interface IFastGenModelGenerateConfig {
   shootType: string;
   outfit: string;
   seed: any;
-  requiredPoints: number;
+  requiredCredits: number;
   guidance: number;
   prompt: string;
   aspectRatio: string;
@@ -202,7 +202,7 @@ const ModelGeneratorUI: React.FC = () => {
       auto_seed: dnaNumber ? false : true,
       num_images: Number(model),
       lighting_condition: lighting,
-      requiredPoints: Number(model) * appConstant.MODEL_DEDUCT_POINT,
+      requiredCredits: Number(model) * appConstant.MODEL_DEDUCT_POINT,
     };
 
     try {
@@ -300,7 +300,7 @@ const ModelGeneratorUI: React.FC = () => {
       poses: repllicateModelInfo.poses,
       seed: repllicateModelInfo.seedType === "Custom Generated" ? Number(repllicateModelInfo.seed) : "None",
       outfit: repllicateModelInfo.outfit,
-      requiredPoints: Number(repllicateModelInfo.poses.length) * appConstant.MODEL_DEDUCT_POINT,
+      requiredCredits: Number(repllicateModelInfo.poses.length) * appConstant.MODEL_DEDUCT_POINT,
       prompt: repllicateModelInfo.prompt,
       aspectRatio: repllicateModelInfo.spectRatio,
       hairstyle: repllicateModelInfo.hairstyle,

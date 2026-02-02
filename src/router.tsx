@@ -21,6 +21,9 @@ import CreateAds from "./components/CreateAds";
 import FeaturesPage from "./pages/FeaturesCardPage/FeaturesCardPage";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import AdminRoute from "./ProtectedRoute/AdminRoute";
+import CreditsPage from "./pages/Credits";
 
 export const router = createBrowserRouter([
   {
@@ -80,6 +83,10 @@ export const router = createBrowserRouter([
     ],
   },
   {
+    path: "/admin",
+    element: <AdminRoute component={AdminDashboard} />,
+  },
+  {
     path: "/model",
     element: <ProtectedRoute component={GenerateModel} />,
   },
@@ -119,5 +126,9 @@ export const router = createBrowserRouter([
   {
     path: "/features",
     element: <ProtectedRoute component={FeaturesPage} />,
-  }
+  },
+  {
+    path: "/credits",
+    element: <ProtectedRoute component={CreditsPage} />,
+  },
 ]);

@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Menu, X, ChevronRight, Zap, User, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, ChevronRight, User, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,7 +14,8 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeLink, setActiveLink] = useState("home");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isOfferingsOpen, setIsOfferingsOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,6 +38,10 @@ const Navbar = () => {
     { name: "Virtual Try Room", href: "/virtualtryon" },
     { name: "Try On V2 (beta)", href: "/try-on-v2-beta" },
     { name: "Ads Generator", href: "/ads-generator" },
+  ];
+
+  const accountItems = [
+    { name: "My Credits", href: "/credits" },
   ];
 
   return (
@@ -116,7 +121,7 @@ const Navbar = () => {
             {/* Our Offerings Dropdown */}
             <div className='relative'>
               <motion.button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={() => setIsOfferingsOpen(!isOfferingsOpen)}
                 className='relative px-3 py-2 mx-1 text-sm rounded-lg transition-colors duration-200 text-gray-300 hover:text-white hover:bg-white/5 flex items-center'
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}>
@@ -124,7 +129,7 @@ const Navbar = () => {
                 <ChevronDown size={16} className='ml-1' />
               </motion.button>
               <AnimatePresence>
-                {isDropdownOpen && (
+                {isOfferingsOpen && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -136,7 +141,7 @@ const Navbar = () => {
                         <motion.span
                           key={item.name}
                           className='block px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors duration-200'
-                          onClick={() => setIsDropdownOpen(false)}>
+                          onClick={() => setIsOfferingsOpen(false)}>
                           {item.name}
                         </motion.span>
                       </Link>
@@ -145,6 +150,40 @@ const Navbar = () => {
                 )}
               </AnimatePresence>
             </div>
+
+            {authService.isAuthenticated() && (
+              <div className='relative'>
+                <motion.button
+                  onClick={() => setIsAccountOpen(!isAccountOpen)}
+                  className='relative px-3 py-2 mx-1 text-sm rounded-lg transition-colors duration-200 text-gray-300 hover:text-white hover:bg-white/5 flex items-center'
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}>
+                  <span>Account</span>
+                  <ChevronDown size={16} className='ml-1' />
+                </motion.button>
+                <AnimatePresence>
+                  {isAccountOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className='absolute top-full left-0 mt-2 w-40 bg-cyan-950 backdrop-blur-xl rounded-lg shadow-lg border border-cyan-900/30'>
+                      {accountItems.map((item) => (
+                        <Link to={item.href}>
+                          <motion.span
+                            key={item.name}
+                            className='block px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors duration-200'
+                            onClick={() => setIsAccountOpen(false)}>
+                            {item.name}
+                          </motion.span>
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
 
           {/* CTA Button or User Profile */}
@@ -158,7 +197,7 @@ const Navbar = () => {
                     <User size={16} className='text-white' />
                   </div>
                   <span className='text-sm font-medium text-white'>
-                    {user?.username} {user?.role === "user" && `- Points ${user.subscription.points}`}
+                    {user?.username} {user?.role === "user" && `- Credits ${user.credits ?? 0}`}
                   </span>
                 </motion.div>
                 <motion.div
@@ -244,16 +283,16 @@ const Navbar = () => {
               {/* Our Offerings Dropdown in Mobile Menu */}
               <div className='pt-2 mb-8'>
                 <motion.button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  onClick={() => setIsOfferingsOpen(!isOfferingsOpen)}
                   className='w-full px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors duration-200 flex items-center justify-between'
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * navLinks.length }}>
                   <span>Our Offerings</span>
-                  <ChevronDown size={16} className={`transform ${isDropdownOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown size={16} className={`transform ${isOfferingsOpen ? "rotate-180" : ""}`} />
                 </motion.button>
                 <AnimatePresence>
-                  {isDropdownOpen && (
+                  {isOfferingsOpen && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: "auto" }}
@@ -266,7 +305,7 @@ const Navbar = () => {
                           href={item.href}
                           className='block px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors duration-200'
                           onClick={() => {
-                            setIsDropdownOpen(false);
+                            setIsOfferingsOpen(false);
                             setIsMobileMenuOpen(false);
                           }}
                           initial={{ opacity: 0, y: -10 }}
@@ -279,6 +318,19 @@ const Navbar = () => {
                   )}
                 </AnimatePresence>
               </div>
+              {authService.isAuthenticated() && (
+                <div className='mb-6'>
+                  <Link to='/credits'>
+                    <motion.div
+                      className='block px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors duration-200'
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}>
+                      My Credits
+                    </motion.div>
+                  </Link>
+                </div>
+              )}
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
                 {authService.isAuthenticated() ? (
                   <div>
@@ -295,7 +347,7 @@ const Navbar = () => {
                         <User size={16} className='text-white' />
                       </div>
                       <span className='text-sm font-medium text-white'>
-                        {user?.username} {user?.role === "user" && `- Points ${user.subscription.points}`}
+                        {user?.username} {user?.role === "user" && `- Credits ${user.credits ?? 0}`}
                       </span>
                     </div>
                   </div>

@@ -106,7 +106,7 @@ const VirtualTryon: FC = () => {
       });
       formData.append("garment_image", garmentImage.file);
       formData.append("category", category);
-      formData.append("requiredPoints", `${modelImages.length * appConstant.TRYON_DEDUCT_POINT}`);
+      formData.append("requiredCredits", `${modelImages.length * appConstant.TRYON_DEDUCT_POINT}`);
 
       formData.append("segmentation_free", `${segmentationFree}`);
       formData.append("garment_photo_type", garmentPhotoType);

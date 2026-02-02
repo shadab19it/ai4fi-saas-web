@@ -66,15 +66,22 @@ export function Dashboard() {
       <div className='flex justify-between items-center mb-8'>
         <h1 className='text-3xl font-bold text-white'>Dashboard Overview</h1>
         {/* <TimeFilterSelect value={timeFilter} onChange={(value) => dispatch(setTimeFilter(value))} /> */}
-        <Link to={"/"} className='flex text-gray-100 items-center gap-1'>
-          <ArrowLeft /> Back
-        </Link>
+        <div className='flex items-center gap-3'>
+          {user?.user?.role === "admin" && (
+            <Link to={"/admin"} className='flex text-gray-100 items-center gap-1'>
+              Admin Dashboard
+            </Link>
+          )}
+          <Link to={"/"} className='flex text-gray-100 items-center gap-1'>
+            <ArrowLeft /> Back
+          </Link>
+        </div>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
         <StatsCard
-          title='Points'
-          value={user?.user?.role === "user" ? (user.user?.subscription.points as number) : "Unlimited"}
+          title='Credits'
+          value={user?.user?.role === "user" ? (user.user?.credits ?? 0) : "Admin"}
           icon={DollarSign}
         />
         <StatsCard
@@ -84,8 +91,8 @@ export function Dashboard() {
         />
         <StatsCard title='No of Tryon' value={stats.tryonData.length} icon={Shirt} />
         <StatsCard
-          title='Points'
-          value={user?.user?.role === "user" ? (user.user?.subscription.points as number) : "Unlimited"}
+          title='Role'
+          value={user?.user?.role || "user"}
           icon={DollarSign}
         />
       </div>
