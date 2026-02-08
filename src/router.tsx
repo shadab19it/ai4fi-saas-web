@@ -1,6 +1,4 @@
 import { createBrowserRouter } from "react-router-dom";
-import { Dashboard } from "./pages/Dashboard";
-import { Analytics } from "./pages/Analytics";
 import RootLayout from "./layouts/RootLayout";
 import LoginPage from "./pages/Login/Login";
 import SignUpForm from "./pages/Login/SignUp";
@@ -24,6 +22,9 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import AdminRoute from "./ProtectedRoute/AdminRoute";
 import CreditsPage from "./pages/Credits";
+import InviteAcceptPage from "./pages/InviteAccept";
+import TeamSettings from "./pages/TeamSettings";
+import SeedPage from "./pages/Seed/SeedPage";
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "seed",
+        element: <SeedPage />,
       },
       {
         path: "login",
@@ -62,23 +67,9 @@ export const router = createBrowserRouter([
         path: "privacy-policy",
         element: <PrivacyPolicy />,
       },
-    ],
-  },
-  {
-    path: "/dashboard",
-    element: <RootLayout />,
-    children: [
       {
-        index: true,
-        element: <ProtectedRoute component={Dashboard} />,
-      },
-      {
-        path: "analytics",
-        element: <ProtectedRoute component={Analytics} />,
-      },
-      {
-        path: "*",
-        element: <div className='text-white text-center mt-20'>Page not found</div>,
+        path: "invite/:token",
+        element: <InviteAcceptPage />,
       },
     ],
   },
@@ -130,5 +121,9 @@ export const router = createBrowserRouter([
   {
     path: "/credits",
     element: <ProtectedRoute component={CreditsPage} />,
+  },
+  {
+    path: "/team-settings",
+    element: <ProtectedRoute component={TeamSettings} />,
   },
 ]);

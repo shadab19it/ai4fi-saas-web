@@ -1,4 +1,3 @@
-import React from 'react';
 import type { TimeFilter } from '../types/dashboard';
 
 interface TimeFilterSelectProps {

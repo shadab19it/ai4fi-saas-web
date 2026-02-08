@@ -32,6 +32,8 @@ export interface IUser {
   subscription: Subscription;
   credits?: number;
   creditHistory?: CreditHistoryEntry[];
+  teamId?: string | null;
+  teamRole?: "owner" | "admin" | "member" | null;
 }
 
 export interface IResponse {

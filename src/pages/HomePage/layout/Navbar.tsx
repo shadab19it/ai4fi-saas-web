@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import authService from "../../../services/authService";
+import teamService from "../../../services/teamService";
 import { setUser } from "../../../store/userReducer";
 
 const Navbar = () => {
@@ -16,6 +17,7 @@ const Navbar = () => {
   const [activeLink, setActiveLink] = useState("home");
   const [isOfferingsOpen, setIsOfferingsOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [teamCredits, setTeamCredits] = useState<number | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +26,31 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadTeamCredits = async () => {
+      if (!user?.teamId) {
+        if (isMounted) setTeamCredits(null);
+        return;
+      }
+      try {
+        const data = await teamService.getTeam();
+        if (isMounted) {
+          setTeamCredits(data.team?.credits ?? null);
+        }
+      } catch (error) {
+        if (isMounted) setTeamCredits(null);
+      }
+    };
+    loadTeamCredits();
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.teamId]);
+
+  const creditsDisplay = user?.teamId ? (teamCredits ?? 0) : (user?.credits ?? 0);
+  const creditsLabel = user?.teamId ? "Team Credits" : "Credits";
 
   const navLinks = [
     { name: "Home", icon: "home", link: "/", isLink: true },
@@ -41,7 +68,7 @@ const Navbar = () => {
   ];
 
   const accountItems = [
-    { name: "My Credits", href: "/credits" },
+    { name: "Setting", href: "/credits" },
   ];
 
   return (
@@ -197,7 +224,7 @@ const Navbar = () => {
                     <User size={16} className='text-white' />
                   </div>
                   <span className='text-sm font-medium text-white'>
-                    {user?.username} {user?.role === "user" && `- Credits ${user.credits ?? 0}`}
+                    {user?.username} {user?.role === "user" && `- ${creditsLabel} ${creditsDisplay}`}
                   </span>
                 </motion.div>
                 <motion.div
@@ -326,7 +353,7 @@ const Navbar = () => {
                       onClick={() => setIsMobileMenuOpen(false)}
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}>
-                      My Credits
+                      Settings
                     </motion.div>
                   </Link>
                 </div>
@@ -347,7 +374,7 @@ const Navbar = () => {
                         <User size={16} className='text-white' />
                       </div>
                       <span className='text-sm font-medium text-white'>
-                        {user?.username} {user?.role === "user" && `- Credits ${user.credits ?? 0}`}
+                        {user?.username} {user?.role === "user" && `- ${creditsLabel} ${creditsDisplay}`}
                       </span>
                     </div>
                   </div>

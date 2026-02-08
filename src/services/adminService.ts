@@ -18,6 +18,8 @@ export interface AdminUser {
   role?: "admin" | "user";
   credits: number;
   createdAt: string;
+  teamId?: string | null;
+  teamRole?: "owner" | "admin" | "member" | null;
   creditHistory?: CreditHistoryEntry[];
 }
 
@@ -37,6 +39,47 @@ export interface AdminAdjustCreditsResponse {
   success: boolean;
   message: string;
   user: AdminUser;
+}
+
+export interface TeamMemberDetails {
+  userId: {
+    _id: string;
+    email: string;
+    username?: string;
+    credits: number;
+    creditHistory?: CreditHistoryEntry[];
+    teamRole?: "owner" | "admin" | "member";
+  };
+  role: "owner" | "admin" | "member";
+  joinedAt?: string;
+}
+
+export interface AdminTeam {
+  _id: string;
+  name: string;
+  ownerId: { _id: string; email: string; username?: string } | string;
+  members?: TeamMemberDetails[];
+  credits: number;
+  createdAt: string;
+  creditHistory?: CreditHistoryEntry[];
+}
+
+export interface AdminTeamListResponse {
+  teams: AdminTeam[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+}
+
+export interface AdminTeamResponse {
+  success: boolean;
+  team: AdminTeam;
+}
+
+export interface AdminAdjustTeamCreditsResponse {
+  success: boolean;
+  message: string;
+  team: AdminTeam;
 }
 
 class AdminService extends BaseService {
@@ -76,6 +119,127 @@ class AdminService extends BaseService {
         amount,
         reason,
       });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async getTeams(search = "", page = 1, limit = 20): Promise<AdminTeamListResponse> {
+    try {
+      const response = await this.axiosInstance.get<AdminTeamListResponse>("/admin/teams", {
+        params: { search, page, limit },
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async getTeam(teamId: string): Promise<AdminTeamResponse> {
+    try {
+      const response = await this.axiosInstance.get<AdminTeamResponse>(`/admin/teams/${teamId}`);
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async adjustTeamCredits(teamId: string, amount: number, reason: string): Promise<AdminAdjustTeamCreditsResponse> {
+    try {
+      const response = await this.axiosInstance.patch<AdminAdjustTeamCreditsResponse>(`/admin/teams/${teamId}/credits`, {
+        amount,
+        reason,
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  // System Settings
+  async getSettings(): Promise<{ settings: Record<string, { value: any; description: string }>; success: boolean }> {
+    try {
+      const response = await this.axiosInstance.get<{ settings: Record<string, { value: any; description: string }>; success: boolean }>("/admin/settings");
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async updateSetting(key: string, value: any): Promise<{ success: boolean; message: string; setting: any }> {
+    try {
+      const response = await this.axiosInstance.patch<{ success: boolean; message: string; setting: any }>("/admin/settings", {
+        key,
+        value,
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  // Analytics
+  async getAnalyticsOverview(): Promise<any> {
+    try {
+      const response = await this.axiosInstance.get("/analytics/overview");
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async getAnalyticsUsers(days: number = 30): Promise<any> {
+    try {
+      const response = await this.axiosInstance.get("/analytics/users", { params: { days } });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async getAnalyticsTeams(): Promise<any> {
+    try {
+      const response = await this.axiosInstance.get("/analytics/teams");
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async getAnalyticsUsage(days: number = 30): Promise<any> {
+    try {
+      const response = await this.axiosInstance.get("/analytics/usage", { params: { days } });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async getActivityLog(page: number = 1, limit: number = 20): Promise<any> {
+    try {
+      const response = await this.axiosInstance.get("/analytics/activity", { params: { page, limit } });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  // Subscription Analytics
+  async getSubscriptionAnalytics(): Promise<any> {
+    try {
+      const response = await this.axiosInstance.get("/admin/analytics/subscriptions");
       return this.handleResponse(response);
     } catch (error) {
       const errInfo = this.handleCommonError(error as any);

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { RootState } from "../store/store";
 import { Link } from "react-router-dom";
+import { RootState } from "../store/store";
 import teamService, { Team, TeamInvite } from "../services/teamService";
 import UserHeader from "../components/UserHeader";
 
-const CreditsPage = () => {
+const TeamSettings = () => {
   const user = useSelector((state: RootState) => state.user.user);
   const [team, setTeam] = useState<Team | null>(null);
   const [invites, setInvites] = useState<TeamInvite[]>([]);
@@ -31,8 +31,6 @@ const CreditsPage = () => {
     loadTeam();
   }, [user?.teamId]);
 
-  const creditHistory = team?.creditHistory || user?.creditHistory || [];
-  const creditsBalance = team?.credits ?? user?.credits ?? 0;
   const canManageTeam = user?.teamRole === "owner" || user?.teamRole === "admin";
   const isOwner = user?.teamRole === "owner";
 
@@ -102,32 +100,26 @@ const CreditsPage = () => {
   return (
     <div className='min-h-screen bg-slate-950 text-white'>
       <UserHeader
-        title='My Credits'
-        subtitle='View your credit balance and history.'
+        title='Team Settings'
+        subtitle='Manage team members and invites.'
         actions={
-          isOwner ? (
-            <Link
-              to='/contact'
-              className='px-3 py-2 rounded-md bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500'
-            >
-              Buy Credits
+          <>
+            {isOwner && (
+              <Link
+                to='/contact'
+                className='px-3 py-2 rounded-md bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500'
+              >
+                Buy Credits
+              </Link>
+            )}
+            <Link to='/credits' className='px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-white'>
+              Credits
             </Link>
-          ) : null
+          </>
         }
       />
 
       <div className='px-6 py-6 space-y-6'>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-          <div className='rounded-xl border border-slate-800 bg-slate-900 p-4'>
-            <p className='text-sm text-slate-400'>{team ? "Team Credits" : "Current Credits"}</p>
-            <p className='text-2xl font-semibold'>{creditsBalance}</p>
-          </div>
-          <div className='rounded-xl border border-slate-800 bg-slate-900 p-4 md:col-span-2'>
-            <p className='text-sm text-slate-400'>Account</p>
-            <p className='text-lg font-semibold'>{user?.email || "Unknown"}</p>
-          </div>
-        </div>
-
         <div className='rounded-xl border border-slate-800 bg-slate-900 p-5'>
           <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between'>
             <div>
@@ -136,17 +128,7 @@ const CreditsPage = () => {
                 {team ? team.name : "Invite a teammate to create your shared credits team."}
               </p>
             </div>
-            <div className='flex items-center gap-2'>
-              {isOwner && (
-                <Link
-                  to='/contact'
-                  className='px-3 py-2 rounded-md bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-500'
-                >
-                  Buy Credits
-                </Link>
-              )}
-              {!team && <span className='text-xs text-slate-500'>A team is created when you send your first invite.</span>}
-            </div>
+            {!team && <span className='text-xs text-slate-500'>A team is created when you send your first invite.</span>}
           </div>
 
           <div className='mt-4 grid gap-4 md:grid-cols-4'>
@@ -302,31 +284,9 @@ const CreditsPage = () => {
             </div>
           </div>
         </div>
-
-        <div className='rounded-xl border border-slate-800 bg-slate-900 p-4'>
-          <h2 className='text-xl font-semibold mb-4'>{team ? "Team Credit History" : "Credit History"}</h2>
-          <div className='space-y-2 max-h-[420px] overflow-y-auto pr-1'>
-            {creditHistory.length === 0 && <p className='text-slate-400'>No credit history yet.</p>}
-            {creditHistory.map((entry, index) => (
-              <div key={`${entry.createdAt}-${index}`} className='text-sm border border-slate-800 rounded-md p-3 bg-slate-950/40'>
-                <div className='flex items-center justify-between'>
-                  <span className='capitalize'>{entry.type}</span>
-                  <span className={entry.amount >= 0 ? "text-green-400" : "text-red-400"}>
-                    {entry.amount >= 0 ? "+" : ""}
-                    {entry.amount}
-                  </span>
-                </div>
-                <div className='text-slate-400'>
-                  Balance: {entry.balance} · {new Date(entry.createdAt).toLocaleString()}
-                </div>
-                {entry.reason && <div className='text-slate-300 mt-1'>{entry.reason}</div>}
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
-export default CreditsPage;
+export default TeamSettings;

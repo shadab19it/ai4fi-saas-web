@@ -10,6 +10,7 @@ import { setTimeFilter } from "../store/dashboardSlice";
 import type { RootState } from "../store/store";
 import { toast } from "sonner";
 import commonService, { dashboardStats, Stats } from "../services/commonService";
+import teamService from "../services/teamService";
 import { Link } from "react-router-dom";
 
 // Sample data - in a real app, this would come from an API
@@ -44,6 +45,7 @@ export function Dashboard() {
   const timeFilter = useSelector((state: RootState) => state.dashboard.timeFilter);
   const user = useSelector((state: RootState) => state.user);
   const [stats, setStats] = useState<Stats>({ modelData: [], tryonData: [] });
+  const [teamCredits, setTeamCredits] = useState<number | null>(null);
 
   const getStats = async () => {
     try {
@@ -61,10 +63,36 @@ export function Dashboard() {
     getStats();
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+    const loadTeamCredits = async () => {
+      if (!user?.user?.teamId) {
+        if (isMounted) setTeamCredits(null);
+        return;
+      }
+      try {
+        const data = await teamService.getTeam();
+        if (isMounted) {
+          setTeamCredits(data.team?.credits ?? null);
+        }
+      } catch (error) {
+        if (isMounted) setTeamCredits(null);
+      }
+    };
+    loadTeamCredits();
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.user?.teamId]);
+
+  const creditsValue = user?.user?.role === "user"
+    ? (user.user?.teamId ? (teamCredits ?? 0) : (user.user?.credits ?? 0))
+    : "Admin";
+
   return (
     <>
       <div className='flex justify-between items-center mb-8'>
-        <h1 className='text-3xl font-bold text-white'>Dashboard Overview</h1>
+        <h1 className='text-3xl font-bold text-white'>Dashboard Overviewgg</h1>
         {/* <TimeFilterSelect value={timeFilter} onChange={(value) => dispatch(setTimeFilter(value))} /> */}
         <div className='flex items-center gap-3'>
           {user?.user?.role === "admin" && (
@@ -81,7 +109,7 @@ export function Dashboard() {
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
         <StatsCard
           title='Credits'
-          value={user?.user?.role === "user" ? (user.user?.credits ?? 0) : "Admin"}
+          value={creditsValue}
           icon={DollarSign}
         />
         <StatsCard
