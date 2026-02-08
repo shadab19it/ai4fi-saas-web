@@ -6,31 +6,37 @@ import {
   User,
   Camera,
   Palette,
-  Image as ImageIcon,
   Sparkles,
-  Info,
   Rocket,
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
 import {
-  backgroundOptions,
-  countryOptions,
+  nationalityOptions,
   eyeColorOptions,
-  fastGenFemaleHairStyle,
-  fastGenFemalePoses,
-  fastGenMaleHairStyle,
-  fastGenMalePoses,
   genderOptions,
-  hairColorOptions,
-  hairTypeOptions,
-  poseOptions,
-  skinColorOptions,
+  modeOptions,
+  ageRangeOptions,
+  femaleHairColorOptions,
+  maleHairColorOptions,
+  femaleHairStyleOptions,
+  maleHairStyleOptions,
+  skinToneOptions,
+  moodOptions,
+  beardOptions,
+  femaleBodyTypeOptions,
+  maleBodyTypeOptions,
+  poseTypeOptions,
+  femaleDressTypeOptions,
+  maleDressTypeOptions,
+  femaleFootwearOptions,
+  maleFootwearOptions,
+  tierOptions,
+  aspectRatioOptions,
+  resolutionOptions,
 } from "./optionInput";
-import MultiSelect from "../../common/MultiSelect";
 import DarkLogo from "../../../../public/dark-logo.png";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 import { useMediaQuery } from "../../useMediaQuery";
 
 const CollapsibleSection: FC<{ title: string; icon: ReactNode; children: any; defaultOpen?: boolean; isHeader?: boolean }> = ({
@@ -61,16 +67,7 @@ const CollapsibleSection: FC<{ title: string; icon: ReactNode; children: any; de
   );
 };
 
-const Tooltip: FC<{ text: string; children: any }> = ({ text, children }) => {
-  return (
-    <div className='group relative inline-block'>
-      {children}
-      <div className='absolute left-full ml-2 px-2 py-1 bg-gray-800 text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap'>
-        {text}
-      </div>
-    </div>
-  );
-};
+// Removed Tooltip component - not used
 
 export interface IOption {
   value: string;
@@ -95,51 +92,49 @@ const SegmentedControl: FC<{ options: IOption[]; value: string; onChange: (v: st
 };
 
 const ModelConfigForm: FC<any> = ({
-  setGender,
-  setAge,
-  age,
-  setHairColor,
-  setHairType,
-  setPose,
-  setSkinColor,
-  setEyeColor,
-  setCountry,
-  setBackground,
-  setDnaNumber,
-  background,
-  setModel,
-  setSeedType,
-  setDress,
-  setShotType,
-  shotType,
-  country,
+  mode,
+  setMode,
   gender,
-  hairType,
-  skinColor,
-  seedType,
-  model,
-  hairColor,
+  setGender,
+  nationality,
+  setNationality,
+  ageRange,
+  setAgeRange,
+  // Face mode
+  hairStyle,
+  setHairStyle,
   eyeColor,
-  pose,
-  loading,
-  generateImage,
-  dress,
-  dnaNumber,
-  setCustomBackground,
-  customBackground,
-  setLighting,
-  lighting,
-  setMultiPose,
-  setBodyType,
+  setEyeColor,
+  mood,
+  setMood,
+  beard,
+  setBeard,
+  // Fashion mode
   bodyType,
-  repllicateModelInfo,
-  onChangeReplicateInfo,
-  generateFastGenModel,
+  setBodyType,
+  skinTone,
+  setSkinTone,
+  hairColor,
+  setHairColor,
+  poseType,
+  setPoseType,
+  dress,
+  setDress,
+  footwear,
+  setFootwear,
+  // Quality
+  tier,
+  setTier,
+  aspectRatio,
+  setAspectRatio,
+  resolution,
+  setResolution,
+  // Actions
+  generateImage,
+  loading,
   setIsSidebarOpen,
   isSidebarOpen,
-  onClickAdwancedModel,
 }) => {
-  const [activeTab, setActiveTab] = useState("basic");
   const isMobile = useMediaQuery("(max-width: 440px)");
 
   return (
@@ -155,14 +150,6 @@ const ModelConfigForm: FC<any> = ({
           {/* Model Generator */}
         </h2>
         <div className='flex items-center gap-2'>
-          {isMobile && (
-            <button
-              disabled={loading}
-              className=' fast-gen-model-btn cursor-pointer text-[10px] py-2 px-6 sm:text-sm'
-              onClick={onClickAdwancedModel}>
-              {!repllicateModelInfo.isReplicateModel ? "Use FastGen Model" : "Use Custom Model"}
-            </button>
-          )}
           <button
             className=' bg-white text-black p-2 rounded-full shadow-lg z-150 sm:hidden block'
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
@@ -171,70 +158,129 @@ const ModelConfigForm: FC<any> = ({
         </div>
       </div>
 
-      {/* For Custom Model Generate */}
-      {!repllicateModelInfo.isReplicateModel && (
-        <>
-          <div className='flex border-b border-gray-700'>
-            <button
-              className={`flex-1 p-2 ${activeTab === "basic" ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700/50"}`}
-              onClick={() => setActiveTab("basic")}>
-              Basic
-            </button>
-            <button
-              className={`flex-1 p-2 ${activeTab === "advanced" ? "bg-gray-700 text-white" : "text-gray-400 hover:bg-gray-700/50"}`}
-              onClick={() => setActiveTab("advanced")}>
-              Advanced
-            </button>
-          </div>
-          {/* Scrollable Content */}
-          <div className='flex-1 overflow-y-auto overflow-x-hidden'>
-            {activeTab === "basic" && (
-              <>
-                <CollapsibleSection title='Basic Info' icon={<User className='w-4 h-4' />}>
-                  <div className='space-y-3'>
+      {/* Scrollable Content */}
+      <div className='flex-1 overflow-y-auto overflow-x-hidden'>
+            <CollapsibleSection title='Basic Info' icon={<User className='w-4 h-4' />}>
+              <div className='space-y-3'>
+                <div>
+                  <label className='block text-sm mb-1'>Mode</label>
+                  <SegmentedControl
+                    options={modeOptions}
+                    value={mode}
+                    onChange={(value) => setMode(value)}
+                  />
+                </div>
+                <div>
+                  <label className='block text-sm mb-1'>Nationality</label>
+                  <select
+                    className='w-full bg-gray-900 rounded p-2 text-sm'
+                    value={nationality}
+                    onChange={(e) => setNationality(e.target.value)}>
+                    {nationalityOptions.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className='grid grid-cols-2 gap-3'>
+                  <div>
+                    <label className='block text-sm mb-1'>Gender</label>
+                    <select
+                      className='w-full bg-gray-900 rounded p-2 text-sm'
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}>
+                      {genderOptions.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className='block text-sm mb-1'>Age Range</label>
+                    <select
+                      className='w-full bg-gray-900 rounded p-2 text-sm'
+                      value={ageRange}
+                      onChange={(e) => setAgeRange(e.target.value)}>
+                      {ageRangeOptions.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleSection>
+
+            {/* Face Mode Fields */}
+            {mode === "face" && (
+              <CollapsibleSection title='Face Details' icon={<Palette className='w-4 h-4' />}>
+                <div className='space-y-3'>
+                  <div className='grid grid-cols-2 gap-3'>
                     <div>
-                      <label className='block text-sm mb-1'>Country</label>
+                      <label className='block text-sm mb-1'>Hair Style</label>
                       <select
+                        value={hairStyle}
                         className='w-full bg-gray-900 rounded p-2 text-sm'
-                        value={country}
-                        onChange={(e) => setCountry(e.target.value)}>
-                        {countryOptions.map((o) => (
+                        onChange={(e) => setHairStyle(e.target.value)}>
+                        {(gender === "male" ? maleHairStyleOptions : femaleHairStyleOptions).map((o) => (
                           <option key={o.value} value={o.value}>
                             {o.label}
                           </option>
                         ))}
                       </select>
                     </div>
-                    <div className='grid grid-cols-2 gap-3'>
+                    <div>
+                      <label className='block text-sm mb-1'>Eye Color</label>
+                      <select
+                        value={eyeColor}
+                        className='w-full bg-gray-900 rounded p-2 text-sm'
+                        onChange={(e) => setEyeColor(e.target.value)}>
+                        {eyeColorOptions.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className='block text-sm mb-1'>Mood</label>
+                      <select
+                        value={mood}
+                        className='w-full bg-gray-900 rounded p-2 text-sm'
+                        onChange={(e) => setMood(e.target.value)}>
+                        {moodOptions.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {gender === "male" && (
                       <div>
-                        <label className='block text-sm mb-1'>Gender</label>
+                        <label className='block text-sm mb-1'>Beard</label>
                         <select
+                          value={beard}
                           className='w-full bg-gray-900 rounded p-2 text-sm'
-                          value={gender}
-                          onChange={(e) => setGender(e.target.value)}>
-                          {genderOptions.map((o, i) => (
+                          onChange={(e) => setBeard(e.target.value)}>
+                          {beardOptions.map((o) => (
                             <option key={o.value} value={o.value}>
                               {o.label}
                             </option>
                           ))}
                         </select>
                       </div>
-                      <div>
-                        <label className='block text-sm mb-1'>Age</label>
-                        <input
-                          type='number'
-                          className='w-full bg-gray-900 rounded p-2 text-sm'
-                          onChange={(e) => setAge(e.target.value)}
-                          value={age}
-                          min='18'
-                          max='65'
-                          defaultValue='25'
-                        />
-                      </div>
-                    </div>
+                    )}
                   </div>
-                </CollapsibleSection>
+                </div>
+              </CollapsibleSection>
+            )}
 
+            {/* Fashion Mode Fields */}
+            {mode === "fashion" && (
+              <>
                 <CollapsibleSection title='Appearance' icon={<Palette className='w-4 h-4' />}>
                   <div className='space-y-3'>
                     <div className='grid grid-cols-2 gap-3'>
@@ -244,7 +290,7 @@ const ModelConfigForm: FC<any> = ({
                           value={hairColor}
                           className='w-full bg-gray-900 rounded p-2 text-sm'
                           onChange={(e) => setHairColor(e.target.value)}>
-                          {hairColorOptions.map((o, i) => (
+                          {(gender === "male" ? maleHairColorOptions : femaleHairColorOptions).map((o) => (
                             <option key={o.value} value={o.value}>
                               {o.label}
                             </option>
@@ -252,407 +298,138 @@ const ModelConfigForm: FC<any> = ({
                         </select>
                       </div>
                       <div>
-                        <label className='block text-sm mb-1'>Hair Style</label>
+                        <label className='block text-sm mb-1'>Skin Tone</label>
                         <select
-                          value={hairType}
+                          value={skinTone}
                           className='w-full bg-gray-900 rounded p-2 text-sm'
-                          onChange={(e) => setHairType(e.target.value)}>
-                          {gender === "Male"
-                            ? fastGenMaleHairStyle.map((o, i) => (
-                                <option key={o.value} value={o.value}>
-                                  {o.label}
-                                </option>
-                              ))
-                            : fastGenFemaleHairStyle.map((o, i) => (
-                                <option key={o.value} value={o.value}>
-                                  {o.label}
-                                </option>
-                              ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className='block text-sm mb-1'>Eye Color</label>
-                        <select
-                          value={eyeColor}
-                          className='w-full bg-gray-900 rounded p-2 text-sm'
-                          onChange={(e) => setEyeColor(e.target.value)}>
-                          {eyeColorOptions.map((o, i) => (
+                          onChange={(e) => setSkinTone(e.target.value)}>
+                          {skinToneOptions.map((o) => (
                             <option key={o.value} value={o.value}>
                               {o.label}
                             </option>
                           ))}
                         </select>
                       </div>
-                      <div>
-                        <label className='block text-sm mb-1'>Skin Color</label>
-                        <select
-                          value={skinColor}
-                          className='w-full bg-gray-900 rounded p-2 text-sm'
-                          onChange={(e) => setSkinColor(e.target.value)}>
-                          {skinColorOptions.map((o, i) => (
-                            <option key={o.value} value={o.value}>
-                              {o.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
                       <div className='col-span-2'>
-                        {gender === "Male" ? (
-                          <div>
-                            <label className='block text-sm mb-1'>Body Type</label>
-                            <select
-                              value={bodyType}
-                              onChange={(e) => setBodyType(e.target.value)}
-                              className='w-full bg-gray-900 rounded p-2 text-sm'>
-                              <option value='Slim & Toned'>Slim & Toned</option>
-                              <option value='Curvy & Voluptuous'>Curvy & Voluptuous</option>
-                              <option value='Athletic & Defined'>Athletic & Defined</option>
-                              <option value='Petite & Delicate'> Petite & Delicate</option>
-                              <option value='Plus-Size & Full-Figured'>Plus-Size & Full-Figured</option>
-                            </select>
-                          </div>
-                        ) : (
-                          <div>
-                            <label className='block text-sm mb-1'>Body Type</label>
-                            <select
-                              value={bodyType}
-                              onChange={(e) => setBodyType(e.target.value)}
-                              className='w-full bg-gray-900 rounded p-2 text-sm'>
-                              <option value='Slim & Lean'>Slim & Lean</option>
-                              <option value=' Muscular & Athletic.'> Muscular & Athletic.</option>
-                              <option value='Broad & Sturdy'>Broad & Sturdy</option>
-                              <option value=' Tall & Lanky'> Tall & Lanky</option>
-                              <option value='Obese & Heavyset'>Obese & Heavyset</option>
-                            </select>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CollapsibleSection>
-
-                <CollapsibleSection title='Shot Settings' icon={<Camera className='w-4 h-4' />}>
-                  <div className='space-y-3'>
-                    <div>
-                      <label className='block text-sm mb-1'>Shot Type</label>
-                      <SegmentedControl
-                        options={[
-                          { value: "Full Body", label: "Full Body" },
-                          { value: "Half Body", label: "Half Body" },
-                        ]}
-                        value={shotType}
-                        onChange={(value) => setShotType(value)}
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm mb-1'>Dress Description</label>
-                      <textarea
-                        rows={1}
-                        value={dress}
-                        onChange={(e) => {
-                          setDress(e.target.value); // Update dress state
-                          console.log("Dress Input:", e.target.value); // Debugging
-                        }}
-                        className='w-full bg-gray-900 rounded p-2 text-sm'
-                      />
-                    </div>
-                    {model === 1 && (
-                      <div>
-                        <label className='block text-sm mb-1'>Pose</label>
-                        <select value={pose} className='w-full bg-gray-900 rounded p-2 text-sm' onChange={(e) => setPose(e.target.value)}>
-                          {gender === "Male"
-                            ? fastGenMalePoses.map((o, i) => (
-                                <option key={o.value} value={o.value} disabled={o.value === "divider"}>
-                                  {o.label}
-                                </option>
-                              ))
-                            : fastGenFemalePoses.map((o, i) => (
-                                <option key={o.value} value={o.value} disabled={o.value === "divider"}>
-                                  {o.label}
-                                </option>
-                              ))}
+                        <label className='block text-sm mb-1'>Body Type</label>
+                        <select
+                          value={bodyType}
+                          onChange={(e) => setBodyType(e.target.value)}
+                          className='w-full bg-gray-900 rounded p-2 text-sm'>
+                          {(gender === "male" ? maleBodyTypeOptions : femaleBodyTypeOptions).map((o) => (
+                            <option key={o.value} value={o.value}>
+                              {o.label}
+                            </option>
+                          ))}
                         </select>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </CollapsibleSection>
-                <CollapsibleSection title='Generation Settings' icon={<Sparkles className='w-4 h-4' />}>
+
+                <CollapsibleSection title='Fashion Settings' icon={<Camera className='w-4 h-4' />}>
                   <div className='space-y-3'>
                     <div>
-                      <label className='block text-sm mb-1'>Seed Type</label>
+                      <label className='block text-sm mb-1'>Pose Type</label>
                       <SegmentedControl
-                        options={[
-                          { value: "Auto Generate", label: "Auto" },
-                          { value: "Custom Generated", label: "Custom" },
-                        ]}
-                        value={seedType}
-                        onChange={(value) => setSeedType(value)}
+                        options={poseTypeOptions}
+                        value={poseType}
+                        onChange={(value) => setPoseType(value)}
                       />
                     </div>
-
-                    {seedType === "Custom Generated" && (
-                      <div>
-                        <label className='block text-sm mb-1'>Model DNA Number</label>
-                        <input
-                          type='number'
-                          className='w-full bg-gray-900 rounded p-2 text-sm'
-                          value={dnaNumber}
-                          onChange={(e) => setDnaNumber(e.target.value)}
-                        />
-                      </div>
-                    )}
-
-                    {seedType === "Custom Generated" && (
-                      <div>
-                        <label className='block text-sm mb-1'>
-                          Number of Models
-                          <Tooltip text='Generate up to 4 models at once'>
-                            <Info className='w-4 h-4 inline ml-1' />
-                          </Tooltip>
-                        </label>
-                        <div className='flex  gap-2'>
-                          <input
-                            type='range'
-                            min='1'
-                            max='4'
-                            value={model}
-                            onChange={(e) => setModel(parseInt(e.target.value))}
-                            className='w-full'
-                          />
-                          <div className='text-right text-sm'>{model}</div>
-                        </div>
-                      </div>
-                    )}
-                    {model > 1 && (
-                      <div>
-                        <label className='block text-sm mb-2'>Select {model} Poses</label>
-                        <MultiSelect
-                          options={gender === "Male" ? fastGenMalePoses : fastGenFemalePoses}
-                          noOfposes={model}
-                          onChange={(v) => {
-                            if (v.length > model) {
-                              toast.info(`You can select only ${model} Poses`);
-                              setMultiPose(poseOptions);
-                              return;
-                            } else {
-                              setMultiPose(v.map((o) => o.value));
-                            }
-                          }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </CollapsibleSection>
-              </>
-            )}
-
-            {activeTab === "advanced" && (
-              <>
-                <CollapsibleSection title='Background' icon={<ImageIcon className='w-4 h-4' />}>
-                  <div className='space-y-3'>
                     <div>
-                      <label className='block text-sm mb-1'>Background</label>
+                      <label className='block text-sm mb-1'>Dress</label>
                       <select
+                        value={dress}
                         className='w-full bg-gray-900 rounded p-2 text-sm'
-                        value={background}
-                        onChange={(e) => setBackground(e.target.value)}>
-                        {backgroundOptions.map((o, i) => (
+                        onChange={(e) => setDress(e.target.value)}>
+                        <option value=''>Select or enter custom...</option>
+                        {(gender === "male" ? maleDressTypeOptions : femaleDressTypeOptions).map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                      {dress && !(gender === "male" ? maleDressTypeOptions : femaleDressTypeOptions).find(o => o.value === dress) && (
+                        <input
+                          type='text'
+                          className='w-full bg-gray-900 rounded p-2 text-sm mt-2'
+                          value={dress}
+                          onChange={(e) => setDress(e.target.value)}
+                          placeholder='Enter custom dress description'
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <label className='block text-sm mb-1'>Footwear</label>
+                      <select
+                        value={footwear}
+                        className='w-full bg-gray-900 rounded p-2 text-sm'
+                        onChange={(e) => setFootwear(e.target.value)}>
+                        <option value=''>Select footwear...</option>
+                        {(gender === "male" ? maleFootwearOptions : femaleFootwearOptions).map((o) => (
                           <option key={o.value} value={o.value}>
                             {o.label}
                           </option>
                         ))}
                       </select>
                     </div>
-
-                    <div>
-                      <label className='block text-sm mb-2'>Custom Background</label>
-                      <textarea
-                        rows={1}
-                        value={customBackground}
-                        onChange={(e) => {
-                          setCustomBackground(e.target.value); // Update Background State
-                        }}
-                        className='w-full bg-gray-900 rounded p-2 text-sm'
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm mb-1'>Lighting</label>
-                      <select
-                        value={lighting}
-                        onChange={(e) => setLighting(e.target.value)}
-                        className='w-full bg-gray-900 rounded p-2 text-sm'>
-                        <option value='Softbox Studio Lighting'>Softbox Studio Lighting</option>
-                        <option value='High-Key Lighting'>High-Key Lighting</option>
-                        <option value='Natural Daylight (Di used)'> Natural Daylight (Di used)</option>
-                        <option value='Dramatic Low-Key Lighting'> Dramatic Low-Key Lighting</option>
-                        <option value='Ring Light Setup'> Ring Light Setup</option>
-                      </select>
-                    </div>
                   </div>
                 </CollapsibleSection>
               </>
             )}
-          </div>
-        </>
-      )}
 
-      {/* For FASTGEN Model Generate */}
-
-      {repllicateModelInfo.isReplicateModel && (
-        <div className='flex-1 overflow-y-auto overflow-x-hidden'>
-          {activeTab === "basic" && (
-            <>
-              <CollapsibleSection isHeader={false} title='Basic Info' icon={<User className='w-4 h-4' />}>
-                <div className='space-y-3'>
-                  <div className='grid grid-cols-1 gap-3'>
-                    <div>
-                      <label className='block text-sm mb-1'>Gender</label>
-                      <select
-                        className='w-full bg-gray-900 rounded p-2 text-sm'
-                        value={repllicateModelInfo.gender}
-                        onChange={(e) => onChangeReplicateInfo("gender", e.target.value)}>
-                        {genderOptions.map((o, i) => (
-                          <option key={o.value} value={o.value}>
-                            {o.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className='block text-sm mb-1'>Hair Style</label>
-                      <select
-                        className='w-full bg-gray-900 rounded p-2 text-sm'
-                        value={repllicateModelInfo.hairstyle}
-                        onChange={(e) => onChangeReplicateInfo("hairstyle", e.target.value)}>
-                        {repllicateModelInfo.gender === "Male"
-                          ? fastGenMaleHairStyle.map((o, i) => (
-                              <option key={o.value} value={o.value}>
-                                {o.label}
-                              </option>
-                            ))
-                          : fastGenFemaleHairStyle.map((o, i) => (
-                              <option key={o.value} value={o.value}>
-                                {o.label}
-                              </option>
-                            ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className='block text-sm mb-1'>Outfit</label>
-                      <textarea
-                        rows={1}
-                        value={repllicateModelInfo.outfit}
-                        onChange={(e) => {
-                          onChangeReplicateInfo("outfit", e.target.value); // Update dress state
-                        }}
-                        className='w-full bg-gray-900 rounded p-2 text-sm'
-                      />
-                    </div>
-
-                    <div>
-                      <label className='block text-sm mb-1'>Shot Type</label>
-                      <SegmentedControl
-                        options={[
-                          { value: "full-length", label: "Full Body" },
-                          { value: "half-length", label: "Half Body" },
-                        ]}
-                        value={repllicateModelInfo.shootType}
-                        onChange={(value) => onChangeReplicateInfo("shootType", value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className='block text-sm mb-2'>Select Poses (max {repllicateModelInfo.noOfPoses})</label>
-                      <MultiSelect
-                        options={repllicateModelInfo.gender === "Male" ? fastGenMalePoses : fastGenFemalePoses}
-                        noOfposes={repllicateModelInfo.noOfPoses}
-                        onChange={(v) => {
-                          if (v.length > repllicateModelInfo.noOfPoses) {
-                            toast.info(`You can select only ${repllicateModelInfo.noOfPoses} Poses`);
-                            onChangeReplicateInfo("poses", repllicateModelInfo.poses);
-                            return;
-                          } else {
-                            onChangeReplicateInfo(
-                              "poses",
-                              v.map((o) => o.value)
-                            );
-                          }
-                        }}
-                      />
-                    </div>
-
-                    <div>
-                      <label className='block text-sm mb-1'>Seed Type</label>
-                      <SegmentedControl
-                        options={[
-                          { value: "Auto Generate", label: "Auto" },
-                          { value: "Custom Generated", label: "Custom" },
-                        ]}
-                        value={repllicateModelInfo.seedType}
-                        onChange={(value) => onChangeReplicateInfo("seedType", value)}
-                      />
-                    </div>
-
-                    {repllicateModelInfo.seedType === "Custom Generated" && (
-                      <div>
-                        <label className='block text-sm mb-1'>Model DNA Number</label>
-                        <input
-                          type='number'
-                          className='w-full bg-gray-900 rounded p-2 text-sm'
-                          value={dnaNumber}
-                          onChange={(e) => onChangeReplicateInfo("seed", e.target.value)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label className='block text-sm mb-1'>Prompt</label>
-                    <textarea
-                      rows={4}
-                      value={repllicateModelInfo?.prompt}
-                      onChange={(e) => {
-                        onChangeReplicateInfo("prompt", e.target.value);
-                        console.log("Dress Input:", e.target.value); // Debugging
-                      }}
-                      className='w-full bg-gray-900 rounded p-2 text-sm'
-                    />
-                  </div>
-
-                  <div>
-                    <label className='block text-sm mb-1'>Aspect Ratio</label>
-                    <input
-                      type='string'
-                      className='w-full bg-gray-900 rounded p-2 text-sm'
-                      value={repllicateModelInfo?.spectRatio}
-                      onChange={(e) => onChangeReplicateInfo("spectRatio", e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <label className='block text-sm mb-1'>Guidance</label>
-                    <input
-                      type='number'
-                      className='w-full bg-gray-900 rounded p-2 text-sm'
-                      value={repllicateModelInfo?.guidance}
-                      onChange={(e) => onChangeReplicateInfo("guidance", e.target.value)}
-                    />
-                  </div>
+            <CollapsibleSection title='Quality Settings' icon={<Sparkles className='w-4 h-4' />}>
+              <div className='space-y-3'>
+                <div>
+                  <label className='block text-sm mb-1'>Tier</label>
+                  <SegmentedControl
+                    options={tierOptions}
+                    value={tier}
+                    onChange={(value) => setTier(value)}
+                  />
                 </div>
-              </CollapsibleSection>
-            </>
-          )}
-        </div>
-      )}
+                {tier === "professional" && (
+                  <>
+                    <div>
+                      <label className='block text-sm mb-1'>Aspect Ratio</label>
+                      <select
+                        value={aspectRatio}
+                        className='w-full bg-gray-900 rounded p-2 text-sm'
+                        onChange={(e) => setAspectRatio(e.target.value)}>
+                        {aspectRatioOptions.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className='block text-sm mb-1'>Resolution</label>
+                      <select
+                        value={resolution}
+                        className='w-full bg-gray-900 rounded p-2 text-sm'
+                        onChange={(e) => setResolution(e.target.value)}>
+                        {resolutionOptions.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+              </div>
+            </CollapsibleSection>
+          </div>
 
       {/* Footer Actions */}
       <div className='p-4 border-t border-gray-700 bg-gray-900'>
         <div className='flex gap-2'>
           <button
-            onClick={repllicateModelInfo.isReplicateModel ? generateFastGenModel : generateImage}
-            className='flex-1 flex justify-center gap-2 items-center bg-gradient-to-r from-purple-600 to-indigo-600 hover:bg-gradient-to-r hover:from-purple-800 hover:to-indigo-800 text-white font-bold px-6 py-3 rounded-lg shadow-lg transition-transform'>
+            onClick={generateImage}
+            disabled={loading}
+            className='flex-1 flex justify-center gap-2 items-center bg-gradient-to-r from-purple-600 to-indigo-600 hover:bg-gradient-to-r hover:from-purple-800 hover:to-indigo-800 text-white font-bold px-6 py-3 rounded-lg shadow-lg transition-transform disabled:opacity-50'>
             {loading ? <LoadingSpinner size={15} /> : <Rocket className=' h-4 w-4' />}
             <span>{loading ? "Generating..." : "Generate Model"}</span>
           </button>

@@ -1,55 +1,214 @@
-export const countryOptions = [
-  { value: "India", label: "India" },
-  { value: "USA", label: "USA" },
-  { value: "UK", label: "UK" },
-  { value: "France", label: "France" },
-  { value: "Germany", label: "Germany" },
-  { value: "Australia", label: "Australia" },
-  { value: "Canada", label: "Canada" },
-  { value: "Africa", label: "Africa" },
-  { value: "Russia", label: "Russia" },
+export const nationalityOptions = [
+  { value: "Indian", label: "Indian" },
+  { value: "American", label: "American" },
+  { value: "British", label: "British" },
+  { value: "Canadian", label: "Canadian" },
+  { value: "Australian", label: "Australian" },
+  { value: "French", label: "French" },
+  { value: "Italian", label: "Italian" },
+  { value: "German", label: "German" },
+  { value: "Spanish", label: "Spanish" },
+  { value: "Portuguese", label: "Portuguese" },
+  { value: "Brazilian", label: "Brazilian" },
+  { value: "Mexican", label: "Mexican" },
+  { value: "Argentinian", label: "Argentinian" },
+  { value: "Colombian", label: "Colombian" },
+  { value: "Pakistani", label: "Pakistani" },
+  { value: "Bangladeshi", label: "Bangladeshi" },
+  { value: "Sri Lankan", label: "Sri Lankan" },
+  { value: "Nepalese", label: "Nepalese" },
+  { value: "Arab (Middle Eastern)", label: "Arab (Middle Eastern)" },
+  { value: "Saudi", label: "Saudi" },
+  { value: "Emirati", label: "Emirati" },
+  { value: "Turkish", label: "Turkish" },
+  { value: "Iranian", label: "Iranian" },
+  { value: "Chinese", label: "Chinese" },
+  { value: "Japanese", label: "Japanese" },
+  { value: "Korean", label: "Korean" },
+  { value: "Thai", label: "Thai" },
+  { value: "Vietnamese", label: "Vietnamese" },
+  { value: "Filipino", label: "Filipino" },
+  { value: "Indonesian", label: "Indonesian" },
+  { value: "Malaysian", label: "Malaysian" },
+  { value: "African", label: "African" },
+  { value: "Nigerian", label: "Nigerian" },
+  { value: "Ethiopian", label: "Ethiopian" },
+  { value: "Kenyan", label: "Kenyan" },
+  { value: "South African", label: "South African" },
+  { value: "Russian", label: "Russian" },
+  { value: "Ukrainian", label: "Ukrainian" },
+  { value: "New Zealander", label: "New Zealander" },
+  { value: "Mixed Nationality", label: "Mixed Nationality" },
 ];
+
+// Keep for backward compatibility
+export const countryOptions = nationalityOptions;
 
 export const genderOptions = [
-  { value: "Male", label: "Male" },
-  { value: "Female", label: "Female" },
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
 ];
 
-export const hairColorOptions = [
+export const modeOptions = [
+  { value: "face", label: "Face" },
+  { value: "fashion", label: "Fashion" },
+];
+
+export const ageRangeOptions = [
+  { value: "18-22", label: "18-22" },
+  { value: "23-27", label: "23-27" },
+  { value: "28-32", label: "28-32" },
+  { value: "33-38", label: "33-38" },
+  { value: "39-45", label: "39-45" },
+  { value: "46-55", label: "46-55" },
+];
+
+// Female hair colors
+export const femaleHairColorOptions = [
   { value: "Black", label: "Black" },
+  { value: "Dark Brown", label: "Dark Brown" },
+  { value: "Light Brown", label: "Light Brown" },
+  { value: "Chestnut", label: "Chestnut" },
+  { value: "Golden Brown", label: "Golden Brown" },
+  { value: "Blonde", label: "Blonde" },
+  { value: "Auburn", label: "Auburn" },
+  { value: "Red", label: "Red" },
+  { value: "Grey", label: "Grey" },
+  { value: "Salt and Pepper", label: "Salt and Pepper" },
+];
+
+// Male hair colors
+export const maleHairColorOptions = [
+  { value: "Black", label: "Black" },
+  { value: "Dark Brown", label: "Dark Brown" },
+  { value: "Light Brown", label: "Light Brown" },
   { value: "Brown", label: "Brown" },
   { value: "Blonde", label: "Blonde" },
-  { value: "Red", label: "Red" },
+  { value: "Grey", label: "Grey" },
+  { value: "Salt and Pepper", label: "Salt and Pepper" },
+  { value: "Bald", label: "Bald" },
 ];
 
-export const hairTypeOptions = [
-  { value: "Straight & Sleek", label: "Straight & Sleek" },
-  { value: "Wavy & Flowing", label: "Wavy & Flowing" },
-  { value: "Curly & Voluminous", label: "Curly & Voluminous" },
-  { value: "Coily & Textured", label: " Coily & Textured" },
-  { value: "Short & Cropped", label: " Short & Cropped" },
-  { value: "Long & Layered", label: " Long & Layered" },
-  { value: "Buzz Cut", label: "Buzz Cut" },
-  { value: "Shoulder-Length Bob", label: " Shoulder-Length Bob" },
-  { value: "Undercut & Styled", label: " Undercut & Styled" },
-  { value: "Natural & Unstyled", label: "Natural & Unstyled" },
+// Keep for backward compatibility
+export const hairColorOptions = femaleHairColorOptions;
+
+// Female hair styles (from JSON)
+export const femaleHairStyleOptions = [
+  { value: "Straight Open Hair", label: "Straight Open Hair" },
+  { value: "Soft Waves", label: "Soft Waves" },
+  { value: "Curly Hair", label: "Curly Hair" },
+  { value: "Romantic Curly", label: "Romantic Curly" },
+  { value: "Long Wavy Hair", label: "Long Wavy Hair" },
+  { value: "High Ponytail", label: "High Ponytail" },
+  { value: "Low Ponytail", label: "Low Ponytail" },
+  { value: "Loose Bun", label: "Loose Bun" },
+  { value: "Tight Bun", label: "Tight Bun" },
+  { value: "Side Braid", label: "Side Braid" },
+  { value: "Center Parted Hair", label: "Center Parted Hair" },
+  { value: "Short Bob Cut", label: "Short Bob Cut" },
+  { value: "Shoulder Length Hair", label: "Shoulder Length Hair" },
 ];
+
+// Male hair styles (from JSON)
+export const maleHairStyleOptions = [
+  { value: "Short Side Cut", label: "Short Side Cut" },
+  { value: "Crew Cut", label: "Crew Cut" },
+  { value: "Fade Cut", label: "Fade Cut" },
+  { value: "Classic Side Part", label: "Classic Side Part" },
+  { value: "Slick Back", label: "Slick Back" },
+  { value: "Messy Hair", label: "Messy Hair" },
+  { value: "Medium Length Hair", label: "Medium Length Hair" },
+  { value: "Long Hair", label: "Long Hair" },
+  { value: "Man Bun", label: "Man Bun" },
+  { value: "Buzz Cut", label: "Buzz Cut" },
+  { value: "Clean Shaved Head", label: "Clean Shaved Head" },
+];
+
+// Keep for backward compatibility
+export const hairTypeOptions = femaleHairStyleOptions;
 
 export const eyeColorOptions = [
-  { value: "Black", label: "Black" },
+  { value: "Dark Brown", label: "Dark Brown" },
   { value: "Brown", label: "Brown" },
-  { value: "Blue", label: "Blue" },
+  { value: "Light Brown", label: "Light Brown" },
+  { value: "Hazel", label: "Hazel" },
   { value: "Green", label: "Green" },
+  { value: "Blue", label: "Blue" },
+  { value: "Grey", label: "Grey" },
 ];
 
-export const skinColorOptions = [
-  { value: "Fair & Porcelain", label: "Fair & Porcelain" },
-  { value: "Light-Medium & Warm Beige", label: "Light-Medium & Warm Beige" },
-  { value: "Olive & Tan", label: "Olive & Tan" },
-  { value: "Deep & Rich Brown", label: "Deep & Rich Brown" },
-  { value: "Dark & Ebony", label: " Dark & Ebony" },
+export const skinToneOptions = [
+  { value: "Very Fair", label: "Very Fair" },
+  { value: "Fair", label: "Fair" },
+  { value: "Mediun Fair", label: "Medium Fair" },
+  { value: "Light Wheatish", label: "Light Wheatish" },
+  { value: "Medium Wheatish", label: "Medium Wheatish" },
+  { value: "Olive", label: "Olive" },
+  { value: "Tan", label: "Tan" },
+  { value: "Dusky", label: "Dusky" },
+  { value: "Deep Brown", label: "Deep Brown" },
 ];
 
+// Keep for backward compatibility
+export const skinColorOptions = skinToneOptions;
+
+// Mood/Expression options
+export const moodOptions = [
+  { value: "Confident", label: "Confident" },
+  { value: "Soft Smile", label: "Soft Smile" },
+  { value: "Elegant", label: "Elegant" },
+  { value: "Bold", label: "Bold" },
+  { value: "Calm", label: "Calm" },
+  { value: "Happy", label: "Happy" },
+  { value: "Serious", label: "Serious" },
+  { value: "Graceful", label: "Graceful" },
+  { value: "Neutral", label: "Neutral" },
+  { value: "Strong", label: "Strong" },
+  { value: "Friendly Smile", label: "Friendly Smile" },
+  { value: "Professional", label: "Professional" },
+];
+
+// Beard options (for male face mode)
+export const beardOptions = [
+  { value: "clean-shaven", label: "Clean Shaven" },
+  { value: "stubble", label: "Stubble" },
+  { value: "short beard", label: "Short Beard" },
+  { value: "medium beard", label: "Medium Beard" },
+  { value: "long beard", label: "Long Beard" },
+  { value: "goatee", label: "Goatee" },
+  { value: "mustache", label: "Mustache" },
+];
+
+// Body type options
+export const femaleBodyTypeOptions = [
+  { value: "Slim", label: "Slim" },
+  { value: "Slim Athletic", label: "Slim Athletic" },
+  { value: "Curvy", label: "Curvy" },
+  { value: "Hourglass", label: "Hourglass" },
+  { value: "Pear Shaped", label: "Pear Shaped" },
+  { value: "Petite", label: "Petite" },
+  { value: "Plus Size", label: "Plus Size" },
+  { value: "Tall and Lean", label: "Tall and Lean" },
+];
+
+export const maleBodyTypeOptions = [
+  { value: "Slim", label: "Slim" },
+  { value: "Lean", label: "Lean" },
+  { value: "Athletic", label: "Athletic" },
+  { value: "Muscular", label: "Muscular" },
+  { value: "Broad Shoulders", label: "Broad Shoulders" },
+  { value: "Average Build", label: "Average Build" },
+  { value: "Heavy Build", label: "Heavy Build" },
+  { value: "Tall and Lean", label: "Tall and Lean" },
+];
+
+// Pose type options
+export const poseTypeOptions = [
+  { value: "half", label: "Half Body" },
+  { value: "full", label: "Full Body" },
+];
+
+// Keep for backward compatibility
 export const poseOptions = [
   { value: "Standing Relaxed", label: "Standing Relaxed" },
   { value: "Crossed Arms", label: "Crossed Arms" },
@@ -95,6 +254,128 @@ export const backgroundOptions = [
   { value: "Snow-Covered Mountains", label: "Snow-Covered Mountains" },
   { value: "Glass Atrium with Plants", label: "Glass Atrium with Plants" },
   { value: "Contemporary Office Space", label: "Contemporary Office Space" },
+];
+
+// Female dress types (from JSON)
+export const femaleDressTypeOptions = [
+  { value: "Office Suit", label: "Office Suit" },
+  { value: "Formal Dress", label: "Formal Dress" },
+  { value: "Business Outfit", label: "Business Outfit" },
+  { value: "Evening Gown", label: "Evening Gown" },
+  { value: "Party Dress", label: "Party Dress" },
+  { value: "Cocktail Dress", label: "Cocktail Dress" },
+  { value: "Casual Top and Jeans", label: "Casual Top and Jeans" },
+  { value: "Casual Dress", label: "Casual Dress" },
+  { value: "Summer Dress", label: "Summer Dress" },
+  { value: "Traditional Saree", label: "Traditional Saree" },
+  { value: "Designer Saree", label: "Designer Saree" },
+  { value: "Lehenga Choli", label: "Lehenga Choli" },
+  { value: "Anarkali Suit", label: "Anarkali Suit" },
+  { value: "Salwar Kameez", label: "Salwar Kameez" },
+  { value: "Kurti with Palazzo", label: "Kurti with Palazzo" },
+  { value: "Indo-Western Outfit", label: "Indo-Western Outfit" },
+  { value: "Middle Eastern Long Dress", label: "Middle Eastern Long Dress" },
+  { value: "African Traditional Dress", label: "African Traditional Dress" },
+  { value: "Japanese Traditional Kimono", label: "Japanese Traditional Kimono" },
+  { value: "Korean Traditional Dress", label: "Korean Traditional Dress" },
+  { value: "Chinese Traditional Dress", label: "Chinese Traditional Dress" },
+  { value: "Fashion Outfit", label: "Fashion Outfit" },
+  { value: "Runway Style Outfit", label: "Runway Style Outfit" },
+];
+
+// Male dress types (from JSON)
+export const maleDressTypeOptions = [
+  { value: "Formal Suit", label: "Formal Suit" },
+  { value: "Business Suit", label: "Business Suit" },
+  { value: "Three-Piece Suit", label: "Three-Piece Suit" },
+  { value: "Tuxedo", label: "Tuxedo" },
+  { value: "Blazer with Shirt", label: "Blazer with Shirt" },
+  { value: "Blazer with T-Shirt", label: "Blazer with T-Shirt" },
+  { value: "Formal Shirt and Trousers", label: "Formal Shirt and Trousers" },
+  { value: "Casual Shirt and Jeans", label: "Casual Shirt and Jeans" },
+  { value: "T-Shirt and Jeans", label: "T-Shirt and Jeans" },
+  { value: "Kurta Pajama", label: "Kurta Pajama" },
+  { value: "Kurta with Jacket", label: "Kurta with Jacket" },
+  { value: "Sherwani", label: "Sherwani" },
+  { value: "Nehru Jacket", label: "Nehru Jacket" },
+  { value: "Traditional Ethnic Wear", label: "Traditional Ethnic Wear" },
+  { value: "Indo-Western Outfit", label: "Indo-Western Outfit" },
+  { value: "Middle Eastern Thobe", label: "Middle Eastern Thobe" },
+  { value: "Arab Kandura", label: "Arab Kandura" },
+  { value: "African Traditional Wear", label: "African Traditional Wear" },
+  { value: "Japanese Traditional Kimono", label: "Japanese Traditional Kimono" },
+  { value: "Korean Traditional Hanbok", label: "Korean Traditional Hanbok" },
+  { value: "Chinese Traditional Outfit", label: "Chinese Traditional Outfit" },
+  { value: "Smart Casual Wear", label: "Smart Casual Wear" },
+  { value: "Business Casual Wear", label: "Business Casual Wear" },
+  { value: "Luxury Designer Wear", label: "Luxury Designer Wear" },
+  { value: "Runway Fashion Outfit", label: "Runway Fashion Outfit" },
+  { value: "Western Formal Wear", label: "Western Formal Wear" },
+];
+
+// Female footwear options (from JSON)
+export const femaleFootwearOptions = [
+  { value: "Flat Sandals", label: "Flat Sandals" },
+  { value: "Casual Sandals", label: "Casual Sandals" },
+  { value: "Office Heels", label: "Office Heels" },
+  { value: "Block Heels", label: "Block Heels" },
+  { value: "High Heels", label: "High Heels" },
+  { value: "Party Heels", label: "Party Heels" },
+  { value: "Wedding Heels", label: "Wedding Heels" },
+  { value: "Ballet Flats", label: "Ballet Flats" },
+  { value: "Office Flats", label: "Office Flats" },
+  { value: "Casual Shoes", label: "Casual Shoes" },
+  { value: "White Sneakers", label: "White Sneakers" },
+  { value: "Sports Shoes", label: "Sports Shoes" },
+  { value: "Traditional Indian Sandals", label: "Traditional Indian Sandals" },
+  { value: "Traditional Indian Heels", label: "Traditional Indian Heels" },
+  { value: "Middle Eastern Sandals", label: "Middle Eastern Sandals" },
+  { value: "African Traditional Footwear", label: "African Traditional Footwear" },
+  { value: "Fashion Footwear", label: "Fashion Footwear" },
+  { value: "Barefoot", label: "Barefoot" },
+];
+
+// Male footwear options (from JSON)
+export const maleFootwearOptions = [
+  { value: "Formal Black Shoes", label: "Formal Black Shoes" },
+  { value: "Formal Brown Shoes", label: "Formal Brown Shoes" },
+  { value: "Office Shoes", label: "Office Shoes" },
+  { value: "Slip-On Shoes", label: "Slip-On Shoes" },
+  { value: "Casual Leather Shoes", label: "Casual Leather Shoes" },
+  { value: "Sports Shoes", label: "Sports Shoes" },
+  { value: "Casual Sneakers", label: "Casual Sneakers" },
+  { value: "White Sneakers", label: "White Sneakers" },
+  { value: "Boots", label: "Boots" },
+  { value: "Ankle Boots", label: "Ankle Boots" },
+  { value: "Traditional Indian Shoes (Mojris)", label: "Traditional Indian Shoes (Mojris)" },
+  { value: "Nagra sandal", label: "Nagra sandal" },
+  { value: "Traditional Leather Sandals", label: "Traditional Leather Sandals" },
+  { value: "Middle Eastern Sandals", label: "Middle Eastern Sandals" },
+  { value: "African Traditional Shoes", label: "African Traditional Shoes" },
+  { value: "Simple Flat Shoes", label: "Simple Flat Shoes" },
+  { value: "Fashion Shoes", label: "Fashion Shoes" },
+  { value: "Barefoot", label: "Barefoot" },
+];
+
+// Tier options
+export const tierOptions = [
+  { value: "basic", label: "Basic" },
+  { value: "professional", label: "Professional" },
+];
+
+// Aspect ratio options
+export const aspectRatioOptions = [
+  { value: "1:1", label: "1:1 (Square)" },
+  { value: "2:3", label: "2:3 (Portrait)" },
+  { value: "16:9", label: "16:9 (Widescreen)" },
+  { value: "9:16", label: "9:16 (Vertical)" },
+];
+
+// Resolution options
+export const resolutionOptions = [
+  { value: "1K", label: "1K" },
+  { value: "2K", label: "2K" },
+  { value: "4K", label: "4K" },
 ];
 
 export const fastGenFemalePoses = [

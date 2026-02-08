@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import ModelConfigForm, { LoadingSpinner } from "./ModelConfigForm/ModelConfigForm";
-import { ArrowLeft, ArrowRight, Check, Copy, CopyIcon, Download, DownloadIcon, Home, Share2, Trash, ZoomIn } from "lucide-react";
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
-import axios from "axios";
+import { ArrowLeft, ArrowRight, Check, Download, DownloadIcon, Share2, Trash, ZoomIn } from "lucide-react";
 import Spinner from "../Spinner/Spinner";
 import { Link, useNavigate } from "react-router-dom";
 import modelService from "../../services/modelService";
@@ -11,103 +8,84 @@ import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { clearSelectedModel, setGeneratedModelList, setSelectedModel } from "../../store/modelSlice";
-import { copySeed, createImgFileFromUrl } from "../../services/utils";
+// Removed copySeed import - seed/DNA feature removed
 import clsx from "clsx";
 import appConstant from "../../services/appConstant";
 import { setUserRefresh } from "../../store/userReducer";
 import commonService from "../../services/commonService";
 import { useMediaQuery } from "../useMediaQuery";
-import { fastGenFemaleHairStyle, fastGenFemalePoses, fastGenMaleHairStyle, fastGenMalePoses } from "./ModelConfigForm/optionInput";
+// Removed FastGen imports - feature removed
 
 export interface ModifiedModelData {
   url: string;
-  seed: number;
 }
 
 export interface ModelConfig {
+  mode: string; // "face" or "fashion"
   gender: string;
-  country: string;
-  age: number;
-  hair_color: string;
-  hair_type: string;
-  eye_color: string;
-  skin_color: string;
-  shot_type: string;
-  body_type: string;
-  dress: string;
-  background: string;
-  pose: string | string[];
-  seed: number | null;
-  auto_seed: boolean;
-  num_images: number;
-  customBackground: string;
-  lighting_condition: string;
+  nationality: string;
+  age_range: string;
+  // Face mode fields
+  hair_style?: string;
+  eye_color?: string;
+  mood?: string;
+  beard?: string;
+  // Fashion mode fields
+  body_type?: string;
+  skin_tone?: string;
+  hair_color?: string;
+  pose_type?: string; // "half" or "full"
+  dress?: string;
+  footwear?: string;
+  // Quality options
+  tier: string; // "basic" or "professional"
+  aspect_ratio?: string; // Only for professional
+  resolution?: string; // Only for professional (1K, 2K, 4K)
   requiredCredits: number;
 }
 
-export interface IFastGenModelGenerateConfig {
-  poses: string[];
-  gender: string;
-  shootType: string;
-  outfit: string;
-  seed: any;
-  requiredCredits: number;
-  guidance: number;
-  prompt: string;
-  aspectRatio: string;
-  hairstyle: string;
-}
+// Removed IFastGenModelGenerateConfig - FastGen feature removed
 
 const ModelGeneratorUI: React.FC = () => {
   const { selectedModel } = useSelector((state: RootState) => state.modelList);
   const isMobile = useMediaQuery("(max-width: 440px)");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [age, setAge] = useState<number>(25);
-  const [gender, setGender] = useState<string>("Male");
+  // Mode and basic info
+  const [mode, setMode] = useState<string>("fashion"); // "face" or "fashion"
+  const [gender, setGender] = useState<string>("male");
+  const [nationality, setNationality] = useState<string>("Indian");
+  const [ageRange, setAgeRange] = useState<string>("23-27");
+  
+  // Face mode fields
+  const [hairStyle, setHairStyle] = useState<string>("Straight Open Hair");
+  const [eyeColor, setEyeColor] = useState<string>("Brown");
+  const [mood, setMood] = useState<string>("Soft Smile");
+  const [beard, setBeard] = useState<string>("clean-shaven");
+  
+  // Fashion mode fields
+  const [bodyType, setBodyType] = useState<string>("Slim");
+  const [skinTone, setSkinTone] = useState<string>("Fair");
   const [hairColor, setHairColor] = useState<string>("Black");
-  const [hairType, setHairType] = useState<string>("Straight & Sleek");
-  const [eyeColor, setEyeColor] = useState<string>("Black");
-  const [skinColor, setSkinColor] = useState<string>("Light-Medium & Warm Beige");
+  const [poseType, setPoseType] = useState<string>("full"); // "half" or "full"
   const [dress, setDress] = useState<string>("");
-  const [background, setBackground] = useState<string>("Plain White Studio");
-  const [pose, setPose] = useState<string>("");
-  const [multiPose, setMultiPose] = useState<string[]>([]);
-  const [selectedPosts, setSelectedPosts] = useState<any[]>([]);
-  const [autoSeed] = useState<boolean>(true);
-  const [country, setCountry] = useState<string>("India");
+  const [footwear, setFootwear] = useState<string>("");
+  
+  // Quality options
+  const [tier, setTier] = useState<string>("basic"); // "basic" or "professional"
+  const [aspectRatio, setAspectRatio] = useState<string>("1:1");
+  const [resolution, setResolution] = useState<string>("2K");
+  
+  // UI state
   const [loading, setLoading] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
-  const [model, setModel] = useState<number>(1);
-  const [shotType, setShotType] = useState<string>("Full Body");
-
-  const [seedType, setSeedType] = useState<string>("Auto Generate");
-  const [dnaNumber, setDnaNumber] = useState<number | null>(null);
   const [generatedImages, setGeneratedImages] = useState<ModifiedModelData[]>([]);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [zoomedImage, setZoomedImage] = useState<string>("");
   const [startTime, setStartTime] = useState<{ [key: string]: number }>({});
   const [endTime, setEndTime] = useState<{ [key: string]: number }>({});
-  const [customBackground, setCustomBackground] = useState<string>("");
-  const [lighting, setLighting] = useState<string>("Softbox Studio Lighting");
-  const [bodyType, setBodyType] = useState<string>("Slim & Toned");
   const [downloadLoading, setDownloadLoading] = useState<boolean>(false);
   const [isModelGenerated, setModelGenerated] = useState<boolean>(false);
-
-  const [repllicateModelInfo, setReplicateModelInfo] = useState({
-    isReplicateModel: false,
-    shootType: "full-length",
-    gender: "male",
-    poses: [],
-    outfit: "designer black blazer",
-    seedType: "Auto Generate",
-    seed: "",
-    noOfPoses: 4,
-    prompt: "",
-    spectRatio: "2:3",
-    hairstyle: fastGenMaleHairStyle[0].value,
-    guidance: 4,
-  });
 
   const calculateSecondsDifference = (time1: number, time2: number): number => {
     return (time2 - time1) / 1000;
@@ -141,10 +119,10 @@ const ModelGeneratorUI: React.FC = () => {
 
     if (!generatedImages || generatedImages.length === 0) return;
     setDownloadLoading(true);
-    const filterModel = generatedImages.filter((image, i) => selectedModel.includes(`${i}`));
+    const filterModel = generatedImages.filter((_, i) => selectedModel.includes(`${i}`));
 
     try {
-      const result = await commonService.downloadFileFromAPI(
+      await commonService.downloadFileFromAPI(
         filterModel.map((f) => f.url),
         "model"
       );
@@ -158,21 +136,9 @@ const ModelGeneratorUI: React.FC = () => {
   const generateImages = async (): Promise<void> => {
     resetState();
 
-    if (!dress) {
-      toast.error("Please enter dress description");
-      return;
-    }
-    if (seedType === "Custom Generated" && !dnaNumber) {
-      toast.error("Please enter DNA number for custom seed");
-      return;
-    }
-
-    if (model > 1 && multiPose.length === 0) {
-      toast.error("Please select poses");
-      return;
-    }
-    if (model > 1 && multiPose.length !== model) {
-      toast.error("No of model should be matched with no of posses");
+    // Validation based on mode
+    if (mode === "fashion" && !dress) {
+      toast.error("Please select or enter dress description");
       return;
     }
 
@@ -181,38 +147,49 @@ const ModelGeneratorUI: React.FC = () => {
     }
 
     setLoading(true);
-    const placeholders = Array(model).fill(null);
-    setGeneratedImages(placeholders);
+    setGeneratedImages([]); // Will be populated when image is generated
 
     const payload: ModelConfig = {
-      gender,
-      country,
-      age: Number(age),
-      hair_color: hairColor,
-      hair_type: hairType,
-      eye_color: eyeColor,
-      skin_color: skinColor,
-      body_type: bodyType,
-      shot_type: shotType,
-      customBackground: customBackground,
-      dress: dress || "",
-      background: customBackground ? customBackground : background,
-      pose: multiPose.length > 0 ? multiPose : pose,
-      seed: Number(dnaNumber),
-      auto_seed: dnaNumber ? false : true,
-      num_images: Number(model),
-      lighting_condition: lighting,
-      requiredCredits: Number(model) * appConstant.MODEL_DEDUCT_POINT,
+      mode,
+      gender: gender.toLowerCase(),
+      nationality,
+      age_range: ageRange,
+      tier,
+      requiredCredits: appConstant.MODEL_DEDUCT_POINT,
     };
+
+    // Add mode-specific fields
+    if (mode === "face") {
+      payload.hair_style = hairStyle;
+      payload.eye_color = eyeColor;
+      payload.mood = mood;
+      if (gender.toLowerCase() === "male") {
+        payload.beard = beard;
+      }
+    } else {
+      // Fashion mode
+      payload.body_type = bodyType;
+      payload.skin_tone = skinTone;
+      payload.hair_color = hairColor;
+      payload.pose_type = poseType;
+      payload.dress = dress;
+      payload.footwear = footwear;
+    }
+
+    // Add professional tier options
+    if (tier === "professional") {
+      payload.aspect_ratio = aspectRatio;
+      payload.resolution = resolution;
+    }
 
     try {
       setStartTime((prev) => ({ ...prev, [`image_${0}`]: Date.now() }));
       const data = await modelService.generateModel(payload);
 
-      if (data.image_urls.length) {
+      if (data.image_urls && data.image_urls.length) {
         let updatedImages: ModifiedModelData[] = [];
-        data.image_urls.map((url) => {
-          updatedImages.push({ url: url, seed: data.seed });
+        data.image_urls.map((url: string) => {
+          updatedImages.push({ url: url });
         });
         setGeneratedImages(updatedImages);
         dispatch(setGeneratedModelList(updatedImages));
@@ -220,8 +197,8 @@ const ModelGeneratorUI: React.FC = () => {
       setModelGenerated(true);
       dispatch(setUserRefresh());
     } catch (error: any) {
-      console.error(`Error generating image ${0}:`, error);
-      toast.error(error.message);
+      console.error(`Error generating image:`, error);
+      toast.error(error.message || "Failed to generate model");
       resetState();
     } finally {
       setEndTime((prev) => ({ ...prev, [`image_${0}`]: Date.now() }));
@@ -238,10 +215,11 @@ const ModelGeneratorUI: React.FC = () => {
   };
 
   useEffect(() => {
-    if (gender === "Male") {
-      setBodyType("Slim & Lean");
+    // Update default body type based on gender
+    if (gender.toLowerCase() === "male") {
+      setBodyType("Slim");
     } else {
-      setBodyType("Slim & Toned");
+      setBodyType("Slim");
     }
   }, [gender]);
 
@@ -261,111 +239,7 @@ const ModelGeneratorUI: React.FC = () => {
     }
   };
 
-  // Advanced Model Replicate Model
-  const onClickAdwancedModel = () => {
-    setReplicateModelInfo({ ...repllicateModelInfo, isReplicateModel: !repllicateModelInfo.isReplicateModel });
-  };
-
-  const onChangeReplicateInfo = (fieldName: string, vlaue: any) => {
-    setReplicateModelInfo({ ...repllicateModelInfo, [fieldName]: vlaue });
-  };
-
-  const generateFastGenModel = async () => {
-    resetState();
-    if (!repllicateModelInfo.outfit) {
-      toast.error("Please enter outfit description");
-      return;
-    }
-    if (repllicateModelInfo.seedType === "Custom Generated" && !repllicateModelInfo.seed) {
-      toast.error("Please enter DNA number for custom seed");
-      return;
-    }
-
-    if (repllicateModelInfo.poses.length === 0) {
-      toast.error("Please select poses");
-      return;
-    }
-
-    if (isMobile) {
-      setIsSidebarOpen(false);
-    }
-
-    setLoading(true);
-    const placeholders = Array(repllicateModelInfo.poses.length).fill(null);
-    setGeneratedImages(placeholders);
-
-    const payload: IFastGenModelGenerateConfig = {
-      gender,
-      shootType: repllicateModelInfo.shootType,
-      poses: repllicateModelInfo.poses,
-      seed: repllicateModelInfo.seedType === "Custom Generated" ? Number(repllicateModelInfo.seed) : "None",
-      outfit: repllicateModelInfo.outfit,
-      requiredCredits: Number(repllicateModelInfo.poses.length) * appConstant.MODEL_DEDUCT_POINT,
-      prompt: repllicateModelInfo.prompt,
-      aspectRatio: repllicateModelInfo.spectRatio,
-      hairstyle: repllicateModelInfo.hairstyle,
-      guidance: repllicateModelInfo.guidance,
-    };
-
-    try {
-      setStartTime((prev) => ({ ...prev, [`image_${0}`]: Date.now() }));
-      const data = await modelService.generateFastGenModel(payload);
-
-      if (data.image_urls.length) {
-        let updatedImages: ModifiedModelData[] = [];
-        data.image_urls.map((url) => {
-          updatedImages.push({ url: url, seed: data.seed });
-        });
-        setGeneratedImages(updatedImages);
-        dispatch(setGeneratedModelList(updatedImages));
-      }
-      setModelGenerated(true);
-      dispatch(setUserRefresh());
-    } catch (error: any) {
-      console.error(`Error generating image ${0}:`, error);
-      toast.error(error.message);
-      resetState();
-    } finally {
-      setEndTime((prev) => ({ ...prev, [`image_${0}`]: Date.now() }));
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (repllicateModelInfo.isReplicateModel) {
-      setReplicateModelInfo({
-        ...repllicateModelInfo,
-        prompt: generatedPrompts(repllicateModelInfo),
-      });
-    }
-  }, [
-    repllicateModelInfo.shootType,
-    repllicateModelInfo.gender,
-    repllicateModelInfo.outfit,
-    repllicateModelInfo?.poses.length,
-    repllicateModelInfo.hairstyle,
-    repllicateModelInfo.isReplicateModel,
-  ]);
-
-  useEffect(() => {
-    if (repllicateModelInfo.gender) {
-      setReplicateModelInfo({
-        ...repllicateModelInfo,
-        hairstyle: repllicateModelInfo.gender === "Male" ? fastGenMaleHairStyle[0].value : fastGenFemaleHairStyle[0].value,
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!repllicateModelInfo.isReplicateModel) {
-      setPose(gender === "Male" ? fastGenMalePoses[1].value : fastGenFemalePoses[1].value);
-      setHairType(gender === "Male" ? fastGenMaleHairStyle[0].value : fastGenFemaleHairStyle[0].value);
-    }
-  }, [gender]);
-
-  let generatedPrompts = (repllicateModelInfo: any) => {
-    return `Create realistic image of ${repllicateModelInfo.shootType} photo shoot of ${repllicateModelInfo.gender} fashion model with ${repllicateModelInfo.hairstyle} at paris street, wearing ${repllicateModelInfo.outfit}, In pose : {pose}`;
-  };
+  // Removed FastGen Model functions - feature removed
 
   return (
     <div className='flex  flex-row min-h-screen bg-gray-900 text-white'>
@@ -379,52 +253,48 @@ const ModelGeneratorUI: React.FC = () => {
         }}>
         <div className='h-screen overflow-y-auto sider_scroll'>
           <ModelConfigForm
-            setGender={setGender}
-            setHairColor={setHairColor}
-            setHairType={setHairType}
-            setEyeColor={setEyeColor}
-            setSkinColor={setSkinColor}
-            setDress={setDress}
-            setBackground={setBackground}
-            setPose={setPose}
-            setSelectedPosts={setSelectedPosts}
-            setCountry={setCountry}
-            setShotType={setShotType}
-            setSeedType={setSeedType}
-            setDnaNumber={setDnaNumber}
-            setModel={setModel}
-            model={model}
-            setAge={setAge}
-            age={age}
+            mode={mode}
+            setMode={setMode}
             gender={gender}
-            hairColor={hairColor}
-            hairType={hairType}
+            setGender={setGender}
+            nationality={nationality}
+            setNationality={setNationality}
+            ageRange={ageRange}
+            setAgeRange={setAgeRange}
+            // Face mode
+            hairStyle={hairStyle}
+            setHairStyle={setHairStyle}
             eyeColor={eyeColor}
-            skinColor={skinColor}
+            setEyeColor={setEyeColor}
+            mood={mood}
+            setMood={setMood}
+            beard={beard}
+            setBeard={setBeard}
+            // Fashion mode
+            bodyType={bodyType}
+            setBodyType={setBodyType}
+            skinTone={skinTone}
+            setSkinTone={setSkinTone}
+            hairColor={hairColor}
+            setHairColor={setHairColor}
+            poseType={poseType}
+            setPoseType={setPoseType}
             dress={dress}
-            pose={pose}
-            selectedPosts={selectedPosts}
-            autoSeed={autoSeed}
-            country={country}
-            shotType={shotType}
-            seedType={seedType}
-            dnaNumber={dnaNumber}
-            background={background}
+            setDress={setDress}
+            footwear={footwear}
+            setFootwear={setFootwear}
+            // Quality
+            tier={tier}
+            setTier={setTier}
+            aspectRatio={aspectRatio}
+            setAspectRatio={setAspectRatio}
+            resolution={resolution}
+            setResolution={setResolution}
+            // Actions
             generateImage={generateImages}
             loading={loading}
-            setCustomBackground={setCustomBackground}
-            customBackground={customBackground}
-            setLighting={setLighting}
-            lighting={lighting}
-            setMultiPose={setMultiPose}
-            setBodyType={setBodyType}
-            bodyType={bodyType}
-            repllicateModelInfo={repllicateModelInfo}
-            onChangeReplicateInfo={onChangeReplicateInfo}
-            generateFastGenModel={generateFastGenModel}
             setIsSidebarOpen={setIsSidebarOpen}
             isSidebarOpen={isSidebarOpen}
-            onClickAdwancedModel={onClickAdwancedModel}
           />
         </div>
       </aside>
@@ -451,14 +321,6 @@ const ModelGeneratorUI: React.FC = () => {
             <Link to='/'>
               <button className='flex items-center text-white hover:text-gray-300 transition-colors'>Home</button>
             </Link>
-            {!isMobile && (
-              <button
-                disabled={loading}
-                className=' fast-gen-model-btn cursor-pointer text-[10px] py-2 px-4 sm:text-sm'
-                onClick={onClickAdwancedModel}>
-                {!repllicateModelInfo.isReplicateModel ? "Use FastGen Model" : "Use Custom Model"}
-              </button>
-            )}
             {generatedImages && generatedImages.length > 0 && (
               <div className='flex justify-center '>
                 <button
@@ -475,10 +337,10 @@ const ModelGeneratorUI: React.FC = () => {
         <div className='flex flex-wrap justify-between items-center w-full pt-8 pb-2 px-3 md:px-0'>
           <div>
             <h1 className='md:text-lg text-sm py-2 font-bold text-white '>
-              AI4FI - {repllicateModelInfo.isReplicateModel ? "FastGen" : "Custom"} Model Generation ✨
+              AI4FI - Model Generation 
             </h1>
             <p className='text-[11px] md:text-sm font-bold text-gray-400 mb-4'>
-              Create Photorealistic Fashion Model Images with Custom Attributes 🔮
+              Create Photorealistic Fashion Model Images with Custom Attributes 
             </p>
           </div>
           {/* {isMobile && (
@@ -518,19 +380,21 @@ const ModelGeneratorUI: React.FC = () => {
         )}
 
         {/* Image Gallery */}
-        {generatedImages.length > 0 && (
+        {(generatedImages.length > 0 || loading) && (
           <div className='flex-grow w-full flex justify-center bg-gray-900 overflow-hidden'>
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-4 w-full'>
+              {loading && generatedImages.length === 0 && (
+                <div className='col-span-full flex justify-center items-center h-96'>
+                  <Spinner startTime={startTime[`image_${0}`] || Date.now()} />
+                </div>
+              )}
               {generatedImages.map((image, index) => (
                 <div key={index}>
                   {startTime && endTime && startTime[`image_${0}`] && endTime[`image_${0}`] && (
-                    <div className='flex justify-between'>
+                    <div className='flex justify-start'>
                       <p className='text-sm mb-2 '>
                         {calculateSecondsDifference(startTime[`image_${0}`], endTime[`image_${0}`])?.toFixed(2)}{" "}
                         <span className='ml-[2px]'>sec</span>
-                      </p>
-                      <p className='hover:text-blue-500 flex items-center gap-1 cursor-pointer' onClick={() => copySeed(image.seed)}>
-                        <span className='text-[12px]'>DNA No - </span> <span>{image?.seed}</span> <CopyIcon size={16} />
                       </p>
                     </div>
                   )}
@@ -539,8 +403,6 @@ const ModelGeneratorUI: React.FC = () => {
                     className='relative group w-full h-78 lg:h-96 flex-shrink-0'
                     id={`image-${index}`}
                     onClick={() => dispatch(setSelectedModel(`${index}`))}>
-                    {!image && startTime[`image_${0}`] && <Spinner startTime={startTime[`image_${0}`]} />}
-
                     {image && (
                       <img
                         src={image.url}

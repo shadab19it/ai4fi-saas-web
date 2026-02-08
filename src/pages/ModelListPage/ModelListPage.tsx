@@ -284,11 +284,7 @@ const ModelListPage: FC = () => {
                 model?.generatedImages?.image_urls?.length > 0 &&
                 model?.generatedImages?.image_urls.map((url: string, index: number) => (
                   <div key={model._id} className='relative cursor-pointer group'>
-                    <p
-                      className='hover:text-blue-500 text-gray-200 flex items-center gap-1 cursor-pointer'
-                      onClick={() => copySeed(model?.generatedImages?.seed)}>
-                      <span className='text-[12px]'>DNA No - </span> <span>{model?.generatedImages?.seed}</span> <CopyIcon size={16} />
-                    </p>
+            
                     <div
                       className='relative aspect-square overflow-hidden rounded-xl'
                       onClick={() => {
