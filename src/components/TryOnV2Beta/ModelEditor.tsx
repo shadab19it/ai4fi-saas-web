@@ -1,6 +1,6 @@
 "use client"
-import { useState, useRef } from "react"
-import { ArrowLeft, Plus, X, Download, Loader2, Upload, ZoomIn } from "lucide-react"
+import { useState, useRef, useMemo } from "react"
+import { ArrowLeft, Plus, X, Download, Loader2, Upload, ZoomIn, Sparkles, ChevronDown, Info } from "lucide-react"
 import axios from "axios"
 import appConstant from "../../services/appConstant"
 import { dataURLtoFile } from "../../services/utils"
@@ -10,6 +10,12 @@ import { IOption } from "../ModelGenerator/ModelConfigForm/ModelConfigForm"
 import { toast } from "sonner"
 import { defaultExt, downloadBlob, resizeImage, ResizeOptions } from "./resizeImage"
 import JSZip from "jszip"
+import {
+  getAllFootwearOptions,
+  getAllBackgroundOptions,
+  getAllAccessoryOptions,
+  getAllJewelryOptions
+} from "./optionInputs"
 
 interface ModelEditorProps {
   selectedModel: string
@@ -17,6 +23,13 @@ interface ModelEditorProps {
   onBack: () => void
   onComplete: () => void
   gender: string
+  tier?: "basic" | "professional"
+  aspectRatio?: string
+  resolution?: string
+  width?: number
+  height?: number
+  segment?: string
+  garmentCategory?: string
 }
 
 let FEMALE_POSES = [
@@ -135,10 +148,29 @@ let MALE_POSES = [
   { id: "male-back-hand-collar", label: "Straight Back One Hand Resting on Collar or Neck", description: "Male - Casual elegance" },
 ]
 
-export default function ModelEditor({ selectedModel, dressImage, onBack, onComplete, gender }: ModelEditorProps) {
+export default function ModelEditor({ 
+  selectedModel, 
+  dressImage, 
+  onBack, 
+  onComplete, 
+  gender,
+  tier: propTier = "basic",
+  aspectRatio: propAspectRatio,
+  resolution: propResolution,
+  width: propWidth,
+  height: propHeight,
+  segment: propSegment,
+  garmentCategory: propGarmentCategory
+}: ModelEditorProps) {
   const [poses, setPoses] = useState<string[]>([])
-  const [posePromptOverride, setPosePromptOverride] = useState<string>("")
-  const [useCustomPosePrompt, setUseCustomPosePrompt] = useState(false)
+  const [footwear, setFootwear] = useState<string>("")
+  const [background, setBackground] = useState<string>("")
+  const [accessory, setAccessory] = useState<string>("")
+  const [jewelry, setJewelry] = useState<string>("")
+  const [tier, setTier] = useState<"basic" | "professional">(propTier)
+  const [aspectRatio, setAspectRatio] = useState<string>(propAspectRatio || "")
+  const [resolution, setResolution] = useState<string>(propResolution || "")
+  const [showQualityAdvanced, setShowQualityAdvanced] = useState(true)
   const [newPose, setNewPose] = useState<string>("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<string[]>([])
@@ -264,13 +296,48 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
       const formData = new FormData()
       formData.append("file", modelFile)
 
-      // Add poses array - can be added multiple times or as comma-separated values
-      poses.forEach((pose) => {
-        formData.append("poses", pose)
-      })
+      // Add poses as comma-separated string
+      if (poses.length > 0) {
+        formData.append("poses", poses.join(","))
+      }
 
-      if (useCustomPosePrompt && posePromptOverride) {
-        formData.append("pose_prompt_override", posePromptOverride)
+      // Add optional parameters
+      if (footwear) {
+        formData.append("footwear", footwear)
+      }
+      if (background) {
+        formData.append("background", background)
+      }
+      if (accessory) {
+        formData.append("accessory", accessory)
+      }
+      if (jewelry) {
+        formData.append("jewelry", jewelry)
+      }
+
+      // Add tier
+      formData.append("tier", tier)
+
+      // Add professional tier options only if tier is professional
+      if (tier === "professional") {
+        if (aspectRatio) {
+          formData.append("aspect_ratio", aspectRatio)
+        }
+        if (resolution) {
+          formData.append("resolution", resolution.toUpperCase())
+        }
+        if (propWidth) {
+          formData.append("width", propWidth.toString())
+        }
+        if (propHeight) {
+          formData.append("height", propHeight.toString())
+        }
+        if (propSegment) {
+          formData.append("segment", propSegment)
+        }
+        if (propGarmentCategory) {
+          formData.append("garment_category", propGarmentCategory)
+        }
       }
 
       // Get token from localStorage
@@ -375,142 +442,137 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
     return gender === "female" ? FEMALE_POSES : MALE_POSES
   }
 
+  // Get options based on gender
+  const footwearOptionsList = useMemo(() => getAllFootwearOptions(gender), [gender])
+  const backgroundOptionsList = useMemo(() => getAllBackgroundOptions(), [])
+  const accessoryOptionsList = useMemo(() => getAllAccessoryOptions(gender), [gender])
+  const jewelryOptionsList = useMemo(() => getAllJewelryOptions(gender), [gender])
+
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gray-900 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl md:text-3xl font-bold text-white mb-2">Step 3: Generate Poses</h1>
-            <p className="text-gray-500">Configure poses and generate multiple variations</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Step 3: Generate Poses</h1>
+            <p className="text-gray-400">Configure poses and generate multiple variations</p>
           </div>
           <button
             onClick={onBack}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-700 text-white hover:bg-gray-700/30 transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </button>
         </div>
 
-        {/* Main Content - Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Main Content - Two Column Layout with Equal Heights */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {/* Left - Selected Model Image */}
-          <div className="space-y-6">
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Selected Model with Dress</h3>
+          <div className="flex flex-col">
+            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 lg:p-6 shadow-xl flex-1 flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Selected Model with Dress</h3>
+                </div>
                 {replacedModel && (
                   <button
                     onClick={handleRemoveReplacement}
-                    className="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1"
+                    className="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-red-500/10"
                   >
                     <X className="w-3 h-3" />
                     Reset
                   </button>
                 )}
               </div>
-              <div
-                className="relative rounded-lg overflow-hidden border border-gray-800 bg-gray-800/20 group cursor-pointer"
-                onMouseEnter={() => setIsHoveringModel(true)}
-                onMouseLeave={() => setIsHoveringModel(false)}
-              >
-                <img
-                  src={currentModel || "/placeholder.svg"}
-                  alt="Selected model"
-                  className="w-full h-auto max-h-96 object-contain transition-opacity duration-300"
-                  style={{ opacity: isHoveringModel ? 0.7 : 1 }}
-                  onClick={() => {
-                    if (currentModel) {
-                      setZoomedImage(currentModel)
-                      setIsZoomOpen(true)
-                    }
-                  }}
-                />
-                {/* Hidden file input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileInputChange}
-                  className="hidden"
-                />
-                {/* Hover overlay with upload and zoom options */}
-                {isHoveringModel && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 transition-opacity duration-300">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleUploadClick()
-                      }}
-                      className="flex flex-col items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 hover:bg-white/20 transition-colors"
-                    >
-                      <Upload className="w-5 h-5 text-white" />
-                      <p className="text-white text-xs font-medium">
+              <div className="flex-1 flex items-start justify-center">
+                <div
+                  className="relative rounded-xl overflow-hidden border-2 border-gray-700/50 bg-gray-800/30 group cursor-pointer w-full flex items-center justify-center min-h-[400px]"
+                  onMouseEnter={() => setIsHoveringModel(true)}
+                  onMouseLeave={() => setIsHoveringModel(false)}
+                >
+                  <img
+                    src={currentModel || "/placeholder.svg"}
+                    alt="Selected model"
+                    className="w-full h-full object-contain max-h-[500px] transition-opacity duration-300"
+                    style={{ opacity: isHoveringModel ? 0.7 : 1 }}
+                    onClick={() => {
+                      if (currentModel) {
+                        setZoomedImage(currentModel)
+                        setIsZoomOpen(true)
+                      }
+                    }}
+                  />
+                  {/* Hidden file input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
+                  {/* Hover overlay with upload and zoom options */}
+                  {isHoveringModel && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-center pb-6 gap-3 transition-opacity duration-300">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleUploadClick()
+                        }}
+                        className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:bg-white/20 hover:scale-105"
+                      >
+                        <Upload className="w-4 h-4" />
                         {replacedModel ? "Replace" : "Upload"}
-                      </p>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        if (currentModel) {
-                          setZoomedImage(currentModel)
-                          setIsZoomOpen(true)
-                        }
-                      }}
-                      className="flex flex-col items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 hover:bg-white/20 transition-colors"
-                    >
-                      <ZoomIn className="w-5 h-5 text-white" />
-                      <p className="text-white text-xs font-medium">Zoom</p>
-                    </button>
-                  </div>
-                )}
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (currentModel) {
+                            setZoomedImage(currentModel)
+                            setIsZoomOpen(true)
+                          }
+                        }}
+                        className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:bg-white/20 hover:scale-105"
+                      >
+                        <ZoomIn className="w-4 h-4" />
+                        Zoom
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right - Pose Configuration */}
-          <div className="space-y-6">
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Poses Configuration</h3>
+          {/* Right - Configuration Cards */}
+          <div className="flex flex-col gap-4">
+            {/* Poses Configuration Card */}
+            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-white">Poses Configuration</h3>
+                  <p className="text-xs text-gray-400 mt-0.5">Select up to 8 poses ({poses.length}/8 selected)</p>
+                </div>
+              </div>
 
               <div className="space-y-4">
-                {/* Selected Poses List
-                {poses.length > 0 && (
-                  <div>
-                    <label className="block text-sm font-medium text-white mb-3">
-                      Selected Poses ({poses.length}/8)
-                    </label>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
-                      {poses.map((pose, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between bg-gray-700/30 rounded-lg p-3 border border-gray-700"
-                        >
-                          <span className="text-sm text-white capitalize">{pose}</span>
-                          <button
-                            onClick={() => handleRemovePose(index)}
-                            className="text-red-400 hover:text-red-400/80 transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )} */}
-
                 {/* Predefined Poses Select */}
-
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    Select Predefined Poses (max {8 - poses.length} remaining)
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Select Predefined Poses
                   </label>
                   <MultiSelect
                     options={[...getPoses().map((pose) => ({
                       value: pose.label.toLowerCase(),
                       label: `${pose.label}`
                     }))]}
+                    
                     noOfposes={8 - poses.filter((pose) =>
                       !getPoses().some((p) => p.label.toLowerCase() === pose)
                     ).length}
@@ -526,10 +588,9 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
                   />
                 </div>
 
-
                 {/* Custom Pose Input */}
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Or Add Custom Pose</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Or Add Custom Pose</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -537,60 +598,252 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
                       onChange={(e) => setNewPose(e.target.value)}
                       onKeyPress={(e) => e.key === "Enter" && handleAddPose()}
                       placeholder="Enter custom pose (e.g., stretching, leaning)"
-                      className="flex-1 px-3 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-gray-700 bg-gray-800/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
                     />
                     <button
                       onClick={handleAddPose}
-                      disabled={!newPose.trim()}
-                      className="px-3 py-2 rounded-lg border border-white text-white hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={!newPose.trim() || poses.length >= 8}
+                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-purple-600 disabled:hover:to-indigo-600"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-
               </div>
             </div>
 
-            {/* Pose Prompt Override */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-              <label className="block text-sm font-medium text-white mb-3">
-                Pose Prompt Settings
-              </label>
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <input
-                    type="radio"
-                    name="posePromptType"
-                    checked={!useCustomPosePrompt}
-                    onChange={() => {
-                      setUseCustomPosePrompt(false)
-                      setPosePromptOverride("")
-                    }}
-                    className="w-4 h-4 text-purple-600 bg-gray-800 border-gray-700 focus:ring-purple-600 focus:ring-2"
-                  />
-                  <span className="text-white group-hover:text-purple-300 transition-colors">AI Recommended</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <input
-                    type="radio"
-                    name="posePromptType"
-                    checked={useCustomPosePrompt}
-                    onChange={() => setUseCustomPosePrompt(true)}
-                    className="w-4 h-4 text-purple-600 bg-gray-800 border-gray-700 focus:ring-purple-600 focus:ring-2"
-                  />
-                  <span className="text-white group-hover:text-purple-300 transition-colors">Custom Prompt</span>
-                </label>
+            {/* Additional Options */}
+            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Additional Options</h3>
               </div>
-              {useCustomPosePrompt && (
-                <div className="mt-3">
-                  <textarea
-                    rows={3}
-                    value={posePromptOverride}
-                    onChange={(e) => setPosePromptOverride(e.target.value)}
-                    placeholder="Enter custom pose description or prompt..."
-                    className="w-full px-3 py-2 rounded-lg border border-gray-700 bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 transition-all resize-none"
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              {/* Footwear */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                  Footwear
+                  <span className="text-gray-500 text-xs">(Optional)</span>
+                  <div className="group relative">
+                    <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                      Select footwear style for the model
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </label>
+                <div className="relative">
+                  <select
+                    value={footwear}
+                    onChange={(e) => setFootwear(e.target.value)}
+                    className="w-full px-3 py-2.5 pr-10 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="">Select footwear...</option>
+                    {footwearOptionsList.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Background */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                  Background
+                  <span className="text-gray-500 text-xs">(Optional)</span>
+                  <div className="group relative">
+                    <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                      Choose background setting for the image
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </label>
+                <div className="relative">
+                  <select
+                    value={background}
+                    onChange={(e) => setBackground(e.target.value)}
+                    className="w-full px-3 py-2.5 pr-10 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="">Select background...</option>
+                    {backgroundOptionsList.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Accessory */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                  Accessory
+                  <span className="text-gray-500 text-xs">(Optional)</span>
+                  <div className="group relative">
+                    <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                      Select accessories to add to the model
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </label>
+                <div className="relative">
+                  <select
+                    value={accessory}
+                    onChange={(e) => setAccessory(e.target.value)}
+                    className="w-full px-3 py-2.5 pr-10 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="">Select accessory...</option>
+                    {accessoryOptionsList.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Jewelry */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                  Jewelry
+                  <span className="text-gray-500 text-xs">(Optional)</span>
+                  <div className="group relative">
+                    <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                      Choose jewelry pieces for the model
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </label>
+                <div className="relative">
+                  <select
+                    value={jewelry}
+                    onChange={(e) => setJewelry(e.target.value)}
+                    className="w-full px-3 py-2.5 pr-10 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="">Select jewelry...</option>
+                    {jewelryOptionsList.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+              </div>
+            </div>
+
+            {/* Quality Tier */}
+            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Quality Settings</h3>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-300 mb-3">Quality Tier</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      setTier("basic")
+                      setAspectRatio("")
+                      setResolution("")
+                      setShowQualityAdvanced(false)
+                    }}
+                    className={`px-4 py-3.5 rounded-xl border-2 transition-all ${
+                      tier === "basic"
+                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-500 text-white shadow-lg shadow-purple-500/20"
+                        : "bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600 hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="text-sm font-semibold">Basic</div>
+                    <div className="text-xs opacity-75 mt-1">Standard Quality</div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTier("professional")
+                      setShowQualityAdvanced(true)
+                    }}
+                    className={`px-4 py-3.5 rounded-xl border-2 transition-all ${
+                      tier === "professional"
+                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-500 text-white shadow-lg shadow-purple-500/20"
+                        : "bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600 hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="text-sm font-semibold">Professional</div>
+                    <div className="text-xs opacity-75 mt-1">High Quality</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Professional Tier Options */}
+              {tier === "professional" && (
+                <div className="rounded-xl border border-purple-500/40 bg-gradient-to-br from-purple-900/25 to-indigo-900/20">
+                  <button
+                    onClick={() => setShowQualityAdvanced(!showQualityAdvanced)}
+                    className="w-full px-4 py-3.5 flex items-center justify-between text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-purple-300" />
+                      <span className="text-sm font-semibold text-purple-200">Professional Options</span>
+                    </div>
+                    <ChevronDown
+                      className={`w-4 h-4 text-purple-300 transition-transform ${showQualityAdvanced ? "rotate-180" : ""}`}
+                    />
+                  </button>
+
+                  {showQualityAdvanced && (
+                    <div className="space-y-4 px-4 pb-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-300 mb-2">Aspect Ratio</label>
+                        <div className="relative">
+                          <select
+                            value={aspectRatio}
+                            onChange={(e) => setAspectRatio(e.target.value)}
+                            className="w-full px-3 py-2.5 pr-10 rounded-xl bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                          >
+                            <option value="">Default</option>
+                            <option value="1:1">1:1 (Square)</option>
+                            <option value="4:5">4:5 (Portrait)</option>
+                            <option value="9:16">9:16 (Vertical)</option>
+                            <option value="16:9">16:9 (Landscape)</option>
+                            <option value="3:4">3:4 (Portrait)</option>
+                          </select>
+                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-300 mb-2">Resolution</label>
+                        <div className="relative">
+                          <select
+                            value={resolution}
+                            onChange={(e) => setResolution(e.target.value)}
+                            className="w-full px-3 py-2.5 pr-10 rounded-xl bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                          >
+                            <option value="">Default</option>
+                            <option value="1K">1K</option>
+                            <option value="2K">2K</option>
+                            <option value="4K">4K</option>
+                          </select>
+                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -600,13 +853,19 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
         {/* Generated Images Preview */}
         {generatedImages.length > 0 && (
           <div className="mt-8">
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Generated Images</h3>
+            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 lg:p-8 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Generated Images</h3>
+                <span className="ml-auto text-sm text-gray-400">({generatedImages.length} images)</span>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {generatedImages.map((img, idx) => (
                   <div key={idx} className="space-y-3">
                     <div
-                      className="rounded-lg overflow-hidden border border-gray-700 bg-gray-700/20 relative group cursor-pointer"
+                      className="rounded-xl overflow-hidden border-2 border-gray-700/50 bg-gray-800/30 relative group cursor-pointer aspect-square"
                       onClick={() => {
                         setZoomedImage(img)
                         setIsZoomOpen(true)
@@ -615,16 +874,19 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
                       <img
                         src={img || "/placeholder.svg"}
                         alt={`Generated pose ${idx + 1}`}
-                        className="w-full h-auto max-h-48 object-contain"
+                        className="w-full h-full object-contain"
                       />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <ZoomIn className="w-6 h-6 text-white" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
+                        <div className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-3 py-1.5 rounded-lg flex items-center gap-2">
+                          <ZoomIn className="w-4 h-4" />
+                          <span className="text-xs font-medium">Zoom</span>
+                        </div>
                       </div>
                     </div>
                     <button
                       onClick={() => handleDownload(idx)}
                       disabled={isDownloading.index === idx && isDownloading.isDownloading}
-                      className="w-full border border-gray-500 text-white hover:bg-gray-900/50  font-semibold px-2 py-1 rounded-lg gap-2 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full border border-gray-700 bg-gray-800/50 hover:bg-gray-800 text-white font-semibold px-3 py-2 rounded-xl gap-2 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02]"
                     >
                       {isDownloading.index === idx && isDownloading.isDownloading ? (
                         <>
@@ -646,32 +908,39 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
         )}
 
         {generatedImages.length > 0 && (
-          <div className="mt-8">
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
-              <h3 className="text-base font-semibold text-white mb-3">Download with Custom Size</h3>
+          <div className="mt-6">
+            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
+                  <Download className="w-5 h-5 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Download with Custom Size</h3>
+              </div>
               <div className="space-y-3">
                 {/* Ratio Presets */}
                 <div>
-                  <label className="block text-xs font-medium text-white mb-2">Aspect Ratio</label>
-                  <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5">
+                  <label className="block text-sm font-medium text-gray-300 mb-3">Aspect Ratio</label>
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                     {["1:1", "4:5", "9:16", "16:9", "3:4"].map((ratio) => (
                       <button
                         key={ratio}
                         onClick={() => handleRatioChange(ratio)}
-                        className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${downloadRatio === ratio
-                          ? "text-white bg-gray-900/50 border border-gray-300"
-                          : "border border-gray-700 text-white hover:bg-gray-700/30"
-                          }`}
+                        className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                          downloadRatio === ratio
+                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-2 border-purple-500 shadow-lg shadow-purple-500/20"
+                            : "border-2 border-gray-700 bg-gray-800/50 text-white hover:border-gray-600 hover:bg-gray-800"
+                        }`}
                       >
                         {ratio}
                       </button>
                     ))}
                     <button
                       onClick={() => setDownloadRatio("custom")}
-                      className={`px-2.5 py-1.5 rounded-md text-sm font-medium transition-colors ${downloadRatio === "custom"
-                        ? "bg-white text-gray-800"
-                        : "border border-gray-700 text-white hover:bg-gray-700/30"
-                        }`}
+                      className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                        downloadRatio === "custom"
+                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-2 border-purple-500 shadow-lg shadow-purple-500/20"
+                          : "border-2 border-gray-700 bg-gray-800/50 text-white hover:border-gray-600 hover:bg-gray-800"
+                      }`}
                     >
                       Custom
                     </button>
@@ -680,34 +949,37 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
 
                 {/* Fit Mode Selector */}
                 <div>
-                  <label className="block text-xs font-medium text-white mb-2">Resize Mode</label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-3">Resize Mode</label>
+                  <div className="grid grid-cols-3 gap-3">
                     <button
                       onClick={() => setFitMode("contain")}
-                      className={`px-3 py-2 rounded-md text-xs font-medium transition-colors ${fitMode === "contain"
-                        ? "bg-white text-gray-800 border border-gray-300"
-                        : "border border-gray-700 text-white hover:bg-gray-700/30"
-                        }`}
+                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        fitMode === "contain"
+                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-2 border-purple-500 shadow-lg shadow-purple-500/20"
+                          : "border-2 border-gray-700 bg-gray-800/50 text-white hover:border-gray-600 hover:bg-gray-800"
+                      }`}
                       title="Fits entire image without cropping (may have padding)"
                     >
                       Contain
                     </button>
                     <button
                       onClick={() => setFitMode("cover")}
-                      className={`px-3 py-2 rounded-md text-xs font-medium transition-colors ${fitMode === "cover"
-                        ? "bg-white text-gray-800 border border-gray-300"
-                        : "border border-gray-700 text-white hover:bg-gray-700/30"
-                        }`}
+                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        fitMode === "cover"
+                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-2 border-purple-500 shadow-lg shadow-purple-500/20"
+                          : "border-2 border-gray-700 bg-gray-800/50 text-white hover:border-gray-600 hover:bg-gray-800"
+                      }`}
                       title="Fills entire area (may crop image)"
                     >
                       Cover
                     </button>
                     <button
                       onClick={() => setFitMode("stretch")}
-                      className={`px-3 py-2 rounded-md text-xs font-medium transition-colors ${fitMode === "stretch"
-                        ? "bg-white text-gray-800 border border-gray-300"
-                        : "border border-gray-700 text-white hover:bg-gray-700/30"
-                        }`}
+                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        fitMode === "stretch"
+                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-2 border-purple-500 shadow-lg shadow-purple-500/20"
+                          : "border-2 border-gray-700 bg-gray-800/50 text-white hover:border-gray-600 hover:bg-gray-800"
+                      }`}
                       title="Stretches to exact dimensions (may distort)"
                     >
                       Stretch
@@ -716,9 +988,9 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
                 </div>
 
                 {/* Custom Dimensions */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-medium text-white mb-1.5">Width (px)</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Width (px)</label>
                     <input
                       type="number"
                       value={downloadWidth}
@@ -729,11 +1001,11 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
                       min="256"
                       max="4096"
                       step="256"
-                      className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-700 bg-gray-800/50 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-white mb-1.5">Height (px)</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Height (px)</label>
                     <input
                       type="number"
                       value={downloadHeight}
@@ -744,7 +1016,7 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
                       min="256"
                       max="4096"
                       step="256"
-                      className="w-full px-2.5 py-1.5 text-sm rounded-md border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-700 bg-gray-800/50 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
                     />
                   </div>
                 </div>
@@ -753,16 +1025,16 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
                 <button
                   onClick={() => handleDownload(undefined)}
                   disabled={isDownloading.index === undefined && isDownloading.isDownloading}
-                  className="w-full bg-white hover:bg-white/90 text-gray-800 font-semibold py-2.5 rounded-lg gap-2 flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3.5 rounded-xl gap-2 flex items-center justify-center transition-all shadow-lg shadow-purple-500/20 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {isDownloading.index === undefined && isDownloading.isDownloading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-5 h-5 animate-spin" />
                       Downloading All...
                     </>
                   ) : (
                     <>
-                      <Download className="w-4 h-4" />
+                      <Download className="w-5 h-5" />
                       Download All ({downloadWidth}x{downloadHeight})
                     </>
                   )}
@@ -773,25 +1045,28 @@ export default function ModelEditor({ selectedModel, dressImage, onBack, onCompl
         )}
 
         {/* Action Buttons */}
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex gap-4">
           <button
             onClick={onBack}
-            className="flex-1 px-4 py-3 rounded-lg border border-gray-700 text-white hover:bg-gray-700/30 transition-colors font-medium"
+            className="flex-1 px-6 py-3.5 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium"
           >
             Back
           </button>
           <button
             onClick={handleGeneratePoses}
-            disabled={isGenerating}
-            className="flex-1 bg-gradient-to-r flex items-center justify-center gap-2 from-purple-600 to-indigo-600 hover:from-purple-800 hover:to-indigo-800 text-white  px-4 py-2  rounded-lg shadow-lg transition-transform transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isGenerating || poses.length === 0}
+            className="flex-1 bg-gradient-to-r flex items-center justify-center gap-2 from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-3.5 rounded-xl shadow-lg shadow-purple-500/20 transition-all font-semibold hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             {isGenerating ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
                 Generating...
               </>
             ) : (
-              "Generate Poses"
+              <>
+                <Sparkles className="w-5 h-5" />
+                Generate Poses
+              </>
             )}
           </button>
         </div>

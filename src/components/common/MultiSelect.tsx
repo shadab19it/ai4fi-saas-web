@@ -92,7 +92,7 @@ export default function MultiSelect({ options, onChange, noOfposes = 10000, sele
         />
       </div>
       {isOpen && (
-        <ul className='absolute z-[1000] w-full py-1 mt-1 overflow-auto text-base bg-gray-900 rounded-md shadow-lg max-h-60 ring-1 ring-gray-600 focus:outline-none sm:text-sm'>
+        <ul className='absolute z-[999999] w-full py-1 mt-1 overflow-auto text-base bg-gray-900 rounded-md shadow-lg max-h-60 ring-1 ring-gray-600 focus:outline-none sm:text-sm'>
           {filteredOptions.length === 0 ? (
             <li className='relative cursor-default select-none py-2 px-4 text-gray-400'>Nothing found.</li>
           ) : (

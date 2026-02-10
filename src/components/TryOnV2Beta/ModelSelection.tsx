@@ -1,8 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { ArrowLeft, Loader2, Upload, ZoomIn, X } from "lucide-react"
-import type React from "react"
-import { useRef } from "react"
+import { ArrowLeft, ZoomIn, X, Sparkles } from "lucide-react"
 import axios from "axios"
 import appConstant from "../../services/appConstant"
 import { dataURLtoFile } from "../../services/utils"
@@ -12,6 +10,14 @@ interface ModelSelectionProps {
   dressImage: string
   gender: string
   promptOverride?: string
+  modelImage?: string | null
+  tier?: "basic" | "professional"
+  aspectRatio?: string
+  resolution?: string
+  width?: number
+  height?: number
+  segment?: string
+  garmentCategory?: string
   onModelSelected: (selectedModel: string) => void
   onBack: () => void
 }
@@ -21,17 +27,22 @@ export default function ModelSelection({
   dressImage,
   gender,
   promptOverride,
+  modelImage: propModelImage,
+  tier = "basic",
+  aspectRatio,
+  resolution,
+  width,
+  height,
+  segment,
+  garmentCategory,
   onModelSelected,
   onBack,
 }: ModelSelectionProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedModel, setGeneratedModel] = useState<string | null>(null)
-  const [uploadedModel, setUploadedModel] = useState<string | null>(null)
   const [isHoveringGenerated, setIsHoveringGenerated] = useState(false)
-  const [isHoveringUploaded, setIsHoveringUploaded] = useState(false)
   const [isZoomOpen, setIsZoomOpen] = useState(false)
   const [zoomedImage, setZoomedImage] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleGenerateModel = async () => {
     if (!dressImage) {
@@ -47,11 +58,51 @@ export default function ModelSelection({
       // Create FormData
       const formData = new FormData()
       formData.append("file", dressFile)
+      
+      // Add optional model_image (face image) from prop
+      if (propModelImage) {
+        // Check if it's a URL or data URL
+        if (propModelImage.startsWith("http://") || propModelImage.startsWith("https://")) {
+          // It's a URL from gallery, fetch it
+          const response = await fetch(propModelImage)
+          const blob = await response.blob()
+          const modelImageFile = new File([blob], "model-image.jpg", { type: blob.type })
+          formData.append("model_image", modelImageFile)
+        } else {
+          // It's a data URL from upload
+          const modelImageFile = dataURLtoFile(propModelImage, "model-image.jpg")
+          formData.append("model_image", modelImageFile)
+        }
+      }
+      
       formData.append("gender", gender)
       if (promptOverride) {
         formData.append("prompt_override", promptOverride)
       }
       formData.append("count", "1")
+      formData.append("tier", tier)
+
+      // Add professional tier options only if tier is professional
+      if (tier === "professional") {
+        if (aspectRatio) {
+          formData.append("aspect_ratio", aspectRatio)
+        }
+        if (resolution) {
+          formData.append("resolution", resolution)
+        }
+        if (width) {
+          formData.append("width", width.toString())
+        }
+        if (height) {
+          formData.append("height", height.toString())
+        }
+        if (segment) {
+          formData.append("segment", segment)
+        }
+        if (garmentCategory) {
+          formData.append("garment_category", garmentCategory)
+        }
+      }
 
       // Get token from localStorage
       const token = localStorage.getItem(appConstant.JWT_AUTH_TOKEN)
@@ -84,21 +135,9 @@ export default function ModelSelection({
     }
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setUploadedModel(event.target?.result as string)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
   const handleContinue = () => {
-    const modelToUse = uploadedModel || generatedModel
-    if (modelToUse) {
-      onModelSelected(modelToUse)
+    if (generatedModel) {
+      onModelSelected(generatedModel)
     }
   }
 
@@ -111,194 +150,217 @@ export default function ModelSelection({
   }, [dressImage])
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-gray-900 p-4 md:p-8">
+    <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-xl md:text-3xl font-bold text-white mb-2">Step 2: Model with Dress</h1>
-            <p className="text-gray-500">Use the generated model or upload your own</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Step 2: Model with Dress</h1>
+            <p className="text-gray-400">We are creating the first try-on preview using your selected settings</p>
           </div>
           <button
             onClick={onBack}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-700 text-white hover:bg-gray-700/30 transition-colors font-medium"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium"
           >
             <ArrowLeft className="w-4 h-4" />
             Back
           </button>
         </div>
 
-        {/* Main Content - Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-               {/* Left - Upload Different Model */}
-          <div className="space-y-6 min-h-[200px]">
-            {/* <div className="bg-black border border-gray-700 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Or Upload Your Own Model</h3>
-
-              <div
-                onMouseEnter={() => setIsHoveringUploaded(true)}
-                onMouseLeave={() => setIsHoveringUploaded(false)}
-                className="relative"
-              >
-                {uploadedModel ? (
-                  <div className="relative rounded-lg overflow-hidden border border-gray-700 bg-gray-700/20">
-                    <img
-                      src={uploadedModel || "/placeholder.svg"}
-                      alt="Uploaded model"
-                      className="w-full h-auto max-h-96 object-cover"
-                    />
-                    {isHoveringUploaded && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-2 transition-all duration-200">
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          className="bg-white hover:bg-white/90 text-gray-800 font-semibold px-6 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                        >
-                          <Upload className="w-4 h-4" />
-                          Replace
-                        </button>
-                      </div>
+        {/* Main Content - Two Column Layout with Equal Heights */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          {/* Left - Dress Information */}
+          <div className="flex flex-col">
+            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 lg:p-6 shadow-xl flex-1 flex flex-col">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Dress Information</h3>
+              </div>
+              
+              <div className="flex-1 flex flex-col gap-6">
+                {/* Gender Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800/50 rounded-xl border border-gray-700/50 w-fit">
+                  <span className="text-gray-400 text-sm">Gender:</span>
+                  <span className="text-white font-semibold capitalize">{gender}</span>
+                </div>
+                <div className="rounded-xl border border-gray-700/50 bg-gray-800/30 p-3">
+                  <p className="text-xs uppercase tracking-wide text-gray-400 mb-2">Generation Settings</p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-2.5 py-1 rounded-lg text-xs bg-purple-500/20 text-purple-200 border border-purple-500/30 capitalize">
+                      {tier} tier
+                    </span>
+                    {tier === "professional" && aspectRatio && (
+                      <span className="px-2.5 py-1 rounded-lg text-xs bg-gray-700/50 text-gray-200 border border-gray-600/60">
+                        Ratio {aspectRatio}
+                      </span>
+                    )}
+                    {tier === "professional" && resolution && (
+                      <span className="px-2.5 py-1 rounded-lg text-xs bg-gray-700/50 text-gray-200 border border-gray-600/60">
+                        {resolution}
+                      </span>
+                    )}
+                    {tier === "professional" && width && height && (
+                      <span className="px-2.5 py-1 rounded-lg text-xs bg-gray-700/50 text-gray-200 border border-gray-600/60">
+                        {width}x{height}
+                      </span>
+                    )}
+                    {tier === "professional" && segment && (
+                      <span className="px-2.5 py-1 rounded-lg text-xs bg-gray-700/50 text-gray-200 border border-gray-600/60">
+                        {segment}
+                      </span>
+                    )}
+                    {tier === "professional" && garmentCategory && (
+                      <span className="px-2.5 py-1 rounded-lg text-xs bg-gray-700/50 text-gray-200 border border-gray-600/60">
+                        {garmentCategory}
+                      </span>
                     )}
                   </div>
-                ) : (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-gray-700 rounded-lg p-8 hover:border-white/50 hover:bg-white/5 transition-all duration-200 flex flex-col items-center justify-center gap-3 cursor-pointer group"
-                  >
-                    <Upload className="w-8 h-8 text-gray-500 group-hover:text-white transition-colors" />
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-white group-hover:text-white transition-colors">
-                        Click to upload model image
-                      </p>
-                      <p className="text-xs text-gray-500 mt-2">JPG, JPEG, PNG</p>
+                </div>
+
+                {/* Model Face Image */}
+                {propModelImage && (
+                  <div>
+                    <p className="text-gray-400 text-sm mb-2 font-medium">Model Face</p>
+                    <div className="relative rounded-xl overflow-hidden border border-gray-700/50 bg-gray-800/30">
+                      <img
+                        src={propModelImage}
+                        alt="Model face"
+                        className="w-full h-32 object-cover"
+                      />
                     </div>
-                  </button>
+                  </div>
                 )}
-              </div>
-              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-            </div> */}
 
-            {/* Dress Info */}
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 min-h-[200px] ">
-              <h3 className="text-lg font-semibold text-white mb-4">Dress Information</h3>
-              <div className="space-y-3">
-                <div 
-                  className="rounded-lg overflow-hidden border border-gray-800 bg-gray-800/20 relative group cursor-pointer"
-                  onClick={() => {
-                    setZoomedImage(dressImage)
-                    setIsZoomOpen(true)
-                  }}
-                >
-                  <img
-                    src={dressImage || "/placeholder.svg"}
-                    alt="Dress"
-                    className="w-full h-full max-h-96 object-contain"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <ZoomIn className="w-8 h-8 text-white" />
-                  </div>
-                </div>
-                <div className="text-sm">
-                  <p className="text-gray-500 mb-1">Gender</p>
-                  <p className="text-white font-medium capitalize">{gender}</p>
-                </div>
-                {/* {promptOverride && (
-                  <div className="text-sm">
-                    <p className="text-gray-500 mb-1">Prompt</p>
-                    <p className="text-white font-medium text-sm">{promptOverride}</p>
-                  </div>
-                )} */}
-              </div>
-            </div>
-          </div>
-
-
-          {/* Right - Generated Model */}
-          <div className="space-y-6 ">
-            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Generated Model</h3>
-
-              {!generatedModel && !isGenerating && (
-                <div className="text-center py-12">
-                  <button
-                    onClick={handleGenerateModel}
-                    className="bg-white hover:bg-white/90 text-gray-800 font-semibold px-8 py-6 text-lg rounded-lg transition-all duration-200"
-                  >
-                    Generate Model
-                  </button>
-                </div>
-              )}
-
-              {isGenerating && (
-                <div className="flex flex-col items-center justify-center py-12 gap-4">
-                  <Loader2 className="w-12 h-12 text-white animate-spin" />
-                  <p className="text-gray-500">Generating model wearing your dress...</p>
-                </div>
-              )}
-
-              {generatedModel && (
-                <div className="space-y-4">
-                  <div
-                    onMouseEnter={() => setIsHoveringGenerated(true)}
-                    onMouseLeave={() => setIsHoveringGenerated(false)}
-                    className="relative rounded-lg overflow-hidden border border-gray-700 bg-gray-700/20 cursor-pointer"
+                {/* Dress Preview */}
+                <div className="flex-1 flex flex-col">
+                  <p className="text-gray-400 text-sm mb-3 font-medium">Dress Preview</p>
+                  <div 
+                    className="flex-1 rounded-xl overflow-hidden border-2 border-gray-700/50 bg-gray-800/30 relative group cursor-pointer min-h-[300px] flex items-center justify-center"
                     onClick={() => {
-                      setZoomedImage(generatedModel)
+                      setZoomedImage(dressImage)
                       setIsZoomOpen(true)
                     }}
                   >
                     <img
-                      src={generatedModel || "/placeholder.svg"}
-                      alt="Generated model"
-                      className="w-full h-auto max-h-[440px]  object-contain"
+                      src={dressImage || "/placeholder.svg"}
+                      alt="Dress"
+                      className="w-full h-full object-contain max-h-[400px]"
                     />
-                    {isHoveringGenerated && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-3 transition-all duration-200">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setGeneratedModel(null)
-                            setUploadedModel(null)
-                            handleGenerateModel()
-                          }}
-                          className="text-white  border border-gray-200 font-semibold px-6 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                        >
-                          Generate Again
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setZoomedImage(generatedModel)
-                            setIsZoomOpen(true)
-                          }}
-                          className="text-white  border border-gray-200 font-semibold px-6 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                        >
-                          <ZoomIn className="w-4 h-4" />
-                          Zoom
-                        </button>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+                        <ZoomIn className="w-4 h-4" />
+                        <span className="text-sm font-medium">Click to Zoom</span>
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
-       
+          {/* Right - Generated Model */}
+          <div className="flex flex-col">
+            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 lg:p-6 shadow-xl flex-1 flex flex-col">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Generated Model</h3>
+              </div>
+
+              <div className="flex-1 flex items-center justify-center">
+                {!generatedModel && !isGenerating && (
+                  <div className="text-center py-12 w-full">
+                    <button
+                      onClick={handleGenerateModel}
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold px-8 py-4 text-lg rounded-xl transition-all duration-200 shadow-lg shadow-purple-500/20 hover:scale-105"
+                    >
+                      Generate Model
+                    </button>
+                  </div>
+                )}
+
+                {isGenerating && (
+                  <div className="flex flex-col items-center justify-center py-12 gap-6 w-full">
+                    <div className="relative">
+                      <div className="w-20 h-20 rounded-full border-4 border-purple-500/20 border-t-purple-500 animate-spin"></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600/20 to-indigo-600/20"></div>
+                      </div>
+                    </div>
+                    <div className="text-center space-y-3">
+                      <p className="text-white font-semibold text-lg">Generating your model...</p>
+                      <p className="text-gray-400 text-sm">This may take a few moments</p>
+                      <div className="w-72 h-2 bg-gray-800 rounded-full overflow-hidden mt-4">
+                        <div className="h-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {generatedModel && (
+                  <div className="w-full flex-1 flex flex-col">
+                    <div
+                      onMouseEnter={() => setIsHoveringGenerated(true)}
+                      onMouseLeave={() => setIsHoveringGenerated(false)}
+                      className="relative rounded-xl overflow-hidden border-2 border-gray-700/50 bg-gray-800/30 cursor-pointer flex-1 flex items-center justify-center min-h-[400px]"
+                      onClick={() => {
+                        setZoomedImage(generatedModel)
+                        setIsZoomOpen(true)
+                      }}
+                    >
+                      <img
+                        src={generatedModel || "/placeholder.svg"}
+                        alt="Generated model"
+                        className="w-full h-full object-contain max-h-[500px]"
+                      />
+                      {isHoveringGenerated && (
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-center pb-6 gap-3 transition-all duration-300">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setGeneratedModel(null)
+                              handleGenerateModel()
+                            }}
+                            className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:bg-white/20 hover:scale-105"
+                          >
+                            Generate Again
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setZoomedImage(generatedModel)
+                              setIsZoomOpen(true)
+                            }}
+                            className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:bg-white/20 hover:scale-105"
+                          >
+                            <ZoomIn className="w-4 h-4" />
+                            Zoom
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex gap-4">
           <button
             onClick={onBack}
-            className="flex-1 px-4 py-3 rounded-lg border border-gray-700 text-white hover:bg-gray-700/30 transition-colors font-medium"
+            className="flex-1 px-6 py-3.5 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium"
           >
             Back
           </button>
           <button
             onClick={handleContinue}
-            disabled={!generatedModel && !uploadedModel}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-800 hover:to-indigo-800 text-white  px-4 py-2  rounded-lg shadow-lg transition-transform transform hover:scale-105"
+            disabled={!generatedModel}
+            className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-3.5 rounded-xl shadow-lg shadow-purple-500/20 transition-all font-semibold hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             Continue to Poses →
           </button>
