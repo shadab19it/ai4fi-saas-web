@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react"
 import { Upload, ZoomIn, X, Image as ImageIcon, Info, Sparkles, Grid3x3, Link as LinkIcon, Unlink, ChevronDown } from "lucide-react"
 import { female_model_tryon_prompt, male_model_tryon_prompt } from "../../services/prompt"
 import modelGalleryList from "../../services/ModelGallery"
+import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 
 interface DressUploadProps {
   onUploadComplete: (
@@ -39,6 +40,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   const [height, setHeight] = useState<string>("1365")
   const [isLinked, setIsLinked] = useState(true)
   const [showProfessionalOptions, setShowProfessionalOptions] = useState(true)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [segment, setSegment] = useState<string>("Women")
   const [garmentCategory, setGarmentCategory] = useState<string>("Top wear")
   const dressInputRef = useRef<HTMLInputElement>(null)
@@ -181,21 +183,15 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   }, [gender])
 
   return (
-    <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6 flex items-center justify-center">
-      <div className="w-full max-w-5xl">
+    <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6">
+      <div className="w-full">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <h1 className="text-2xl md:text-2xl font-bold text-white">Upload Your Dress</h1>
-          </div>
-          <p className="text-gray-400">Start by uploading a clear image of the garment you want to try on</p>
-        </div>
 
-        {/* Upload Card */}
-        <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 md:p-8 shadow-2xl">
+        {/* Step Content */}
+        <div>
           {!dressImage ? (
             /* Upload Area with Drag and Drop */
-            <div className="space-y-6">
+            <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 md:p-8 shadow-2xl space-y-6">
               <div
                 ref={dropZoneRef}
                 onDragOver={handleDragOver}
@@ -244,20 +240,20 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
             </div>
           ) : (
             /* Image & Options (Two Column Layout) */
-            <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1fr] gap-6">
+            <div className="flex flex-col xl:flex-row gap-6 items-start">
               {/* Left Side - Image Card */}
               <div
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
-                className="relative"
+                className="order-2 xl:order-2 w-full flex-1 flex flex-col gap-4"
               >
-                <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-2xl overflow-hidden shadow-xl cursor-pointer group"
+                <div className="relative bg-gradient-to-br h-[70vh] min-h-[460px] max-h-[760px] from-gray-800 to-gray-900 border border-gray-700 rounded-2xl overflow-hidden shadow-xl cursor-pointer group flex items-center justify-center"
                      onClick={() => setIsZoomOpen(true)}>
-                  <div className="relative">
+                  <div className="relative w-full h-full flex items-center justify-center">
                     <img
                       src={dressImage || "/placeholder.svg"}
                       alt="Dress preview"
-                      className="w-full h-auto max-h-[500px] object-contain transition-transform duration-300 group-hover:scale-105"
+                      className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                     />
                     {isHovering && (
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-center pb-6 gap-3 transition-all duration-300">
@@ -291,11 +287,21 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                   )}
                 </div>
                 <input ref={dressInputRef} type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
+                <button
+                  onClick={handleContinue}
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-3 rounded-xl shadow-lg shadow-purple-500/20 transition-all font-semibold hover:scale-[1.01]"
+                >
+                  Continue to Next Step
+                </button>
               </div>
 
               {/* Right Side - Options Card */}
-              <div className="flex flex-col gap-4">
-                <div className="flex-1 space-y-5 bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 p-5 rounded-2xl shadow-xl">
+              <CollapsibleSidebar
+                collapsed={isSidebarCollapsed}
+                onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
+                expandedWidthClass="xl:w-[360px]"
+              >
+                <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 p-5 rounded-2xl shadow-xl flex flex-col gap-5">
                   <div>
                     <label className="flex items-center gap-2 text-sm font-semibold text-white mb-3">
                       Gender
@@ -327,7 +333,11 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                       </div>
                     </label>
                     <div className="space-y-3">
-                      <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-gray-800/50 transition-colors">
+                      <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-colors ${
+                        !useCustomPrompt
+                          ? "border-purple-500/50 bg-purple-500/10"
+                          : "border-gray-700/60 bg-gray-800/30 hover:bg-gray-800/50"
+                      }`}>
                         <input
                           type="radio"
                           name="promptType"
@@ -338,12 +348,16 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                           }}
                           className="w-5 h-5 text-purple-600 bg-gray-800 border-gray-700 focus:ring-purple-600 focus:ring-2"
                         />
-                        <div className="flex-1">
-                          <span className="text-white font-medium group-hover:text-purple-300 transition-colors">AI Recommended</span>
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-white font-medium group-hover:text-purple-300 transition-colors">AI Recommended</span>
                           <p className="text-xs text-gray-400 mt-0.5">Optimized prompts for best results</p>
                         </div>
                       </label>
-                      <label className="flex items-center gap-3 cursor-pointer group p-3 rounded-xl hover:bg-gray-800/50 transition-colors">
+                      <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-colors ${
+                        useCustomPrompt
+                          ? "border-purple-500/50 bg-purple-500/10"
+                          : "border-gray-700/60 bg-gray-800/30 hover:bg-gray-800/50"
+                      }`}>
                         <input
                           type="radio"
                           name="promptType"
@@ -351,8 +365,8 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                           onChange={() => setUseCustomPrompt(true)}
                           className="w-5 h-5 text-purple-600 bg-gray-800 border-gray-700 focus:ring-purple-600 focus:ring-2"
                         />
-                        <div className="flex-1">
-                          <span className="text-white font-medium group-hover:text-purple-300 transition-colors">Custom Prompt</span>
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-white font-medium group-hover:text-purple-300 transition-colors">Custom Prompt</span>
                           <p className="text-xs text-gray-400 mt-0.5">Define your own styling preferences</p>
                         </div>
                       </label>
@@ -413,11 +427,10 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                         <div className="text-xs opacity-75 mt-1">High Quality</div>
                       </button>
                     </div>
-                  </div>
 
                   {/* Professional Tier Options */}
                   {tier === "professional" && (
-                    <div className="rounded-xl border border-purple-500/40 bg-gradient-to-br from-purple-900/30 to-indigo-900/20">
+                    <div className="rounded-xl border mt-4 border-purple-500/40 bg-gradient-to-br from-purple-900/30 to-indigo-900/20">
                       <button
                         onClick={() => setShowProfessionalOptions(!showProfessionalOptions)}
                         className="w-full px-4 py-3.5 flex items-center justify-between text-left"
@@ -584,10 +597,10 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                       )}
                     </div>
                   )}
-                </div>
+                  </div>
 
                 {/* Model Face Image Section */}
-                <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 p-6 rounded-2xl shadow-xl">
+                <div className="border-t border-gray-700/60 pt-4">
                   <div className="flex items-center gap-2 mb-4">
                     <Sparkles className="w-5 h-5 text-purple-500" />
                     <label className="flex items-center gap-2 text-sm font-semibold text-white">
@@ -649,24 +662,9 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                   />
                 </div>
 
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      setDressImage(null)
-                      setFileSize("")
-                    }}
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium"
-                  >
-                    Change Image
-                  </button>
-                  <button
-                    onClick={handleContinue}
-                    className="bg-gradient-to-r flex-1 from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-3 rounded-xl shadow-lg shadow-purple-500/20 transition-all font-semibold hover:scale-[1.02]"
-                  >
-                    Continue to Next Step →
-                  </button>
-                </div>
               </div>
+              </CollapsibleSidebar>
+
             </div>
           )}
         </div>

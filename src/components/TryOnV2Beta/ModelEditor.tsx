@@ -16,6 +16,7 @@ import {
   getAllAccessoryOptions,
   getAllJewelryOptions
 } from "./optionInputs"
+import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 
 interface ModelEditorProps {
   selectedModel: string
@@ -171,6 +172,7 @@ export default function ModelEditor({
   const [aspectRatio, setAspectRatio] = useState<string>(propAspectRatio || "")
   const [resolution, setResolution] = useState<string>(propResolution || "")
   const [showQualityAdvanced, setShowQualityAdvanced] = useState(true)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [newPose, setNewPose] = useState<string>("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<string[]>([])
@@ -450,7 +452,7 @@ export default function ModelEditor({
 
   return (
     <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -467,9 +469,9 @@ export default function ModelEditor({
         </div>
 
         {/* Main Content - Two Column Layout with Equal Heights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+        <div className="flex flex-col xl:flex-row gap-6 items-start">
           {/* Left - Selected Model Image */}
-          <div className="flex flex-col">
+          <div className="flex flex-col w-full flex-1 order-2 xl:order-2">
             <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 lg:p-6 shadow-xl flex-1 flex flex-col">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -548,6 +550,11 @@ export default function ModelEditor({
           </div>
 
           {/* Right - Configuration Cards */}
+          <CollapsibleSidebar
+            collapsed={isSidebarCollapsed}
+            onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
+            expandedWidthClass="xl:w-[380px]"
+          >
           <div className="flex flex-col gap-4">
             {/* Poses Configuration Card */}
             <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 shadow-xl">
@@ -848,6 +855,7 @@ export default function ModelEditor({
               )}
             </div>
           </div>
+          </CollapsibleSidebar>
         </div>
 
         {/* Generated Images Preview */}

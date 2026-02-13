@@ -1,10 +1,11 @@
 "use client"
 import { useEffect, useState } from "react"
-import { ArrowLeft, ZoomIn, X, Sparkles } from "lucide-react"
+import { ZoomIn, X, Sparkles, Download } from "lucide-react"
 import axios from "axios"
 import appConstant from "../../services/appConstant"
 import { dataURLtoFile } from "../../services/utils"
 import { toast } from "sonner"
+import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 
 interface ModelSelectionProps {
   dressImage: string
@@ -43,6 +44,8 @@ export default function ModelSelection({
   const [isHoveringGenerated, setIsHoveringGenerated] = useState(false)
   const [isZoomOpen, setIsZoomOpen] = useState(false)
   const [zoomedImage, setZoomedImage] = useState<string | null>(null)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isDownloadingModel, setIsDownloadingModel] = useState(false)
 
   const handleGenerateModel = async () => {
     if (!dressImage) {
@@ -141,6 +144,43 @@ export default function ModelSelection({
     }
   }
 
+  const handleDownloadGeneratedModel = async () => {
+    if (!generatedModel) return
+    setIsDownloadingModel(true)
+    try {
+      // data URL can be downloaded directly
+      if (generatedModel.startsWith("data:")) {
+        const anchor = document.createElement("a")
+        anchor.href = generatedModel
+        anchor.download = `tryon-model-${Date.now()}.png`
+        document.body.appendChild(anchor)
+        anchor.click()
+        document.body.removeChild(anchor)
+      } else {
+        const response = await fetch(generatedModel)
+        if (!response.ok) {
+          throw new Error("Unable to download generated model")
+        }
+        const blob = await response.blob()
+        const blobUrl = URL.createObjectURL(blob)
+        const ext = blob.type.includes("png") ? "png" : "jpg"
+        const anchor = document.createElement("a")
+        anchor.href = blobUrl
+        anchor.download = `tryon-model-${Date.now()}.${ext}`
+        document.body.appendChild(anchor)
+        anchor.click()
+        document.body.removeChild(anchor)
+        URL.revokeObjectURL(blobUrl)
+      }
+      toast.success("Model downloaded")
+    } catch (error: any) {
+      console.error("Error downloading model:", error)
+      toast.error(error?.message || "Failed to download model")
+    } finally {
+      setIsDownloadingModel(false)
+    }
+  }
+
   useEffect(() => {
     if (dressImage && !generatedModel) {
       setGeneratedModel(null)
@@ -151,26 +191,18 @@ export default function ModelSelection({
 
   return (
     <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Step 2: Model with Dress</h1>
-            <p className="text-gray-400">We are creating the first try-on preview using your selected settings</p>
-          </div>
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </button>
-        </div>
+
 
         {/* Main Content - Two Column Layout with Equal Heights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+        <div className="flex flex-col xl:flex-row gap-6 items-start">
           {/* Left - Dress Information */}
-          <div className="flex flex-col">
+          <CollapsibleSidebar
+            collapsed={isSidebarCollapsed}
+            onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
+            expandedWidthClass="xl:w-[360px]"
+          >
             <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 lg:p-6 shadow-xl flex-1 flex flex-col">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
@@ -258,10 +290,10 @@ export default function ModelSelection({
                 </div>
               </div>
             </div>
-          </div>
+          </CollapsibleSidebar>
 
           {/* Right - Generated Model */}
-          <div className="flex flex-col">
+          <div className="flex flex-col w-full flex-1">
             <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 lg:p-6 shadow-xl flex-1 flex flex-col">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
@@ -358,11 +390,21 @@ export default function ModelSelection({
             Back
           </button>
           <button
+            onClick={handleDownloadGeneratedModel}
+            disabled={!generatedModel || isDownloadingModel}
+            className="flex-1 px-6 py-3.5 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="inline-flex items-center gap-2">
+              <Download className="w-4 h-4" />
+              {isDownloadingModel ? "Downloading..." : "Download Model"}
+            </span>
+          </button>
+          <button
             onClick={handleContinue}
             disabled={!generatedModel}
             className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-3.5 rounded-xl shadow-lg shadow-purple-500/20 transition-all font-semibold hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            Continue to Poses →
+            Continue to Poses 
           </button>
         </div>
       </div>

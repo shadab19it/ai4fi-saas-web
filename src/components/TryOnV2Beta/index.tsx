@@ -90,8 +90,7 @@ export default function Home() {
             <img src={DarkLogo} className='w-20 h-8' alt='AI4FI' />
           </Link>
           <div className="h-6 w-px bg-gray-700" />
-          <Sparkles className='w-5 h-5 text-purple-500' />
-          <span className='text-white font-semibold'>Try On V2 Beta</span>
+          <span className='text-white font-semibold'>Trial Room</span>
         </h2>
         <div className='flex items-center gap-2'>
          <Link to={"/features"}>
