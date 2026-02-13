@@ -1,11 +1,12 @@
 "use client"
 import { useEffect, useState } from "react"
-import { ZoomIn, X, Sparkles, Download } from "lucide-react"
+import { ZoomIn, X, Sparkles, Download, RefreshCw } from "lucide-react"
 import axios from "axios"
 import appConstant from "../../services/appConstant"
 import { dataURLtoFile } from "../../services/utils"
 import { toast } from "sonner"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
+import Button from "../ui/Button"
 
 interface ModelSelectionProps {
   dressImage: string
@@ -55,24 +56,17 @@ export default function ModelSelection({
 
     setIsGenerating(true)
     try {
-      // Convert data URL to File
       const dressFile = dataURLtoFile(dressImage, "dress-image.jpg")
-      
-      // Create FormData
       const formData = new FormData()
       formData.append("file", dressFile)
       
-      // Add optional model_image (face image) from prop
       if (propModelImage) {
-        // Check if it's a URL or data URL
         if (propModelImage.startsWith("http://") || propModelImage.startsWith("https://")) {
-          // It's a URL from gallery, fetch it
           const response = await fetch(propModelImage)
           const blob = await response.blob()
           const modelImageFile = new File([blob], "model-image.jpg", { type: blob.type })
           formData.append("model_image", modelImageFile)
         } else {
-          // It's a data URL from upload
           const modelImageFile = dataURLtoFile(propModelImage, "model-image.jpg")
           formData.append("model_image", modelImageFile)
         }
@@ -85,32 +79,17 @@ export default function ModelSelection({
       formData.append("count", "1")
       formData.append("tier", tier)
 
-      // Add professional tier options only if tier is professional
       if (tier === "professional") {
-        if (aspectRatio) {
-          formData.append("aspect_ratio", aspectRatio)
-        }
-        if (resolution) {
-          formData.append("resolution", resolution)
-        }
-        if (width) {
-          formData.append("width", width.toString())
-        }
-        if (height) {
-          formData.append("height", height.toString())
-        }
-        if (segment) {
-          formData.append("segment", segment)
-        }
-        if (garmentCategory) {
-          formData.append("garment_category", garmentCategory)
-        }
+        if (aspectRatio) formData.append("aspect_ratio", aspectRatio)
+        if (resolution) formData.append("resolution", resolution)
+        if (width) formData.append("width", width.toString())
+        if (height) formData.append("height", height.toString())
+        if (segment) formData.append("segment", segment)
+        if (garmentCategory) formData.append("garment_category", garmentCategory)
       }
 
-      // Get token from localStorage
       const token = localStorage.getItem(appConstant.JWT_AUTH_TOKEN)
       
-      // Make API call
       const response = await axios.post(
         `${appConstant.BACKEND_API_URL}/generate/generate-tryon-beta`,
         formData,
@@ -122,9 +101,7 @@ export default function ModelSelection({
         }
       )
 
-      // Handle response
       if (response.data && response.data.urls && response.data.urls.length > 0) {
-        // Use the first URL from the response
         setGeneratedModel(response.data.urls[0])
       } else {
         throw new Error("No image URL returned from API")
@@ -148,7 +125,6 @@ export default function ModelSelection({
     if (!generatedModel) return
     setIsDownloadingModel(true)
     try {
-      // data URL can be downloaded directly
       if (generatedModel.startsWith("data:")) {
         const anchor = document.createElement("a")
         anchor.href = generatedModel
@@ -158,9 +134,7 @@ export default function ModelSelection({
         document.body.removeChild(anchor)
       } else {
         const response = await fetch(generatedModel)
-        if (!response.ok) {
-          throw new Error("Unable to download generated model")
-        }
+        if (!response.ok) throw new Error("Unable to download generated model")
         const blob = await response.blob()
         const blobUrl = URL.createObjectURL(blob)
         const ext = blob.type.includes("png") ? "png" : "jpg"
@@ -192,10 +166,7 @@ export default function ModelSelection({
   return (
     <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6">
       <div className="w-full">
-        {/* Header */}
-
-
-        {/* Main Content - Two Column Layout with Equal Heights */}
+        {/* Main Content - Two Column Layout */}
         <div className="flex flex-col xl:flex-row gap-6 items-start">
           {/* Left - Dress Information */}
           <CollapsibleSidebar
@@ -203,48 +174,50 @@ export default function ModelSelection({
             onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
             expandedWidthClass="xl:w-[360px]"
           >
-            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 lg:p-6 shadow-xl flex-1 flex flex-col">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 lg:p-6 flex-1 flex flex-col">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+                  <Sparkles className="w-4.5 h-4.5 text-violet-500" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Dress Information</h3>
+                <h3 className="text-[14px] font-bold text-stone-900">Dress Information</h3>
               </div>
               
-              <div className="flex-1 flex flex-col gap-6">
+              <div className="flex-1 flex flex-col gap-4">
                 {/* Gender Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800/50 rounded-xl border border-gray-700/50 w-fit">
-                  <span className="text-gray-400 text-sm">Gender:</span>
-                  <span className="text-white font-semibold capitalize">{gender}</span>
+                <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#F9F8F5] rounded-xl border border-[#E5E2DA] w-fit">
+                  <span className="text-[#9E9893] text-[12px] font-medium">Gender:</span>
+                  <span className="text-stone-900 text-[13px] font-bold capitalize">{gender}</span>
                 </div>
-                <div className="rounded-xl border border-gray-700/50 bg-gray-800/30 p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-400 mb-2">Generation Settings</p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-2.5 py-1 rounded-lg text-xs bg-purple-500/20 text-purple-200 border border-purple-500/30 capitalize">
+
+                {/* Generation Settings */}
+                <div className="rounded-xl border border-[#E5E2DA] bg-[#F9F8F5] p-3">
+                  <p className="text-[10px] uppercase tracking-wider font-semibold text-[#9E9893] mb-2">Generation Settings</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-violet-50 text-violet-600 border border-violet-200 capitalize">
                       {tier} tier
                     </span>
                     {tier === "professional" && aspectRatio && (
-                      <span className="px-2.5 py-1 rounded-lg text-xs bg-gray-700/50 text-gray-200 border border-gray-600/60">
+                      <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white text-[#6B6560] border border-[#E5E2DA]">
                         Ratio {aspectRatio}
                       </span>
                     )}
                     {tier === "professional" && resolution && (
-                      <span className="px-2.5 py-1 rounded-lg text-xs bg-gray-700/50 text-gray-200 border border-gray-600/60">
+                      <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white text-[#6B6560] border border-[#E5E2DA]">
                         {resolution}
                       </span>
                     )}
                     {tier === "professional" && width && height && (
-                      <span className="px-2.5 py-1 rounded-lg text-xs bg-gray-700/50 text-gray-200 border border-gray-600/60">
+                      <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white text-[#6B6560] border border-[#E5E2DA]">
                         {width}x{height}
                       </span>
                     )}
                     {tier === "professional" && segment && (
-                      <span className="px-2.5 py-1 rounded-lg text-xs bg-gray-700/50 text-gray-200 border border-gray-600/60">
+                      <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white text-[#6B6560] border border-[#E5E2DA]">
                         {segment}
                       </span>
                     )}
                     {tier === "professional" && garmentCategory && (
-                      <span className="px-2.5 py-1 rounded-lg text-xs bg-gray-700/50 text-gray-200 border border-gray-600/60">
+                      <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white text-[#6B6560] border border-[#E5E2DA]">
                         {garmentCategory}
                       </span>
                     )}
@@ -254,8 +227,8 @@ export default function ModelSelection({
                 {/* Model Face Image */}
                 {propModelImage && (
                   <div>
-                    <p className="text-gray-400 text-sm mb-2 font-medium">Model Face</p>
-                    <div className="relative rounded-xl overflow-hidden border border-gray-700/50 bg-gray-800/30">
+                    <p className="text-[11.5px] font-semibold text-[#6B6560] mb-2">Model Face</p>
+                    <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
                       <img
                         src={propModelImage}
                         alt="Model face"
@@ -267,9 +240,9 @@ export default function ModelSelection({
 
                 {/* Dress Preview */}
                 <div className="flex-1 flex flex-col">
-                  <p className="text-gray-400 text-sm mb-3 font-medium">Dress Preview</p>
+                  <p className="text-[11.5px] font-semibold text-[#6B6560] mb-2">Dress Preview</p>
                   <div 
-                    className="flex-1 rounded-xl overflow-hidden border-2 border-gray-700/50 bg-gray-800/30 relative group cursor-pointer min-h-[300px] flex items-center justify-center"
+                    className="flex-1 rounded-xl overflow-hidden border border-[#E5E2DA] bg-[#F9F8F5] relative group cursor-pointer min-h-[300px] flex items-center justify-center"
                     onClick={() => {
                       setZoomedImage(dressImage)
                       setIsZoomOpen(true)
@@ -280,10 +253,10 @@ export default function ModelSelection({
                       alt="Dress"
                       className="w-full h-full object-contain max-h-[400px]"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
-                      <div className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                        <ZoomIn className="w-4 h-4" />
-                        <span className="text-sm font-medium">Click to Zoom</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4">
+                      <div className="bg-white/90 backdrop-blur-sm border border-[#E5E2DA] text-stone-900 px-3.5 py-1.5 rounded-lg flex items-center gap-2 shadow-sm">
+                        <ZoomIn className="w-3.5 h-3.5" />
+                        <span className="text-[12px] font-semibold">Click to Zoom</span>
                       </div>
                     </div>
                   </div>
@@ -294,39 +267,41 @@ export default function ModelSelection({
 
           {/* Right - Generated Model */}
           <div className="flex flex-col w-full flex-1">
-            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 lg:p-6 shadow-xl flex-1 flex flex-col">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 lg:p-6 flex-1 flex flex-col">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+                  <Sparkles className="w-4.5 h-4.5 text-violet-500" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Generated Model</h3>
+                <h3 className="text-[14px] font-bold text-stone-900">Generated Model</h3>
               </div>
 
               <div className="flex-1 flex items-center justify-center">
                 {!generatedModel && !isGenerating && (
                   <div className="text-center py-12 w-full">
-                    <button
+                    <Button
+                      variant="gradient"
+                      size="lg"
                       onClick={handleGenerateModel}
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold px-8 py-4 text-lg rounded-xl transition-all duration-200 shadow-lg shadow-purple-500/20 hover:scale-105"
+                      icon={<Sparkles className="w-4 h-4" />}
                     >
                       Generate Model
-                    </button>
+                    </Button>
                   </div>
                 )}
 
                 {isGenerating && (
                   <div className="flex flex-col items-center justify-center py-12 gap-6 w-full">
                     <div className="relative">
-                      <div className="w-20 h-20 rounded-full border-4 border-purple-500/20 border-t-purple-500 animate-spin"></div>
+                      <div className="w-20 h-20 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin"></div>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600/20 to-indigo-600/20"></div>
+                        <div className="w-12 h-12 rounded-full bg-violet-50"></div>
                       </div>
                     </div>
                     <div className="text-center space-y-3">
-                      <p className="text-white font-semibold text-lg">Generating your model...</p>
-                      <p className="text-gray-400 text-sm">This may take a few moments</p>
-                      <div className="w-72 h-2 bg-gray-800 rounded-full overflow-hidden mt-4">
-                        <div className="h-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+                      <p className="text-stone-900 font-bold text-lg">Generating your model...</p>
+                      <p className="text-[#9E9893] text-[13px]">This may take a few moments</p>
+                      <div className="w-72 h-2 bg-[#F9F8F5] rounded-full overflow-hidden mt-4 border border-[#E5E2DA]">
+                        <div className="h-full bg-gradient-to-r from-violet-600 via-indigo-500 to-violet-600 rounded-full animate-pulse" style={{ width: '70%' }}></div>
                       </div>
                     </div>
                   </div>
@@ -337,7 +312,7 @@ export default function ModelSelection({
                     <div
                       onMouseEnter={() => setIsHoveringGenerated(true)}
                       onMouseLeave={() => setIsHoveringGenerated(false)}
-                      className="relative rounded-xl overflow-hidden border-2 border-gray-700/50 bg-gray-800/30 cursor-pointer flex-1 flex items-center justify-center min-h-[400px]"
+                      className="relative rounded-xl overflow-hidden border border-[#E5E2DA] bg-[#F9F8F5] cursor-pointer flex-1 flex items-center justify-center min-h-[400px]"
                       onClick={() => {
                         setZoomedImage(generatedModel)
                         setIsZoomOpen(true)
@@ -349,28 +324,33 @@ export default function ModelSelection({
                         className="w-full h-full object-contain max-h-[500px]"
                       />
                       {isHoveringGenerated && (
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-center pb-6 gap-3 transition-all duration-300">
-                          <button
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end justify-center pb-6 gap-3 transition-all duration-300">
+                          <Button
+                            variant="outline"
+                            size="md"
+                            icon={<RefreshCw className="w-3.5 h-3.5" />}
                             onClick={(e) => {
                               e.stopPropagation()
                               setGeneratedModel(null)
                               handleGenerateModel()
                             }}
-                            className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:bg-white/20 hover:scale-105"
+                            className="bg-white/90 backdrop-blur-sm hover:bg-white"
                           >
                             Generate Again
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="md"
+                            icon={<ZoomIn className="w-3.5 h-3.5" />}
                             onClick={(e) => {
                               e.stopPropagation()
                               setZoomedImage(generatedModel)
                               setIsZoomOpen(true)
                             }}
-                            className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:bg-white/20 hover:scale-105"
+                            className="bg-white/90 backdrop-blur-sm hover:bg-white"
                           >
-                            <ZoomIn className="w-4 h-4" />
                             Zoom
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -382,58 +362,60 @@ export default function ModelSelection({
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-8 flex gap-4">
-          <button
-            onClick={onBack}
-            className="flex-1 px-6 py-3.5 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium"
-          >
+        <div className="mt-6 flex gap-3">
+          <Button variant="outline" size="lg" onClick={onBack} className="flex-1">
             Back
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
             onClick={handleDownloadGeneratedModel}
-            disabled={!generatedModel || isDownloadingModel}
-            className="flex-1 px-6 py-3.5 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!generatedModel}
+            loading={isDownloadingModel}
+            icon={<Download className="w-4 h-4" />}
+            className="flex-1"
           >
-            <span className="inline-flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              {isDownloadingModel ? "Downloading..." : "Download Model"}
-            </span>
-          </button>
-          <button
+            {isDownloadingModel ? "Downloading..." : "Download Model"}
+          </Button>
+          <Button
+            variant="gradient"
+            size="lg"
             onClick={handleContinue}
             disabled={!generatedModel}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-3.5 rounded-xl shadow-lg shadow-purple-500/20 transition-all font-semibold hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="flex-1"
           >
-            Continue to Poses 
-          </button>
+            Continue to Poses
+          </Button>
         </div>
       </div>
 
       {/* Zoom Modal */}
       {isZoomOpen && zoomedImage && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={() => {
             setIsZoomOpen(false)
             setZoomedImage(null)
           }}
         >
-          <div className="relative max-w-[90vw] max-h-[90vh]">
+          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <img
               src={zoomedImage}
               alt="Zoomed preview"
-              className="max-w-full max-h-[90vh] object-contain"
-              onClick={(e) => e.stopPropagation()}
+              className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain"
             />
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => {
                 setIsZoomOpen(false)
                 setZoomedImage(null)
               }}
-              className="absolute top-4 right-4 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700 transition-colors"
+              className="absolute -top-3 -right-3 shadow-lg"
+              aria-label="Close zoomed view"
             >
-              <X className="w-6 h-6" />
-            </button>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useMemo } from "react"
-import { ArrowLeft, Plus, X, Download, Loader2, Upload, ZoomIn, Sparkles, ChevronDown, Info } from "lucide-react"
+import { Plus, X, Download, Loader2, Upload, ZoomIn, Sparkles, ChevronDown, Info } from "lucide-react"
 import axios from "axios"
 import appConstant from "../../services/appConstant"
 import { dataURLtoFile } from "../../services/utils"
@@ -17,6 +17,7 @@ import {
   getAllJewelryOptions
 } from "./optionInputs"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
+import Button from "../ui/Button"
 
 interface ModelEditorProps {
   selectedModel: string
@@ -34,7 +35,6 @@ interface ModelEditorProps {
 }
 
 let FEMALE_POSES = [
-  // Female - Front Poses
   { id: "female-front-straight-arms", label: "Straight-On Arms Relaxed", description: "Female - Neutral and clean" },
   { id: "female-front-hands-hips", label: "Hands on Hips", description: "Female - Showcase garment fit" },
   { id: "female-front-crossed-arms", label: "Crossed Arms", description: "Female - Confident, structured look" },
@@ -55,8 +55,6 @@ let FEMALE_POSES = [
   { id: "female-front-hand-hat-glasses", label: "Playful Hand on Hat or Glasses", description: "Female - Stylish accessory highlight" },
   { id: "female-front-smile-hands-waist", label: "Soft Smile with Hands Resting on Waist", description: "Female - Casual elegance" },
   { id: "female-front-arms-behind-head", label: "Arms Behind Head Relaxed", description: "Female - For showing dress or top length" },
-
-  // Female - Side Profile Poses
   { id: "female-side-leg-forward", label: "Straight-On to Side One Leg Forward", description: "Female - Lean into the side, perfect for dresses" },
   { id: "female-side-hand-waist", label: "Profile with Hand on Waist", description: "Female - Emphasize silhouette" },
   { id: "female-side-arms-crossed", label: "Profile with Arms Crossed", description: "Female - Structured and confident" },
@@ -77,8 +75,6 @@ let FEMALE_POSES = [
   { id: "female-side-hand-chest-tilt", label: "Hand Resting on Chest Head Tilted", description: "Female - Graceful pose" },
   { id: "female-side-hand-hip-tilt", label: "One Hand on Hip Slight Tilt to the Side", description: "Female - Dynamic, accentuating shape" },
   { id: "female-side-hand-face", label: "Side Profile with Soft Hand on Face", description: "Female - Subtle elegance" },
-
-  // Female - Back Poses
   { id: "female-back-full-arms", label: "Full Back Arms Relaxed by Sides", description: "Female - Neutral, minimalist" },
   { id: "female-back-hands-hips-tall", label: "Hands on Hips Standing Tall", description: "Female - Emphasize back details, like dress/train" },
   { id: "female-back-head-over-shoulder", label: "Back to Camera Looking Over Shoulder", description: "Female - Adds a soft allure" },
@@ -93,7 +89,6 @@ let FEMALE_POSES = [
 
 
 let MALE_POSES = [
-  // Male - Front Poses
   { id: "male-front-straight-hands-sides", label: "Straight-On Hands by Sides", description: "Male - Clean and neutral" },
   { id: "male-front-hands-pockets-lean", label: "Hands in Pockets Slight Lean", description: "Male - Casual yet structured" },
   { id: "male-front-crossed-arms", label: "Crossed Arms", description: "Male - Confident, strong look" },
@@ -114,7 +109,6 @@ let MALE_POSES = [
   { id: "male-front-arms-relaxed-side", label: "Arms Relaxed Looking to the Side", description: "Male - Slightly neutral but confident" },
   { id: "male-front-arms-behind-lean", label: "Arms Behind Back Slightly Leaned", description: "Male - Elegant and composed" },
   { id: "male-front-hands-thighs-shoulders", label: "Hands Resting on Thighs Shoulders Back", description: "Male - Strong stance" },
-  // Male - Side Profile Poses
   { id: "male-side-full-pockets", label: "Full Side Hands in Pockets", description: "Male - Casual, sleek look" },
   { id: "male-side-lean-leg-forward", label: "Side Lean with One Leg Forward", description: "Male - Stylized, focus on fit" },
   { id: "male-side-arm-across-chest", label: "One Arm Across Chest Other Relaxed", description: "Male - Strong yet balanced" },
@@ -135,8 +129,6 @@ let MALE_POSES = [
   { id: "male-side-arched-back", label: "Relaxed Side Slightly Arched Back", description: "Male - Creates an appealing silhouette" },
   { id: "male-side-hands-waist", label: "Side Profile with Hands Resting on Waist", description: "Male - Strong, confident stance" },
   { id: "male-side-lean-distance", label: "Slight Lean Looking Off into Distance", description: "Male - Contemplative, stylish" },
-
-  // Male - Back Poses
   { id: "male-back-full-arms-relaxed", label: "Full Back Arms Relaxed by Sides", description: "Male - Neutral and clean" },
   { id: "male-back-hand-waist", label: "Back to Camera One Hand on Waist", description: "Male - Emphasizes body shape" },
   { id: "male-back-arms-behind", label: "Standing Tall with Arms Behind Back", description: "Male - Strong and composed" },
@@ -189,7 +181,6 @@ export default function ModelEditor({
   const [zoomedImage, setZoomedImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Use replaced model if available, otherwise use selectedModel prop
   const currentModel = replacedModel || selectedModel
 
 
@@ -215,9 +206,6 @@ export default function ModelEditor({
     }
   }
 
-  console.log("new", newPose)
-
-
   const handleRatioChange = (ratio: string) => {
     setDownloadRatio(ratio)
     const ratios: Record<string, [number, number]> = {
@@ -237,13 +225,10 @@ export default function ModelEditor({
   const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      // Validate file type
       if (!file.type.startsWith("image/")) {
         toast.info("Please select an image file")
         return
       }
-
-      // Read file as data URL
       const reader = new FileReader()
       reader.onload = (e) => {
         const result = e.target?.result as string
@@ -254,7 +239,6 @@ export default function ModelEditor({
       }
       reader.readAsDataURL(file)
     }
-    // Reset input so same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
@@ -281,71 +265,40 @@ export default function ModelEditor({
     try {
       let modelFile: File | Blob
 
-      // Check if currentModel is a data URL or a regular URL
       if (currentModel.startsWith("data:")) {
         modelFile = dataURLtoFile(currentModel, `model-${Date.now()}.jpg`)
       } else if (currentModel.startsWith("http://") || currentModel.startsWith("https://")) {
         const blob = await commonService.downloadSingleFile(currentModel)
-        // Convert Blob to File
         const filename = currentModel.split('/').pop()?.split('?')[0] || `model-${Date.now()}.jpg`
         modelFile = new File([blob], filename, { type: blob.type || "image/jpeg" })
       } else {
-        // Fallback: treat as data URL
         modelFile = dataURLtoFile(currentModel, `model-${Date.now()}.jpg`)
       }
 
-      // Create FormData
       const formData = new FormData()
       formData.append("file", modelFile)
 
-      // Add poses as comma-separated string
       if (poses.length > 0) {
         formData.append("poses", poses.join(","))
       }
+      if (footwear) formData.append("footwear", footwear)
+      if (background) formData.append("background", background)
+      if (accessory) formData.append("accessory", accessory)
+      if (jewelry) formData.append("jewelry", jewelry)
 
-      // Add optional parameters
-      if (footwear) {
-        formData.append("footwear", footwear)
-      }
-      if (background) {
-        formData.append("background", background)
-      }
-      if (accessory) {
-        formData.append("accessory", accessory)
-      }
-      if (jewelry) {
-        formData.append("jewelry", jewelry)
-      }
-
-      // Add tier
       formData.append("tier", tier)
 
-      // Add professional tier options only if tier is professional
       if (tier === "professional") {
-        if (aspectRatio) {
-          formData.append("aspect_ratio", aspectRatio)
-        }
-        if (resolution) {
-          formData.append("resolution", resolution.toUpperCase())
-        }
-        if (propWidth) {
-          formData.append("width", propWidth.toString())
-        }
-        if (propHeight) {
-          formData.append("height", propHeight.toString())
-        }
-        if (propSegment) {
-          formData.append("segment", propSegment)
-        }
-        if (propGarmentCategory) {
-          formData.append("garment_category", propGarmentCategory)
-        }
+        if (aspectRatio) formData.append("aspect_ratio", aspectRatio)
+        if (resolution) formData.append("resolution", resolution.toUpperCase())
+        if (propWidth) formData.append("width", propWidth.toString())
+        if (propHeight) formData.append("height", propHeight.toString())
+        if (propSegment) formData.append("segment", propSegment)
+        if (propGarmentCategory) formData.append("garment_category", propGarmentCategory)
       }
 
-      // Get token from localStorage
       const token = localStorage.getItem(appConstant.JWT_AUTH_TOKEN)
 
-      // Make API call
       const response = await axios.post(
         `${appConstant.BACKEND_API_URL}/generate/generate-pose-variants-beta`,
         formData,
@@ -357,7 +310,6 @@ export default function ModelEditor({
         }
       )
 
-      // Handle response
       if (response.data && response.data.urls && response.data.urls.length > 0) {
         setGeneratedImages(response.data.urls)
       } else {
@@ -380,23 +332,21 @@ export default function ModelEditor({
     }
     setIsDownloading({ index: imageIndex, isDownloading: true })
     try {
-      // Validate dimensions
-      const width = Number(downloadWidth)
-      const height = Number(downloadHeight)
+      const w = Number(downloadWidth)
+      const h = Number(downloadHeight)
 
-      if (isNaN(width) || width <= 0 || !isFinite(width)) {
+      if (isNaN(w) || w <= 0 || !isFinite(w)) {
         toast.error("Invalid width. Please enter a valid positive number.")
         return
       }
-
-      if (isNaN(height) || height <= 0 || !isFinite(height)) {
+      if (isNaN(h) || h <= 0 || !isFinite(h)) {
         toast.error("Invalid height. Please enter a valid positive number.")
         return
       }
 
       const opts: ResizeOptions = {
-        width: Math.round(width),
-        height: Math.round(height),
+        width: Math.round(w),
+        height: Math.round(h),
         keepAspect: false,
         fit: fitMode,
         mimeType: "image/png",
@@ -404,7 +354,6 @@ export default function ModelEditor({
         background: fitMode === "contain" ? "#FFFFFF" : "#00000000",
       };
 
-      // Download single image with custom size
       if (imageIndex !== undefined) {
         const image = generatedImages[imageIndex]
         const blob = await commonService.downloadSingleFile(image)
@@ -414,7 +363,6 @@ export default function ModelEditor({
         return
       }
 
-      // Download all images with custom size
       const imageBlobs = await Promise.all(
         generatedImages.map(async (image) => {
           const blob = await commonService.downloadSingleFile(image)
@@ -422,16 +370,14 @@ export default function ModelEditor({
         })
       )
 
-      // Create a zip file from all resized images
       const zip = new JSZip()
-
       imageBlobs.forEach((blob, index) => {
         const ext = defaultExt(opts.mimeType || "image/png")
         zip.file(`ai4fi-pose-${index + 1}.${ext}`, blob)
       })
 
       const zipBlob = await zip.generateAsync({ type: "blob" })
-      downloadBlob(zipBlob, `ai4fi-poses-${width}x${height}-${Date.now()}.zip`)
+      downloadBlob(zipBlob, `ai4fi-poses-${w}x${h}-${Date.now()}.zip`)
     } catch (error: any) {
       console.error("Error downloading poses:", error)
       toast.error(error?.response?.data?.message || error?.message || "Failed to download poses. Please try again.")
@@ -444,46 +390,34 @@ export default function ModelEditor({
     return gender === "female" ? FEMALE_POSES : MALE_POSES
   }
 
-  // Get options based on gender
   const footwearOptionsList = useMemo(() => getAllFootwearOptions(gender), [gender])
   const backgroundOptionsList = useMemo(() => getAllBackgroundOptions(), [])
   const accessoryOptionsList = useMemo(() => getAllAccessoryOptions(gender), [gender])
   const jewelryOptionsList = useMemo(() => getAllJewelryOptions(gender), [gender])
 
+  // Helper for select styling
+  const selectClass = "w-full px-3 py-2.5 pr-10 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
+  const labelClass = "flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] mb-2"
+
   return (
     <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6">
       <div className="w-full">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">Step 3: Generate Poses</h1>
-            <p className="text-gray-400">Configure poses and generate multiple variations</p>
-          </div>
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </button>
-        </div>
-
-        {/* Main Content - Two Column Layout with Equal Heights */}
+        {/* Main Content - Two Column Layout */}
         <div className="flex flex-col xl:flex-row gap-6 items-start">
           {/* Left - Selected Model Image */}
           <div className="flex flex-col w-full flex-1 order-2 xl:order-2">
-            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 lg:p-6 shadow-xl flex-1 flex flex-col">
-              <div className="flex items-center justify-between mb-6">
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 lg:p-6 flex-1 flex flex-col">
+              <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-purple-400" />
+                  <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+                    <Sparkles className="w-4.5 h-4.5 text-violet-500" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">Selected Model with Dress</h3>
+                  <h3 className="text-[14px] font-bold text-stone-900">Selected Model with Dress</h3>
                 </div>
                 {replacedModel && (
                   <button
                     onClick={handleRemoveReplacement}
-                    className="text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-red-500/10"
+                    className="text-[11px] text-red-500 hover:text-red-600 transition-colors flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-red-50 font-semibold"
                   >
                     <X className="w-3 h-3" />
                     Reset
@@ -492,7 +426,7 @@ export default function ModelEditor({
               </div>
               <div className="flex-1 flex items-start justify-center">
                 <div
-                  className="relative rounded-xl overflow-hidden border-2 border-gray-700/50 bg-gray-800/30 group cursor-pointer w-full flex items-center justify-center min-h-[400px]"
+                  className="relative rounded-xl overflow-hidden border border-[#E5E2DA] bg-[#F9F8F5] group cursor-pointer w-full flex items-center justify-center min-h-[400px]"
                   onMouseEnter={() => setIsHoveringModel(true)}
                   onMouseLeave={() => setIsHoveringModel(false)}
                 >
@@ -508,7 +442,6 @@ export default function ModelEditor({
                       }
                     }}
                   />
-                  {/* Hidden file input */}
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -516,20 +449,24 @@ export default function ModelEditor({
                     onChange={handleFileInputChange}
                     className="hidden"
                   />
-                  {/* Hover overlay with upload and zoom options */}
                   {isHoveringModel && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-center pb-6 gap-3 transition-opacity duration-300">
-                      <button
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end justify-center pb-6 gap-3 transition-opacity duration-300">
+                      <Button
+                        variant="outline"
+                        size="md"
+                        icon={<Upload className="w-3.5 h-3.5" />}
                         onClick={(e) => {
                           e.stopPropagation()
                           handleUploadClick()
                         }}
-                        className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:bg-white/20 hover:scale-105"
+                        className="bg-white/90 backdrop-blur-sm hover:bg-white"
                       >
-                        <Upload className="w-4 h-4" />
                         {replacedModel ? "Replace" : "Upload"}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="md"
+                        icon={<ZoomIn className="w-3.5 h-3.5" />}
                         onClick={(e) => {
                           e.stopPropagation()
                           if (currentModel) {
@@ -537,11 +474,10 @@ export default function ModelEditor({
                             setIsZoomOpen(true)
                           }
                         }}
-                        className="bg-white/10 backdrop-blur-sm border border-white/20 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 transition-all hover:bg-white/20 hover:scale-105"
+                        className="bg-white/90 backdrop-blur-sm hover:bg-white"
                       >
-                        <ZoomIn className="w-4 h-4" />
                         Zoom
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -557,21 +493,21 @@ export default function ModelEditor({
           >
           <div className="flex flex-col gap-4">
             {/* Poses Configuration Card */}
-            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 shadow-xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+                  <Sparkles className="w-4.5 h-4.5 text-violet-500" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-xl font-bold text-white">Poses Configuration</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Select up to 8 poses ({poses.length}/8 selected)</p>
+                  <h3 className="text-[14px] font-bold text-stone-900">Poses Configuration</h3>
+                  <p className="text-[11.5px] text-[#9E9893] mt-0.5 font-medium">Select up to 8 poses ({poses.length}/8 selected)</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 {/* Predefined Poses Select */}
                 <div className="relative">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className={labelClass}>
                     Select Predefined Poses
                   </label>
                   <MultiSelect
@@ -579,7 +515,6 @@ export default function ModelEditor({
                       value: pose.label.toLowerCase(),
                       label: `${pose.label}`
                     }))]}
-                    
                     noOfposes={8 - poses.filter((pose) =>
                       !getPoses().some((p) => p.label.toLowerCase() === pose)
                     ).length}
@@ -588,7 +523,6 @@ export default function ModelEditor({
                       const customPoses = poses.filter((pose) =>
                         !getPoses().some((p) => p.label.toLowerCase() === pose)
                       )
-                      // Combine custom poses with selected predefined poses
                       setPoses([...customPoses, ...selectedPredefinedPoses].slice(0, 8))
                     }}
                     selectedPoses={poses}
@@ -597,7 +531,7 @@ export default function ModelEditor({
 
                 {/* Custom Pose Input */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Or Add Custom Pose</label>
+                  <label className={labelClass}>Or Add Custom Pose</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -605,40 +539,41 @@ export default function ModelEditor({
                       onChange={(e) => setNewPose(e.target.value)}
                       onKeyPress={(e) => e.key === "Enter" && handleAddPose()}
                       placeholder="Enter custom pose (e.g., stretching, leaning)"
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-gray-700 bg-gray-800/50 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                      className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#E5E2DA] bg-white text-stone-900 text-[13px] placeholder-[#9E9893] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
                     />
-                    <button
+                    <Button
+                      variant="gradient"
+                      size="md"
                       onClick={handleAddPose}
                       disabled={!newPose.trim() || poses.length >= 8}
-                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-purple-600 disabled:hover:to-indigo-600"
                     >
                       <Plus className="w-4 h-4" />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Additional Options */}
-            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 shadow-xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+                  <Sparkles className="w-4.5 h-4.5 text-violet-500" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Additional Options</h3>
+                <h3 className="text-[14px] font-bold text-stone-900">Additional Options</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
               {/* Footwear */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                <label className={labelClass}>
                   Footwear
-                  <span className="text-gray-500 text-xs">(Optional)</span>
+                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
                   <div className="group relative">
-                    <Info className="w-4 h-4 text-gray-400 cursor-help" />
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                    <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
                       Select footwear style for the model
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
                     </div>
                   </div>
                 </label>
@@ -646,29 +581,27 @@ export default function ModelEditor({
                   <select
                     value={footwear}
                     onChange={(e) => setFootwear(e.target.value)}
-                    className="w-full px-3 py-2.5 pr-10 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                    className={selectClass}
                   >
                     <option value="">Select footwear...</option>
                     {footwearOptionsList.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
+                      <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
                 </div>
               </div>
 
               {/* Background */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                <label className={labelClass}>
                   Background
-                  <span className="text-gray-500 text-xs">(Optional)</span>
+                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
                   <div className="group relative">
-                    <Info className="w-4 h-4 text-gray-400 cursor-help" />
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                    <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
                       Choose background setting for the image
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
                     </div>
                   </div>
                 </label>
@@ -676,29 +609,27 @@ export default function ModelEditor({
                   <select
                     value={background}
                     onChange={(e) => setBackground(e.target.value)}
-                    className="w-full px-3 py-2.5 pr-10 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                    className={selectClass}
                   >
                     <option value="">Select background...</option>
                     {backgroundOptionsList.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
+                      <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
                 </div>
               </div>
 
               {/* Accessory */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                <label className={labelClass}>
                   Accessory
-                  <span className="text-gray-500 text-xs">(Optional)</span>
+                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
                   <div className="group relative">
-                    <Info className="w-4 h-4 text-gray-400 cursor-help" />
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                    <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
                       Select accessories to add to the model
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
                     </div>
                   </div>
                 </label>
@@ -706,29 +637,27 @@ export default function ModelEditor({
                   <select
                     value={accessory}
                     onChange={(e) => setAccessory(e.target.value)}
-                    className="w-full px-3 py-2.5 pr-10 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                    className={selectClass}
                   >
                     <option value="">Select accessory...</option>
                     {accessoryOptionsList.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
+                      <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
                 </div>
               </div>
 
               {/* Jewelry */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                <label className={labelClass}>
                   Jewelry
-                  <span className="text-gray-500 text-xs">(Optional)</span>
+                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
                   <div className="group relative">
-                    <Info className="w-4 h-4 text-gray-400 cursor-help" />
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                    <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
                       Choose jewelry pieces for the model
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
                     </div>
                   </div>
                 </label>
@@ -736,32 +665,30 @@ export default function ModelEditor({
                   <select
                     value={jewelry}
                     onChange={(e) => setJewelry(e.target.value)}
-                    className="w-full px-3 py-2.5 pr-10 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                    className={selectClass}
                   >
                     <option value="">Select jewelry...</option>
                     {jewelryOptionsList.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
+                      <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
                 </div>
               </div>
               </div>
             </div>
 
             {/* Quality Tier */}
-            <div className="bg-gradient-to-br from-gray-800/70 to-gray-900/80 backdrop-blur-sm border border-gray-700/60 rounded-2xl p-5 shadow-xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+                  <Sparkles className="w-4.5 h-4.5 text-violet-500" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Quality Settings</h3>
+                <h3 className="text-[14px] font-bold text-stone-900">Quality Settings</h3>
               </div>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-300 mb-3">Quality Tier</label>
+                <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-3">Quality Tier</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => {
@@ -770,57 +697,57 @@ export default function ModelEditor({
                       setResolution("")
                       setShowQualityAdvanced(false)
                     }}
-                    className={`px-4 py-3.5 rounded-xl border-2 transition-all ${
+                    className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
                       tier === "basic"
-                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-500 text-white shadow-lg shadow-purple-500/20"
-                        : "bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600 hover:bg-gray-800"
+                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 border-violet-500 text-white shadow-[0_4px_12px_rgba(99,102,241,0.25)]"
+                        : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                     }`}
                   >
-                    <div className="text-sm font-semibold">Basic</div>
-                    <div className="text-xs opacity-75 mt-1">Standard Quality</div>
+                    <div className="text-[13px] font-bold">Basic</div>
+                    <div className="text-[11px] opacity-75 mt-0.5">Standard Quality</div>
                   </button>
                   <button
                     onClick={() => {
                       setTier("professional")
                       setShowQualityAdvanced(true)
                     }}
-                    className={`px-4 py-3.5 rounded-xl border-2 transition-all ${
+                    className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
                       tier === "professional"
-                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-500 text-white shadow-lg shadow-purple-500/20"
-                        : "bg-gray-800/50 border-gray-700 text-gray-400 hover:border-gray-600 hover:bg-gray-800"
+                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 border-violet-500 text-white shadow-[0_4px_12px_rgba(99,102,241,0.25)]"
+                        : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                     }`}
                   >
-                    <div className="text-sm font-semibold">Professional</div>
-                    <div className="text-xs opacity-75 mt-1">High Quality</div>
+                    <div className="text-[13px] font-bold">Professional</div>
+                    <div className="text-[11px] opacity-75 mt-0.5">High Quality</div>
                   </button>
                 </div>
               </div>
 
               {/* Professional Tier Options */}
               {tier === "professional" && (
-                <div className="rounded-xl border border-purple-500/40 bg-gradient-to-br from-purple-900/25 to-indigo-900/20">
+                <div className="rounded-xl border border-violet-200 bg-violet-50/50">
                   <button
                     onClick={() => setShowQualityAdvanced(!showQualityAdvanced)}
-                    className="w-full px-4 py-3.5 flex items-center justify-between text-left"
+                    className="w-full px-4 py-3 flex items-center justify-between text-left"
                   >
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-purple-300" />
-                      <span className="text-sm font-semibold text-purple-200">Professional Options</span>
+                      <Sparkles className="w-4 h-4 text-violet-500" />
+                      <span className="text-[13px] font-bold text-violet-700">Professional Options</span>
                     </div>
                     <ChevronDown
-                      className={`w-4 h-4 text-purple-300 transition-transform ${showQualityAdvanced ? "rotate-180" : ""}`}
+                      className={`w-4 h-4 text-violet-500 transition-transform ${showQualityAdvanced ? "rotate-180" : ""}`}
                     />
                   </button>
 
                   {showQualityAdvanced && (
                     <div className="space-y-4 px-4 pb-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-300 mb-2">Aspect Ratio</label>
+                        <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Aspect Ratio</label>
                         <div className="relative">
                           <select
                             value={aspectRatio}
                             onChange={(e) => setAspectRatio(e.target.value)}
-                            className="w-full px-3 py-2.5 pr-10 rounded-xl bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                            className={selectClass}
                           >
                             <option value="">Default</option>
                             <option value="1:1">1:1 (Square)</option>
@@ -829,24 +756,24 @@ export default function ModelEditor({
                             <option value="16:9">16:9 (Landscape)</option>
                             <option value="3:4">3:4 (Portrait)</option>
                           </select>
-                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-medium text-gray-300 mb-2">Resolution</label>
+                        <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Resolution</label>
                         <div className="relative">
                           <select
                             value={resolution}
                             onChange={(e) => setResolution(e.target.value)}
-                            className="w-full px-3 py-2.5 pr-10 rounded-xl bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all appearance-none cursor-pointer"
+                            className={selectClass}
                           >
                             <option value="">Default</option>
                             <option value="1K">1K</option>
                             <option value="2K">2K</option>
                             <option value="4K">4K</option>
                           </select>
-                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
                         </div>
                       </div>
                     </div>
@@ -861,19 +788,19 @@ export default function ModelEditor({
         {/* Generated Images Preview */}
         {generatedImages.length > 0 && (
           <div className="mt-8">
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 lg:p-8 shadow-xl">
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-6 lg:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
+                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+                  <Sparkles className="w-4.5 h-4.5 text-violet-500" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Generated Images</h3>
-                <span className="ml-auto text-sm text-gray-400">({generatedImages.length} images)</span>
+                <h3 className="text-[14px] font-bold text-stone-900">Generated Images</h3>
+                <span className="ml-auto text-[12px] text-[#9E9893] font-medium">({generatedImages.length} images)</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {generatedImages.map((img, idx) => (
                   <div key={idx} className="space-y-3">
                     <div
-                      className="rounded-xl overflow-hidden border-2 border-gray-700/50 bg-gray-800/30 relative group cursor-pointer aspect-square"
+                      className="rounded-xl overflow-hidden border border-[#E5E2DA] bg-[#F9F8F5] relative group cursor-pointer aspect-square"
                       onClick={() => {
                         setZoomedImage(img)
                         setIsZoomOpen(true)
@@ -884,30 +811,23 @@ export default function ModelEditor({
                         alt={`Generated pose ${idx + 1}`}
                         className="w-full h-full object-contain"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
-                        <div className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-3 py-1.5 rounded-lg flex items-center gap-2">
-                          <ZoomIn className="w-4 h-4" />
-                          <span className="text-xs font-medium">Zoom</span>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
+                        <div className="bg-white/90 backdrop-blur-sm border border-[#E5E2DA] text-stone-900 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm">
+                          <ZoomIn className="w-3.5 h-3.5" />
+                          <span className="text-[11px] font-semibold">Zoom</span>
                         </div>
                       </div>
                     </div>
-                    <button
+                    <Button
+                      variant="outline"
+                      size="md"
                       onClick={() => handleDownload(idx)}
-                      disabled={isDownloading.index === idx && isDownloading.isDownloading}
-                      className="w-full border border-gray-700 bg-gray-800/50 hover:bg-gray-800 text-white font-semibold px-3 py-2 rounded-xl gap-2 flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02]"
+                      loading={isDownloading.index === idx && isDownloading.isDownloading}
+                      icon={!(isDownloading.index === idx && isDownloading.isDownloading) ? <Download className="w-3.5 h-3.5" /> : undefined}
+                      className="w-full"
                     >
-                      {isDownloading.index === idx && isDownloading.isDownloading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Downloading...
-                        </>
-                      ) : (
-                        <>
-                          <Download className="w-4 h-4" />
-                          Download
-                        </>
-                      )}
-                    </button>
+                      {isDownloading.index === idx && isDownloading.isDownloading ? "Downloading..." : "Download"}
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -915,28 +835,29 @@ export default function ModelEditor({
           </div>
         )}
 
+        {/* Download with Custom Size */}
         {generatedImages.length > 0 && (
           <div className="mt-6">
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 shadow-xl">
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/20 to-indigo-600/20 flex items-center justify-center">
-                  <Download className="w-5 h-5 text-purple-400" />
+                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+                  <Download className="w-4.5 h-4.5 text-violet-500" />
                 </div>
-                <h3 className="text-xl font-bold text-white">Download with Custom Size</h3>
+                <h3 className="text-[14px] font-bold text-stone-900">Download with Custom Size</h3>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {/* Ratio Presets */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-3">Aspect Ratio</label>
+                  <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-3">Aspect Ratio</label>
                   <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                     {["1:1", "4:5", "9:16", "16:9", "3:4"].map((ratio) => (
                       <button
                         key={ratio}
                         onClick={() => handleRatioChange(ratio)}
-                        className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                        className={`px-3 py-2 rounded-xl text-[12px] font-semibold transition-all ${
                           downloadRatio === ratio
-                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-2 border-purple-500 shadow-lg shadow-purple-500/20"
-                            : "border-2 border-gray-700 bg-gray-800/50 text-white hover:border-gray-600 hover:bg-gray-800"
+                            ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-2 border-violet-500 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
+                            : "border-2 border-[#E5E2DA] bg-white text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                         }`}
                       >
                         {ratio}
@@ -944,10 +865,10 @@ export default function ModelEditor({
                     ))}
                     <button
                       onClick={() => setDownloadRatio("custom")}
-                      className={`px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                      className={`px-3 py-2 rounded-xl text-[12px] font-semibold transition-all ${
                         downloadRatio === "custom"
-                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-2 border-purple-500 shadow-lg shadow-purple-500/20"
-                          : "border-2 border-gray-700 bg-gray-800/50 text-white hover:border-gray-600 hover:bg-gray-800"
+                          ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-2 border-violet-500 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
+                          : "border-2 border-[#E5E2DA] bg-white text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                       }`}
                     >
                       Custom
@@ -957,48 +878,33 @@ export default function ModelEditor({
 
                 {/* Fit Mode Selector */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-3">Resize Mode</label>
+                  <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-3">Resize Mode</label>
                   <div className="grid grid-cols-3 gap-3">
-                    <button
-                      onClick={() => setFitMode("contain")}
-                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        fitMode === "contain"
-                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-2 border-purple-500 shadow-lg shadow-purple-500/20"
-                          : "border-2 border-gray-700 bg-gray-800/50 text-white hover:border-gray-600 hover:bg-gray-800"
-                      }`}
-                      title="Fits entire image without cropping (may have padding)"
-                    >
-                      Contain
-                    </button>
-                    <button
-                      onClick={() => setFitMode("cover")}
-                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        fitMode === "cover"
-                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-2 border-purple-500 shadow-lg shadow-purple-500/20"
-                          : "border-2 border-gray-700 bg-gray-800/50 text-white hover:border-gray-600 hover:bg-gray-800"
-                      }`}
-                      title="Fills entire area (may crop image)"
-                    >
-                      Cover
-                    </button>
-                    <button
-                      onClick={() => setFitMode("stretch")}
-                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        fitMode === "stretch"
-                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-2 border-purple-500 shadow-lg shadow-purple-500/20"
-                          : "border-2 border-gray-700 bg-gray-800/50 text-white hover:border-gray-600 hover:bg-gray-800"
-                      }`}
-                      title="Stretches to exact dimensions (may distort)"
-                    >
-                      Stretch
-                    </button>
+                    {(["contain", "cover", "stretch"] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        onClick={() => setFitMode(mode)}
+                        className={`px-4 py-2.5 rounded-xl text-[12px] font-semibold transition-all capitalize ${
+                          fitMode === mode
+                            ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-2 border-violet-500 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
+                            : "border-2 border-[#E5E2DA] bg-white text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
+                        }`}
+                        title={
+                          mode === "contain" ? "Fits entire image without cropping (may have padding)" :
+                          mode === "cover" ? "Fills entire area (may crop image)" :
+                          "Stretches to exact dimensions (may distort)"
+                        }
+                      >
+                        {mode}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
                 {/* Custom Dimensions */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Width (px)</label>
+                    <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Width (px)</label>
                     <input
                       type="number"
                       value={downloadWidth}
@@ -1009,11 +915,11 @@ export default function ModelEditor({
                       min="256"
                       max="4096"
                       step="256"
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-700 bg-gray-800/50 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E2DA] bg-white text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Height (px)</label>
+                    <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Height (px)</label>
                     <input
                       type="number"
                       value={downloadHeight}
@@ -1024,87 +930,76 @@ export default function ModelEditor({
                       min="256"
                       max="4096"
                       step="256"
-                      className="w-full px-4 py-2.5 rounded-xl border border-gray-700 bg-gray-800/50 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E2DA] bg-white text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Download All Button */}
-                <button
+                <Button
+                  variant="gradient"
+                  size="lg"
                   onClick={() => handleDownload(undefined)}
-                  disabled={isDownloading.index === undefined && isDownloading.isDownloading}
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3.5 rounded-xl gap-2 flex items-center justify-center transition-all shadow-lg shadow-purple-500/20 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  loading={isDownloading.index === undefined && isDownloading.isDownloading}
+                  icon={!(isDownloading.index === undefined && isDownloading.isDownloading) ? <Download className="w-4 h-4" /> : undefined}
+                  className="w-full"
                 >
-                  {isDownloading.index === undefined && isDownloading.isDownloading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Downloading All...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-5 h-5" />
-                      Download All ({downloadWidth}x{downloadHeight})
-                    </>
-                  )}
-                </button>
+                  {isDownloading.index === undefined && isDownloading.isDownloading
+                    ? "Downloading All..."
+                    : `Download All (${downloadWidth}x${downloadHeight})`
+                  }
+                </Button>
               </div>
             </div>
           </div>
         )}
 
         {/* Action Buttons */}
-        <div className="mt-8 flex gap-4">
-          <button
-            onClick={onBack}
-            className="flex-1 px-6 py-3.5 rounded-xl border border-gray-700 text-white hover:bg-gray-800/50 transition-all font-medium"
-          >
+        <div className="mt-6 flex gap-3">
+          <Button variant="outline" size="lg" onClick={onBack} className="flex-1">
             Back
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="gradient"
+            size="lg"
             onClick={handleGeneratePoses}
             disabled={isGenerating || poses.length === 0}
-            className="flex-1 bg-gradient-to-r flex items-center justify-center gap-2 from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-3.5 rounded-xl shadow-lg shadow-purple-500/20 transition-all font-semibold hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            loading={isGenerating}
+            icon={!isGenerating ? <Sparkles className="w-4 h-4" /> : undefined}
+            className="flex-1"
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5" />
-                Generate Poses
-              </>
-            )}
-          </button>
+            {isGenerating ? "Generating..." : "Generate Poses"}
+          </Button>
         </div>
       </div>
 
       {/* Zoom Modal */}
       {isZoomOpen && zoomedImage && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={() => {
             setIsZoomOpen(false)
             setZoomedImage(null)
           }}
         >
-          <div className="relative max-w-[90vw] max-h-[90vh]">
+          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             <img
               src={zoomedImage}
               alt="Zoomed preview"
-              className="max-w-full max-h-[90vh] object-contain"
-              onClick={(e) => e.stopPropagation()}
+              className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain"
             />
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => {
                 setIsZoomOpen(false)
                 setZoomedImage(null)
               }}
-              className="absolute top-4 right-4 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700 transition-colors"
+              className="absolute -top-3 -right-3 shadow-lg"
+              aria-label="Close zoomed view"
             >
-              <X className="w-6 h-6" />
-            </button>
+              <X className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       )}

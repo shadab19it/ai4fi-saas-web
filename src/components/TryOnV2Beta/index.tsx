@@ -5,8 +5,9 @@ import DressUpload from "./DressUpload"
 import ModelSelection from "./ModelSelection"
 import ModelEditor from "./ModelEditor"
 import { Link } from "react-router-dom"
-import DarkLogo from "../../../public/dark-logo.png"
-import { Sparkles, CheckCircle2 } from "lucide-react"
+import DarkLogo from "../../../public/dark-logo2.png"
+import { CheckCircle2, ArrowLeft } from "lucide-react"
+import Button from "../ui/Button"
 
 export default function Home() {
   const [step, setStep] = useState<"dress" | "selection" | "editor">("dress")
@@ -28,9 +29,7 @@ export default function Home() {
     { id: "editor", label: "Create Poses", number: 3 },
   ]
 
-  const getCurrentStepIndex = () => {
-    return steps.findIndex((s) => s.id === step)
-  }
+  const getCurrentStepIndex = () => steps.findIndex((s) => s.id === step)
 
   const [modelImage, setModelImage] = useState<string | null>(null)
 
@@ -51,7 +50,6 @@ export default function Home() {
     setGender(selectedGender)
     setPromptOverride(prompt)
     setModelImage(modelImg || null)
-    // Store professional tier settings for later steps
     setTier(selectedTier || "basic")
     setAspectRatio(selectedAspectRatio)
     setResolution(selectedResolution)
@@ -67,9 +65,7 @@ export default function Home() {
     setStep("editor")
   }
 
-  const handleBackToSelection = () => {
-    setStep("selection")
-  }
+  const handleBackToSelection = () => setStep("selection")
 
   const handleBackToDress = () => {
     setStep("dress")
@@ -82,72 +78,71 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-gray-950">
+    <main className="min-h-screen bg-[#F4F3EF]">
       {/* Header */}
-      <div className='p-4 bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 flex justify-between items-center sticky top-0 z-40'>
-        <h2 className='text-xl font-bold flex items-center gap-3'>
-          <Link to={"/"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={DarkLogo} className='w-20 h-8' alt='AI4FI' />
+      <div className="shrink-0 border-b border-[#E5E2DA] bg-white px-5 py-3 flex justify-between items-center sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
+            <img src={DarkLogo} className="w-18 h-10 rounded-lg object-cover" alt="AI4FI" />
           </Link>
-          <div className="h-6 w-px bg-gray-700" />
-          <span className='text-white font-semibold'>Trial Room</span>
-        </h2>
-        <div className='flex items-center gap-2'>
-         <Link to={"/features"}>
-          <button className='bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:shadow-purple-500/20 font-medium'>
-            Back
-          </button>
-         </Link>
-       </div>
+          <div className="h-6 w-px bg-[#E5E2DA]" />
+          <div>
+            <h1 className="text-[14px] font-bold text-stone-900">Trial Room</h1>
+            <p className="text-[11.5px] text-[#9E9893] font-medium">Virtual Try-On Studio</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link to="/features">
+            <Button variant="outline" size="md" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
+              Back
+            </Button>
+          </Link>
+          <Link to="/">
+            <Button variant="outline" size="md">Home</Button>
+          </Link>
+        </div>
       </div>
 
-      {/* Progress Indicator */}
-      <div className="bg-gray-900/50 border-b border-gray-800/50 py-4 px-6">
+      {/* Progress Stepper */}
+      <div className="border-b border-[#E5E2DA] bg-white py-4 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-center gap-4 md:gap-8">
             {steps.map((stepItem, index) => {
               const isActive = step === stepItem.id
               const isCompleted = getCurrentStepIndex() > index
-              const stepNumber = stepItem.number
 
               return (
                 <div key={stepItem.id} className="flex items-center">
-                  {/* Step Circle */}
                   <div className="flex flex-col items-center">
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                         isCompleted
-                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-500"
+                          ? "bg-gradient-to-r from-violet-600 to-indigo-600 border-violet-500"
                           : isActive
-                          ? "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-500 ring-4 ring-purple-500/20"
-                          : "bg-gray-800 border-gray-700"
+                          ? "bg-gradient-to-r from-violet-600 to-indigo-600 border-violet-500 ring-4 ring-violet-500/15"
+                          : "bg-[#F9F8F5] border-[#E5E2DA]"
                       }`}
                     >
                       {isCompleted ? (
                         <CheckCircle2 className="w-5 h-5 text-white" />
                       ) : (
-                        <span
-                          className={`text-sm font-semibold ${
-                            isActive ? "text-white" : "text-gray-500"
-                          }`}
-                        >
-                          {stepNumber}
+                        <span className={`text-sm font-bold ${isActive ? "text-white" : "text-[#9E9893]"}`}>
+                          {stepItem.number}
                         </span>
                       )}
                     </div>
                     <span
-                      className={`mt-2 text-xs font-medium whitespace-nowrap ${
-                        isActive ? "text-white" : isCompleted ? "text-gray-400" : "text-gray-600"
+                      className={`mt-2 text-[11.5px] font-semibold whitespace-nowrap ${
+                        isActive ? "text-stone-900" : isCompleted ? "text-[#6B6560]" : "text-[#9E9893]"
                       }`}
                     >
                       {stepItem.label}
                     </span>
                   </div>
-                  {/* Connector Line */}
                   {index < steps.length - 1 && (
                     <div
-                      className={`w-16 md:w-24 h-0.5 mx-2 md:mx-4 transition-all duration-300 ${
-                        isCompleted ? "bg-gradient-to-r from-purple-600 to-indigo-600" : "bg-gray-800"
+                      className={`w-16 md:w-24 h-0.5 mx-2 md:mx-4 rounded-full transition-all duration-300 ${
+                        isCompleted ? "bg-gradient-to-r from-violet-600 to-indigo-600" : "bg-[#E5E2DA]"
                       }`}
                     />
                   )}
@@ -157,6 +152,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+
       {step === "dress" && <DressUpload onUploadComplete={handleDressUpload} />}
       {step === "selection" && dressImage && (
         <ModelSelection

@@ -1,5 +1,6 @@
 import type React from "react"
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import Button from "../../ui/Button"
 
 interface CollapsibleSidebarProps {
   collapsed: boolean
@@ -19,13 +20,15 @@ export default function CollapsibleSidebar({
   return (
     <div className={`w-full xl:flex-none transition-all duration-300 ${collapsed ? "xl:w-[64px]" : expandedWidthClass}`}>
       <div className="mb-3">
-        <button
+        <Button
+          variant="outline"
+          size="md"
           onClick={onToggle}
-          className="w-full xl:w-auto flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-gray-700 bg-gray-800/50 text-gray-200 hover:bg-gray-800 transition-all"
+          icon={collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          className="w-full xl:w-auto"
         >
-          {collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-          {!collapsed && <span className="text-sm font-medium">{buttonLabel}</span>}
-        </button>
+          {!collapsed && buttonLabel}
+        </Button>
       </div>
       {!collapsed && children}
     </div>
