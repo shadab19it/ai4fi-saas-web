@@ -18,7 +18,7 @@ const OverviewTab: FC = () => {
       const [overviewData, usersData, activityData] = await Promise.all([
         adminService.getAnalyticsOverview(),
         adminService.getAnalyticsUsers(30),
-        adminService.getActivityLog(1, 4),
+        adminService.getActivityLog(1, 5),
       ]);
 
       setOverview(overviewData.overview);
@@ -38,9 +38,9 @@ const OverviewTab: FC = () => {
   if (loading) {
     return (
       <div className='space-y-6'>
-        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
+        <div className='grid grid-cols-1 gap-3.5 md:grid-cols-2 lg:grid-cols-4'>
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className='h-32 animate-pulse rounded-xl bg-slate-900'></div>
+            <div key={i} className='h-32 animate-pulse rounded-2xl bg-white border border-[#E5E2DA]'></div>
           ))}
         </div>
       </div>
@@ -50,46 +50,54 @@ const OverviewTab: FC = () => {
   return (
     <div className='space-y-6'>
       {/* Stats Grid */}
-      <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid grid-cols-1 gap-3.5 md:grid-cols-2 lg:grid-cols-4'>
         <StatsCard
           title='Total Users'
           value={overview?.totalUsers || 0}
           icon={Users}
           description='Registered users'
+          featured
         />
         <StatsCard
           title='Total Teams'
           value={overview?.totalTeams || 0}
           icon={Building2}
           description='Active teams'
+          iconBgClass='bg-[#EEF3FF]'
+          iconColorClass='text-[#0F62FE]'
         />
         <StatsCard
           title='AI Generations'
           value={overview?.totalGenerations || 0}
           icon={TrendingUp}
           description='Total generations'
+          iconBgClass='bg-violet-50'
+          iconColorClass='text-violet-600'
         />
         <StatsCard
           title='Active Users (30d)'
           value={overview?.activeUsersLast30Days || 0}
           icon={Activity}
           description='Active in last 30 days'
+          iconBgClass='bg-cyan-50'
+          iconColorClass='text-cyan-600'
         />
       </div>
 
       {/* Charts and Activity */}
-      <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-        <div className='lg:col-span-2'>
+      <div className='grid grid-cols-1 gap-[18px] lg:grid-cols-[1fr_320px]'>
+        <div>
           <UsageChart
             data={userGrowth}
             type='line'
-            title='User Growth (Last 30 Days)'
+            title='User Growth'
+            subtitle='Last 30 days'
             dataKey='count'
             xAxisKey='_id'
+            colors={['#0891B2']}
           />
         </div>
         <div>
-          <h3 className='mb-4 text-lg font-semibold text-white'>Recent Activity</h3>
           <ActivityFeed activities={activities} loading={false} />
         </div>
       </div>

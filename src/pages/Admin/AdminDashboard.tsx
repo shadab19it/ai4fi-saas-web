@@ -6,10 +6,39 @@ import AnalyticsTab from "./components/AnalyticsTab";
 import SettingsPanel from "../../components/Dashboard/SettingsPanel";
 import TeamMembersPanel from "./components/TeamMembersPanel";
 import AppHeader from "../../components/Layout/AppHeader";
+import ManageCreditsPanel from "../../components/ui/ManageCreditsPanel";
+import CreditHistoryList from "../../components/ui/CreditHistoryList";
+import Pagination from "../../components/ui/Pagination";
 import { useNavigate } from "react-router-dom";
-import { BarChart, Building2, PanelsTopLeft, Settings, Users } from "lucide-react";
+import {
+  LayoutGrid,
+  Users,
+  Building2,
+  BarChart3,
+  Settings,
+  Search,
+  Coins,
+  UserCog,
+  PanelLeftClose,
+  PanelLeftOpen,
+  ShieldCheck,
+  ShieldOff,
+  UserCheck,
+  UserX,
+  Loader2,
+} from "lucide-react";
 
 const DEFAULT_PAGE_SIZE = 20;
+
+type NavPage = "overview" | "users" | "teams" | "analytics" | "settings";
+
+const navItems: { id: NavPage; label: string; icon: React.ReactNode }[] = [
+  { id: "overview", label: "Overview", icon: <LayoutGrid className='h-4 w-4' /> },
+  { id: "users", label: "Users", icon: <Users className='h-4 w-4' /> },
+  { id: "teams", label: "Teams", icon: <Building2 className='h-4 w-4' /> },
+  { id: "analytics", label: "Analytics", icon: <BarChart3 className='h-4 w-4' /> },
+  { id: "settings", label: "Settings", icon: <Settings className='h-4 w-4' /> },
+];
 
 const AdminDashboard = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -34,7 +63,12 @@ const AdminDashboard = () => {
   const [teamReasonInput, setTeamReasonInput] = useState("");
 
   // Active view state
-  const [activeView, setActiveView] = useState<"overview" | "users" | "teams" | "analytics" | "settings">("overview");
+  const [activeView, setActiveView] = useState<NavPage>("overview");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Action loading states
+  const [togglingStatusId, setTogglingStatusId] = useState<string | null>(null);
+  const [changingRoleId, setChangingRoleId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -136,6 +170,38 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
+    setTogglingStatusId(userId);
+    try {
+      const result = await adminService.toggleUserStatus(userId, !currentStatus);
+      toast.success(result.message);
+      setUsers((prev) => prev.map((u) => (u._id === userId ? { ...u, isActive: !currentStatus } : u)));
+      if (selectedUser?._id === userId) {
+        setSelectedUser((prev) => prev ? { ...prev, isActive: !currentStatus } : prev);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update status");
+    } finally {
+      setTogglingStatusId(null);
+    }
+  };
+
+  const handleChangeUserRole = async (userId: string, newRole: "admin" | "user") => {
+    setChangingRoleId(userId);
+    try {
+      const result = await adminService.updateUserRole(userId, newRole);
+      toast.success(result.message);
+      setUsers((prev) => prev.map((u) => (u._id === userId ? { ...u, role: newRole } : u)));
+      if (selectedUser?._id === userId) {
+        setSelectedUser((prev) => prev ? { ...prev, role: newRole } : prev);
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update role");
+    } finally {
+      setChangingRoleId(null);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
   }, [page]);
@@ -147,456 +213,542 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    toast.success('Logged out successfully');
-    navigate('/login');
+    localStorage.removeItem("token");
+    toast.success("Logged out successfully");
+    navigate("/login");
   };
 
   return (
-    <div className='min-h-screen bg-slate-950 text-white'>
-      <AppHeader isAdmin={true} onLogout={handleLogout} />
-      <div className='flex min-h-[calc(100vh-4rem)]'>
-        <aside className='hidden lg:flex lg:w-72 lg:flex-col border-r border-slate-800 bg-slate-950'>
-          <nav className='flex-1 px-4 py-6 space-y-2'>
-            <button
-              onClick={() => setActiveView("overview")}
-              className={`w-full flex gap-2 items-center text-left px-4 py-2 rounded-lg ${
-                activeView === "overview" ? "bg-slate-900 text-white" : "text-slate-300 hover:bg-slate-900"
-              }`}
-            >
-              <PanelsTopLeft className='h-4 w-4' />
-            <span>Overview</span> 
-            </button>
-            <button
-              onClick={() => setActiveView("users")}
-              className={`w-full flex gap-2 items-center text-left px-4 py-2 rounded-lg ${
-                activeView === "users" ? "bg-slate-900 text-white" : "text-slate-300 hover:bg-slate-900"
-              }`}
-            >
-              <Users className='h-4 w-4' />
-            <span>Users</span> 
-            </button>
-            <button
-              onClick={() => setActiveView("teams")}
-              className={`w-full flex gap-2 items-center text-left px-4 py-2 rounded-lg ${
-                activeView === "teams" ? "bg-slate-900 text-white" : "text-slate-300 hover:bg-slate-900"
-              }`}
-            >
-              <Building2 className='h-4 w-4' />
-            <span>Teams</span> 
-            </button>
-            <button
-              onClick={() => setActiveView("analytics")}
-              className={`w-full flex gap-2 items-center text-left px-4 py-2 rounded-lg ${
-                activeView === "analytics" ? "bg-slate-900 text-white" : "text-slate-300 hover:bg-slate-900"
-              }`}
-            >
-              <BarChart className='h-4 w-4' />
-            <span>Analytics</span> 
-            </button>
-            <button
-              onClick={() => setActiveView("settings")}
-              className={`w-full flex gap-2 items-center text-left px-4 py-2 rounded-lg ${
-                activeView === "settings" ? "bg-slate-900 text-white" : "text-slate-300 hover:bg-slate-900"
-              }`}
-            >
-              <Settings className='h-4 w-4' />
-            <span>Settings</span> 
-            </button>
+    <div className='h-screen flex flex-col bg-[#F4F2EE]'>
+      <AppHeader isAdmin={true} title="Admin Dashboard" onLogout={handleLogout} />
+
+      <div className='flex flex-1 overflow-hidden'>
+        {/* ─── Sidebar ──────────────────────────────────── */}
+        <aside
+          className={`hidden lg:flex lg:flex-col border-r border-[#E5E2DA] bg-white shrink-0 transition-all duration-300 ease-in-out ${
+            sidebarCollapsed ? 'w-[60px]' : 'w-[216px]'
+          }`}
+        >
+          <nav className={`flex-1 py-[18px] space-y-0.5 ${sidebarCollapsed ? 'px-1.5' : 'px-3'}`}>
+            {navItems.map((item) => {
+              const isActive = activeView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveView(item.id)}
+                  title={sidebarCollapsed ? item.label : undefined}
+                  className={`w-full flex items-center text-left rounded-[9px] text-[13.5px] transition-all ${
+                    sidebarCollapsed ? 'justify-center px-0 py-[9px]' : 'gap-2.5 px-3 py-[9px]'
+                  } ${
+                    isActive
+                      ? "bg-[#EEF3FF] text-[#0F62FE] font-bold"
+                      : "text-[#6B6560] font-medium hover:bg-[#F9F8F5] hover:text-stone-900"
+                  }`}
+                >
+                  <span className='shrink-0'>{item.icon}</span>
+                  {!sidebarCollapsed && <span className='truncate'>{item.label}</span>}
+                </button>
+              );
+            })}
           </nav>
+
+          {/* Collapse / Expand Toggle */}
+          <div className={`border-t border-[#E5E2DA] ${sidebarCollapsed ? 'px-1.5' : 'px-3'} py-3`}>
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className='w-full flex items-center justify-center gap-2 rounded-[9px] px-3 py-[9px] text-[13px] font-medium text-[#9E9893] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
+              title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {sidebarCollapsed ? (
+                <PanelLeftOpen className='h-4 w-4 shrink-0' />
+              ) : (
+                <>
+                  <PanelLeftClose className='h-4 w-4 shrink-0' />
+                  <span className='truncate'>Collapse</span>
+                </>
+              )}
+            </button>
+          </div>
         </aside>
 
-        <main className='flex-1 overflow-y-auto'>
-          <header className='px-6 py-6 border-b border-slate-800 bg-slate-950'>
-            <div>
-              <h1 className='text-3xl font-bold'>Admin Dashboard</h1>
-              <p className='mt-1 text-slate-400'>
-                {activeView === 'overview' && 'Platform overview and statistics'}
-                {activeView === 'users' && 'Manage users and adjust credits'}
-                {activeView === 'teams' && 'Manage teams and adjust credits'}
-                {activeView === 'analytics' && 'Platform analytics and insights'}
-                {activeView === 'settings' && 'System configuration and settings'}
-              </p>
-            </div>
-          </header>
-
-          <div className='px-6 py-6 space-y-6'>
+        {/* ─── Main Content ─────────────────────────────── */}
+        <main className='flex-1 overflow-y-auto p-[26px_32px]'>
+          <div className='space-y-6'>
             {/* Render view based on activeView state */}
             {activeView === "overview" && <OverviewTab />}
             {activeView === "analytics" && <AnalyticsTab />}
             {activeView === "settings" && <SettingsPanel />}
-            
-            {/* Users View */}
+
+            {/* ─── Users View ──────────────────────────── */}
             {activeView === "users" && (
               <>
-                <section className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-                  <div className='rounded-xl border border-slate-800 bg-slate-900 p-4'>
-                    <p className='text-sm text-slate-400'>Total Users</p>
-                    <p className='text-2xl font-semibold'>{users.length}</p>
-                  </div>
-                  <div className='rounded-xl border border-slate-800 bg-slate-900 p-4'>
-                    <p className='text-sm text-slate-400'>Selected User</p>
-                    <p className='text-lg font-semibold'>{selectedUser?.email || "None"}</p>
-                  </div>
-                  <div className='rounded-xl border border-slate-800 bg-slate-900 p-4'>
-                    <p className='text-sm text-slate-400'>User Credits</p>
-                    <p className='text-2xl font-semibold'>{selectedUser?.credits || 0}</p>
-                  </div>
-                  <div className='rounded-xl border border-slate-800 bg-slate-900 p-4'>
-                    <div className='flex gap-3'>
-                      <input
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder='Search users'
-                        className='flex-1 px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white text-sm'
-                      />
-                      <button
-                        onClick={() => {
-                          setPage(1);
-                          fetchUsers();
-                        }}
-                        className='px-3 py-2 rounded-md bg-cyan-600 text-white text-sm'
-                      >
-                        Search
-                      </button>
+                {/* Stats Row */}
+                <div className='grid grid-cols-1 md:grid-cols-4 gap-3.5'>
+                  {/* Total Users - Featured */}
+                  <div className='relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-[#0F62FE] to-[#0047B3] shadow-[0_8px_24px_rgba(15,98,254,0.22)]'>
+                    <div className='absolute -top-5 -right-5 w-[70px] h-[70px] rounded-full bg-white/[0.07] pointer-events-none' />
+                    <div className='w-[34px] h-[34px] rounded-[9px] bg-white/20 flex items-center justify-center mb-3'>
+                      <Users className='h-4 w-4 text-white' />
                     </div>
+                    <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-white/70 mb-1'>Total Users</p>
+                    <p className='text-[30px] font-bold tracking-tight text-white leading-none mb-1'>{users.length}</p>
+                    <p className='text-xs text-white/60'>Registered</p>
                   </div>
-                </section>
 
-            <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-              <div id='users' className='lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-4'>
-          <div className='flex items-center justify-between mb-4'>
-            <h2 className='text-xl font-semibold'>Users</h2>
-            {loading && <span className='text-sm text-gray-400'>Loading...</span>}
-          </div>
-          <div className='overflow-x-auto'>
-            <table className='w-full text-left'>
-              <thead className='text-gray-400 border-b border-gray-800'>
-                <tr>
-                  <th className='py-2'>Email</th>
-                  <th className='py-2'>Username</th>
-                  <th className='py-2'>Role</th>
-                  <th className='py-2'>Credits</th>
-                  <th className='py-2'>Created</th>
-                  <th className='py-2'></th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.length === 0 && !loading && (
-                  <tr>
-                    <td className='py-4 text-gray-400' colSpan={6}>
-                      No users found.
-                    </td>
-                  </tr>
-                )}
-                {users.map((user) => (
-                  <tr key={user._id} className='border-b border-gray-800 hover:bg-gray-800/30'>
-                    <td className='py-3'>{user.email}</td>
-                    <td className='py-3'>{user.username || "-"}</td>
-                    <td className='py-3 capitalize'>{user.role || "user"}</td>
-                    <td className='py-3'>
-                      {user.teamId ? "Team wallet" : user.credits ?? 0}
-                    </td>
-                    <td className='py-3'>{new Date(user.createdAt).toLocaleDateString()}</td>
-                    <td className='py-3'>
-                      <button
-                        onClick={() => fetchUserDetail(user._id)}
-                        className='px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600'
-                      >
-                        Manage
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className='flex items-center justify-between mt-4'>
-            <button
-              disabled={page <= 1}
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              className='px-3 py-1 rounded-md bg-slate-700 disabled:opacity-50'
-            >
-              Previous
-            </button>
-            <span className='text-sm text-gray-400'>
-              Page {page} of {totalPages}
-            </span>
-            <button
-              disabled={page >= totalPages}
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              className='px-3 py-1 rounded-md bg-slate-700 disabled:opacity-50'
-            >
-              Next
-            </button>
-          </div>
-        </div>
-
-              <div id='credits' className='bg-slate-900 border border-slate-800 rounded-xl p-4'>
-                <h2 className='text-xl font-semibold mb-4'>Manage Credits</h2>
-                {!selectedUser ? (
-                  <p className='text-gray-400'>Select a user to manage credits.</p>
-                ) : (
-                  <>
-                    <div className='mb-4'>
-                      <p className='text-sm text-gray-400'>Selected User</p>
-                      <p className='font-semibold'>{selectedUser.email}</p>
-                      <p className='text-sm text-gray-400'>
-                        Current Credits: {selectedUser.teamId ? "Team wallet" : selectedUser.credits ?? 0}
-                      </p>
+                  {/* Selected User */}
+                  <div className='relative overflow-hidden rounded-2xl border border-[#E5E2DA] bg-white p-5 shadow-[0_1px_3px_rgba(28,25,23,0.06)]'>
+                    <div className='absolute -top-5 -right-5 w-[70px] h-[70px] rounded-full bg-[#0F62FE]/[0.04] pointer-events-none' />
+                    <div className='w-[34px] h-[34px] rounded-[9px] bg-[#EEF3FF] flex items-center justify-center mb-3'>
+                      <UserCog className='h-4 w-4 text-[#0F62FE]' />
                     </div>
+                    <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-[#9E9893] mb-1'>Selected User</p>
+                    <p className='text-lg font-bold text-stone-900 leading-tight truncate'>{selectedUser?.email?.split("@")[0] || "None"}</p>
+                    <p className='text-xs text-[#9E9893] truncate'>{selectedUser?.email || "Select a user"}</p>
+                  </div>
 
-                    <div className='space-y-3'>
-                      <input
-                        type='number'
-                        value={amountInput}
-                        onChange={(e) => setAmountInput(e.target.value)}
-                        placeholder='Amount'
-                        className='w-full px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white'
-                      />
-                      <input
-                        value={reasonInput}
-                        onChange={(e) => setReasonInput(e.target.value)}
-                        placeholder='Reason'
-                        className='w-full px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white'
-                      />
-                      <div className='flex gap-2'>
-                        <button
-                          onClick={() => handleAdjustCredits("add")}
-                          className='flex-1 px-4 py-2 rounded-md bg-green-600 text-white'
-                        >
-                          Add
-                        </button>
-                        <button
-                          onClick={() => handleAdjustCredits("remove")}
-                          className='flex-1 px-4 py-2 rounded-md bg-red-600 text-white'
-                        >
-                          Remove
-                        </button>
+                  {/* User Credits */}
+                  <div className='relative overflow-hidden rounded-2xl border border-[#E5E2DA] bg-white p-5 shadow-[0_1px_3px_rgba(28,25,23,0.06)]'>
+                    <div className='absolute -top-5 -right-5 w-[70px] h-[70px] rounded-full bg-[#0F62FE]/[0.04] pointer-events-none' />
+                    <div className='w-[34px] h-[34px] rounded-[9px] bg-emerald-50 flex items-center justify-center mb-3'>
+                      <Coins className='h-4 w-4 text-emerald-600' />
+                    </div>
+                    <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-[#9E9893] mb-1'>User Credits</p>
+                    <p className='text-[30px] font-bold tracking-tight text-stone-900 leading-none mb-1'>
+                      {selectedUser ? (selectedUser.teamId ? "—" : selectedUser.credits ?? 0) : "—"}
+                    </p>
+                    <p className='text-xs text-[#9E9893]'>Current balance</p>
+                  </div>
+
+                  {/* Search */}
+                  <div className='rounded-2xl border border-[#E5E2DA] bg-white p-4 shadow-[0_1px_3px_rgba(28,25,23,0.06)]'>
+                    <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-[#9E9893] mb-2'>Search Users</p>
+                    <div className='flex gap-1.5'>
+                      <div className='relative flex-1'>
+                        <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9E9893] pointer-events-none' />
+                        <input
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { setPage(1); fetchUsers(); } }}
+                          placeholder='Search...'
+                          className='w-full h-9 pl-8 pr-3 rounded-lg border border-[#E5E2DA] bg-[#F9F8F5] text-[13px] text-stone-900 placeholder:text-[#9E9893] outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all'
+                        />
                       </div>
                     </div>
-                  </>
-                )}
-              </div>
-            </div>
+                  </div>
+                </div>
+
+                {/* Main two-col */}
+                <div className='grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-[18px]'>
+                  {/* Users Table */}
+                  <div className='rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden'>
+                    <div className='px-5 py-4 border-b border-[#E5E2DA] flex items-center justify-between'>
+                      <span className='text-sm font-bold text-stone-900'>Users</span>
+                      <span className='text-[11px] text-[#9E9893]'>
+                        {loading ? "Loading..." : `${users.length} users`}
+                      </span>
+                    </div>
+                    <div className='overflow-x-auto'>
+                      <table className='w-full border-collapse'>
+                        <thead>
+                          <tr className='bg-[#F9F8F5]'>
+                            <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Email</th>
+                            <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Username</th>
+                            <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Role</th>
+                            <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Status</th>
+                            <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Credits</th>
+                            <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Created</th>
+                            <th className='text-right text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {users.length === 0 && !loading && (
+                            <tr>
+                              <td className='px-4 py-6 text-[13px] text-[#9E9893]' colSpan={7}>
+                                No users found.
+                              </td>
+                            </tr>
+                          )}
+                          {users.map((u) => (
+                            <tr
+                              key={u._id}
+                              className={`border-b border-[#E5E2DA] cursor-pointer transition-colors ${
+                                selectedUser?._id === u._id ? "bg-[#EEF3FF]" : "hover:bg-[#F9F8F5]"
+                              }`}
+                              onClick={() => fetchUserDetail(u._id)}
+                            >
+                              <td className='px-4 py-3.5 text-[13px] text-[#0F62FE] font-mono font-medium'>{u.email}</td>
+                              <td className='px-4 py-3.5 text-[13.5px] text-stone-900'>{u.username || "-"}</td>
+                              <td className='px-4 py-3.5'>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-[0.2px] border capitalize ${
+                                  u.role === "admin"
+                                    ? "bg-violet-50 text-violet-600 border-violet-200"
+                                    : "bg-[#F9F8F5] text-[#6B6560] border-[#E5E2DA]"
+                                }`}>
+                                  {u.role || "user"}
+                                </span>
+                              </td>
+                              <td className='px-4 py-3.5'>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                                  u.isActive !== false
+                                    ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                    : "bg-red-50 text-red-600 border-red-200"
+                                }`}>
+                                  {u.isActive !== false ? "Active" : "Disabled"}
+                                </span>
+                              </td>
+                              <td className='px-4 py-3.5 text-[13.5px] font-mono font-semibold text-stone-900'>
+                                {u.teamId ? <span className='text-[#9E9893] text-xs font-normal'>Team wallet</span> : u.credits ?? 0}
+                              </td>
+                              <td className='px-4 py-3.5 text-[13.5px] text-stone-900 font-mono'>{new Date(u.createdAt).toLocaleDateString()}</td>
+                              <td className='px-4 py-3.5 text-right'>
+                                <div className='inline-flex items-center gap-1.5'>
+                                  {/* Toggle Role */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleChangeUserRole(u._id, u.role === "admin" ? "user" : "admin");
+                                    }}
+                                    disabled={changingRoleId === u._id}
+                                    title={u.role === "admin" ? "Demote to user" : "Promote to admin"}
+                                    className={`w-[30px] h-[30px] rounded-lg border flex items-center justify-center transition-all disabled:opacity-50 ${
+                                      u.role === "admin"
+                                        ? "border-violet-200 bg-violet-50 text-violet-600 hover:bg-violet-100"
+                                        : "border-[#E5E2DA] bg-white text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900"
+                                    }`}
+                                    aria-label={u.role === "admin" ? "Demote to user" : "Promote to admin"}
+                                  >
+                                    {changingRoleId === u._id ? (
+                                      <Loader2 className='h-3 w-3 animate-spin' />
+                                    ) : u.role === "admin" ? (
+                                      <ShieldOff className='h-3 w-3' />
+                                    ) : (
+                                      <ShieldCheck className='h-3 w-3' />
+                                    )}
+                                  </button>
+                                  {/* Toggle Status */}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleUserStatus(u._id, u.isActive !== false);
+                                    }}
+                                    disabled={togglingStatusId === u._id}
+                                    title={u.isActive !== false ? "Disable user" : "Enable user"}
+                                    className={`w-[30px] h-[30px] rounded-lg border flex items-center justify-center transition-all disabled:opacity-50 ${
+                                      u.isActive !== false
+                                        ? "border-[#E5E2DA] bg-white text-[#6B6560] hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                                        : "border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                                    }`}
+                                    aria-label={u.isActive !== false ? "Disable user" : "Enable user"}
+                                  >
+                                    {togglingStatusId === u._id ? (
+                                      <Loader2 className='h-3 w-3 animate-spin' />
+                                    ) : u.isActive !== false ? (
+                                      <UserX className='h-3 w-3' />
+                                    ) : (
+                                      <UserCheck className='h-3 w-3' />
+                                    )}
+                                  </button>
+                                  {/* Manage */}
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); fetchUserDetail(u._id); }}
+                                    className='h-[30px] px-2.5 rounded-lg border border-[#E5E2DA] bg-white text-xs font-semibold text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
+                                  >
+                                    Manage
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {/* Pagination */}
+                    <Pagination
+                      page={page}
+                      totalPages={totalPages}
+                      onPrev={() => setPage((prev) => Math.max(prev - 1, 1))}
+                      onNext={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                    />
+                  </div>
+
+                  <div className='flex flex-col gap-[18px]'>
+                    {/* User Actions Panel */}
+                    {selectedUser && (
+                      <div className='rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden'>
+                        <div className='px-5 py-4 border-b border-[#E5E2DA]'>
+                          <h3 className='text-sm font-bold text-stone-900'>User Actions</h3>
+                          <p className='text-[11px] text-[#9E9893] mt-0.5 font-mono truncate'>{selectedUser.email}</p>
+                        </div>
+                        <div className='p-4 space-y-3'>
+                          {/* Status info */}
+                          <div className='flex items-center justify-between'>
+                            <span className='text-[11.5px] font-semibold text-[#9E9893]'>Status</span>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                              selectedUser.isActive !== false
+                                ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                : "bg-red-50 text-red-600 border-red-200"
+                            }`}>
+                              {selectedUser.isActive !== false ? "Active" : "Disabled"}
+                            </span>
+                          </div>
+                          <div className='flex items-center justify-between'>
+                            <span className='text-[11.5px] font-semibold text-[#9E9893]'>Role</span>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border capitalize ${
+                              selectedUser.role === "admin"
+                                ? "bg-violet-50 text-violet-600 border-violet-200"
+                                : "bg-[#F9F8F5] text-[#6B6560] border-[#E5E2DA]"
+                            }`}>
+                              {selectedUser.role || "user"}
+                            </span>
+                          </div>
+                          <div className='flex items-center justify-between'>
+                            <span className='text-[11.5px] font-semibold text-[#9E9893]'>Verified</span>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                              selectedUser.isVerified
+                                ? "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                : "bg-amber-50 text-amber-600 border-amber-200"
+                            }`}>
+                              {selectedUser.isVerified ? "Yes" : "No"}
+                            </span>
+                          </div>
+                          <div className='border-t border-[#E5E2DA] pt-3 flex flex-col gap-2'>
+                            {/* Toggle Role */}
+                            <button
+                              onClick={() => handleChangeUserRole(selectedUser._id, selectedUser.role === "admin" ? "user" : "admin")}
+                              disabled={changingRoleId === selectedUser._id}
+                              className='w-full h-9 rounded-lg border border-[#E5E2DA] bg-white text-[13px] font-semibold text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 flex items-center justify-center gap-2 transition-all disabled:opacity-50'
+                            >
+                              {changingRoleId === selectedUser._id ? (
+                                <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                              ) : selectedUser.role === "admin" ? (
+                                <ShieldOff className='h-3.5 w-3.5' />
+                              ) : (
+                                <ShieldCheck className='h-3.5 w-3.5' />
+                              )}
+                              {selectedUser.role === "admin" ? "Demote to User" : "Promote to Admin"}
+                            </button>
+                            {/* Toggle Status */}
+                            <button
+                              onClick={() => handleToggleUserStatus(selectedUser._id, selectedUser.isActive !== false)}
+                              disabled={togglingStatusId === selectedUser._id}
+                              className={`w-full h-9 rounded-lg text-[13px] font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${
+                                selectedUser.isActive !== false
+                                  ? "border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                                  : "border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                              }`}
+                            >
+                              {togglingStatusId === selectedUser._id ? (
+                                <Loader2 className='h-3.5 w-3.5 animate-spin' />
+                              ) : selectedUser.isActive !== false ? (
+                                <UserX className='h-3.5 w-3.5' />
+                              ) : (
+                                <UserCheck className='h-3.5 w-3.5' />
+                              )}
+                              {selectedUser.isActive !== false ? "Disable User" : "Enable User"}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Manage Credits Panel */}
+                    <ManageCreditsPanel
+                      title='Manage Credits'
+                      hasSelection={!!selectedUser}
+                      entityLabel={selectedUser?.email || ''}
+                      entitySubLabel='Selected User'
+                      creditsDisplay={
+                        selectedUser?.teamId ? (
+                          <em className='text-[#9E9893]'>Team wallet</em>
+                        ) : (
+                          <strong className='text-stone-900 font-mono'>{selectedUser?.credits ?? 0}</strong>
+                        )
+                      }
+                      amountInput={amountInput}
+                      onAmountChange={setAmountInput}
+                      reasonInput={reasonInput}
+                      onReasonChange={setReasonInput}
+                      onAdd={() => handleAdjustCredits("add")}
+                      onRemove={() => handleAdjustCredits("remove")}
+                      disabled={!!selectedUser?.teamId}
+                      warning={selectedUser?.teamId ? "This user uses a team wallet — individual credits cannot be adjusted." : undefined}
+                      emptyMessage='Select a user to manage credits.'
+                    />
+                  </div>
+                </div>
               </>
             )}
 
-            {/* Teams View */}
+            {/* ─── Teams View ──────────────────────────── */}
             {activeView === "teams" && (
               <>
-                <section className='grid grid-cols-1 md:grid-cols-4 gap-4'>
-                  <div className='rounded-xl border border-slate-800 bg-slate-900 p-4'>
-                    <p className='text-sm text-slate-400'>Total Teams</p>
-                    <p className='text-2xl font-semibold'>{teams.length}</p>
-                  </div>
-                  <div className='rounded-xl border border-slate-800 bg-slate-900 p-4'>
-                    <p className='text-sm text-slate-400'>Selected Team</p>
-                    <p className='text-lg font-semibold'>{selectedTeam?.name || "None"}</p>
-                  </div>
-                  <div className='rounded-xl border border-slate-800 bg-slate-900 p-4'>
-                    <p className='text-sm text-slate-400'>Team Credits</p>
-                    <p className='text-2xl font-semibold'>{selectedTeam?.credits || 0}</p>
-                  </div>
-                  <div className='rounded-xl border border-slate-800 bg-slate-900 p-4'>
-                    <div className='flex gap-3'>
-                      <input
-                        value={teamSearch}
-                        onChange={(e) => setTeamSearch(e.target.value)}
-                        placeholder='Search teams'
-                        className='flex-1 px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white text-sm'
-                      />
-                      <button
-                        onClick={() => {
-                          setTeamPage(1);
-                          fetchTeams();
-                        }}
-                        className='px-3 py-2 rounded-md bg-cyan-600 text-white text-sm'
-                      >
-                        Search
-                      </button>
+                {/* Stats Row */}
+                <div className='grid grid-cols-1 md:grid-cols-4 gap-3.5'>
+                  {/* Total Teams - Featured */}
+                  <div className='relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-[#0F62FE] to-[#0047B3] shadow-[0_8px_24px_rgba(15,98,254,0.22)]'>
+                    <div className='absolute -top-5 -right-5 w-[70px] h-[70px] rounded-full bg-white/[0.07] pointer-events-none' />
+                    <div className='w-[34px] h-[34px] rounded-[9px] bg-white/20 flex items-center justify-center mb-3'>
+                      <Building2 className='h-4 w-4 text-white' />
                     </div>
+                    <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-white/70 mb-1'>Total Teams</p>
+                    <p className='text-[30px] font-bold tracking-tight text-white leading-none mb-1'>{teams.length}</p>
+                    <p className='text-xs text-white/60'>Active teams</p>
                   </div>
-                </section>
 
-            <div id='teams' className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-              <div className='lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-4'>
-                <div className='flex items-center justify-between mb-4'>
-                  <h2 className='text-xl font-semibold'>Teams</h2>
-                  {teamsLoading && <span className='text-sm text-gray-400'>Loading...</span>}
-                </div>
-                <div className='flex flex-wrap items-center gap-3 mb-4'>
-                  <input
-                    value={teamSearch}
-                    onChange={(e) => setTeamSearch(e.target.value)}
-                    placeholder='Search by team name'
-                    className='px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-white'
-                  />
-                  <button
-                    onClick={() => {
-                      setTeamPage(1);
-                      fetchTeams();
-                    }}
-                    className='px-4 py-2 rounded-md bg-cyan-600 text-white'
-                  >
-                    Search
-                  </button>
-                </div>
-                <div className='overflow-x-auto'>
-                  <table className='w-full text-left'>
-                    <thead className='text-gray-400 border-b border-gray-800'>
-                      <tr>
-                        <th className='py-2'>Team</th>
-                        <th className='py-2'>Owner</th>
-                        <th className='py-2'>Credits</th>
-                        <th className='py-2'>Created</th>
-                        <th className='py-2'></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {teams.length === 0 && !teamsLoading && (
-                        <tr>
-                          <td className='py-4 text-gray-400' colSpan={5}>
-                            No teams found.
-                          </td>
-                        </tr>
-                      )}
-                      {teams.map((team) => {
-                        const owner = typeof team.ownerId === "string" ? null : team.ownerId;
-                        return (
-                          <tr key={team._id} className='border-b border-gray-800 hover:bg-gray-800/30'>
-                            <td className='py-3'>{team.name}</td>
-                            <td className='py-3'>{owner?.email || "Unknown"}</td>
-                            <td className='py-3'>{team.credits ?? 0}</td>
-                            <td className='py-3'>{new Date(team.createdAt).toLocaleDateString()}</td>
-                            <td className='py-3'>
-                              <button
-                                onClick={() => fetchTeamDetail(team._id)}
-                                className='px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600'
-                              >
-                                Manage
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className='flex items-center justify-between mt-4'>
-                  <button
-                    disabled={teamPage <= 1}
-                    onClick={() => setTeamPage((prev) => Math.max(prev - 1, 1))}
-                    className='px-3 py-1 rounded-md bg-slate-700 disabled:opacity-50'
-                  >
-                    Previous
-                  </button>
-                  <span className='text-sm text-gray-400'>
-                    Page {teamPage} of {teamTotalPages}
-                  </span>
-                  <button
-                    disabled={teamPage >= teamTotalPages}
-                    onClick={() => setTeamPage((prev) => Math.min(prev + 1, teamTotalPages))}
-                    className='px-3 py-1 rounded-md bg-slate-700 disabled:opacity-50'
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-
-              <div className='bg-slate-900 border border-slate-800 rounded-xl p-4'>
-                <h2 className='text-xl font-semibold mb-4'>Manage Team Credits</h2>
-                {!selectedTeam ? (
-                  <p className='text-gray-400'>Select a team to manage credits.</p>
-                ) : (
-                  <>
-                    <div className='mb-4'>
-                      <p className='text-sm text-gray-400'>Selected Team</p>
-                      <p className='font-semibold'>{selectedTeam.name}</p>
-                      <p className='text-sm text-gray-400'>Current Credits: {selectedTeam.credits ?? 0}</p>
+                  {/* Selected Team */}
+                  <div className='relative overflow-hidden rounded-2xl border border-[#E5E2DA] bg-white p-5 shadow-[0_1px_3px_rgba(28,25,23,0.06)]'>
+                    <div className='absolute -top-5 -right-5 w-[70px] h-[70px] rounded-full bg-[#0F62FE]/[0.04] pointer-events-none' />
+                    <div className='w-[34px] h-[34px] rounded-[9px] bg-[#EEF3FF] flex items-center justify-center mb-3'>
+                      <UserCog className='h-4 w-4 text-[#0F62FE]' />
                     </div>
+                    <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-[#9E9893] mb-1'>Selected Team</p>
+                    <p className='text-lg font-bold text-stone-900 leading-tight truncate'>{selectedTeam?.name || "None"}</p>
+                    <p className='text-xs text-[#9E9893]'>
+                      {selectedTeam ? `Owner: ${typeof selectedTeam.ownerId === 'string' ? 'Unknown' : selectedTeam.ownerId?.email?.split('@')[0]}` : 'Select a team'}
+                    </p>
+                  </div>
 
-                    <div className='space-y-3'>
-                      <input
-                        type='number'
-                        value={teamAmountInput}
-                        onChange={(e) => setTeamAmountInput(e.target.value)}
-                        placeholder='Amount'
-                        className='w-full px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white'
-                      />
-                      <input
-                        value={teamReasonInput}
-                        onChange={(e) => setTeamReasonInput(e.target.value)}
-                        placeholder='Reason'
-                        className='w-full px-3 py-2 rounded-md bg-slate-800 border border-slate-700 text-white'
-                      />
-                      <div className='flex gap-2'>
-                        <button
-                          onClick={() => handleAdjustTeamCredits("add")}
-                          className='flex-1 px-4 py-2 rounded-md bg-green-600 text-white'
-                        >
-                          Add
-                        </button>
-                        <button
-                          onClick={() => handleAdjustTeamCredits("remove")}
-                          className='flex-1 px-4 py-2 rounded-md bg-red-600 text-white'
-                        >
-                          Remove
-                        </button>
+                  {/* Team Credits */}
+                  <div className='relative overflow-hidden rounded-2xl border border-[#E5E2DA] bg-white p-5 shadow-[0_1px_3px_rgba(28,25,23,0.06)]'>
+                    <div className='absolute -top-5 -right-5 w-[70px] h-[70px] rounded-full bg-[#0F62FE]/[0.04] pointer-events-none' />
+                    <div className='w-[34px] h-[34px] rounded-[9px] bg-emerald-50 flex items-center justify-center mb-3'>
+                      <Coins className='h-4 w-4 text-emerald-600' />
+                    </div>
+                    <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-[#9E9893] mb-1'>Team Credits</p>
+                    <p className='text-[30px] font-bold tracking-tight text-stone-900 leading-none mb-1'>{selectedTeam?.credits || 0}</p>
+                    <p className='text-xs text-[#9E9893]'>Current balance</p>
+                  </div>
+
+                  {/* Search */}
+                  <div className='rounded-2xl border border-[#E5E2DA] bg-white p-4 shadow-[0_1px_3px_rgba(28,25,23,0.06)]'>
+                    <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-[#9E9893] mb-2'>Search Teams</p>
+                    <div className='flex gap-1.5'>
+                      <div className='relative flex-1'>
+                        <Search className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9E9893] pointer-events-none' />
+                        <input
+                          value={teamSearch}
+                          onChange={(e) => setTeamSearch(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { setTeamPage(1); fetchTeams(); } }}
+                          placeholder='Search teams...'
+                          className='w-full h-9 pl-8 pr-3 rounded-lg border border-[#E5E2DA] bg-[#F9F8F5] text-[13px] text-stone-900 placeholder:text-[#9E9893] outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all'
+                        />
                       </div>
                     </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <TeamMembersPanel selectedTeam={selectedTeam} />
-
-            <section id='history' className='bg-slate-900 border border-slate-800 rounded-xl p-4'>
-              <h3 className='text-lg font-semibold mb-4'>Credit History</h3>
-              <div className='space-y-2 max-h-72 overflow-y-auto pr-1'>
-                {creditHistory.length === 0 && <p className='text-gray-400'>No credit history yet.</p>}
-                {creditHistory.map((entry, index) => (
-                  <div key={`${entry.createdAt}-${index}`} className='text-sm border border-slate-800 rounded-md p-3 bg-slate-950/40'>
-                    <div className='flex items-center justify-between'>
-                      <span className='capitalize'>{entry.type}</span>
-                      <span className={entry.amount >= 0 ? "text-green-400" : "text-red-400"}>
-                        {entry.amount >= 0 ? "+" : ""}
-                        {entry.amount}
-                      </span>
-                    </div>
-                    <div className='text-slate-400'>
-                      Balance: {entry.balance} · {new Date(entry.createdAt).toLocaleString()}
-                    </div>
-                    {entry.reason && <div className='text-slate-300 mt-1'>{entry.reason}</div>}
                   </div>
-                ))}
-              </div>
-            </section>
+                </div>
 
-            <section id='team-history' className='bg-slate-900 border border-slate-800 rounded-xl p-4'>
-              <h3 className='text-lg font-semibold mb-4'>Team Credit History</h3>
-              <div className='space-y-2 max-h-72 overflow-y-auto pr-1'>
-                {teamCreditHistory.length === 0 && <p className='text-gray-400'>No team credit history yet.</p>}
-                {teamCreditHistory.map((entry, index) => (
-                  <div key={`${entry.createdAt}-${index}`} className='text-sm border border-slate-800 rounded-md p-3 bg-slate-950/40'>
-                    <div className='flex items-center justify-between'>
-                      <span className='capitalize'>{entry.type}</span>
-                      <span className={entry.amount >= 0 ? "text-green-400" : "text-red-400"}>
-                        {entry.amount >= 0 ? "+" : ""}
-                        {entry.amount}
-                      </span>
+                <div className='grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-[18px]'>
+                  {/* Left column */}
+                  <div className='flex flex-col gap-[18px]'>
+                    {/* Teams Table */}
+                    <div className='rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden'>
+                      <div className='px-5 py-4 border-b border-[#E5E2DA] flex items-center justify-between'>
+                        <span className='text-sm font-bold text-stone-900'>Teams</span>
+                        <div className='flex items-center gap-1.5'>
+                          <input
+                            value={teamSearch}
+                            onChange={(e) => setTeamSearch(e.target.value)}
+                            placeholder='Search by team name...'
+                            className='w-[200px] h-9 px-3 rounded-lg border border-[#E5E2DA] bg-[#F9F8F5] text-[13px] text-stone-900 placeholder:text-[#9E9893] outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all'
+                          />
+                          <button
+                            onClick={() => { setTeamPage(1); fetchTeams(); }}
+                            className='h-[30px] px-3 rounded-lg bg-[#0F62FE] text-white text-xs font-semibold hover:bg-[#0047B3] shadow-[0_1px_3px_rgba(15,98,254,0.28)] transition-all'
+                          >
+                            Search
+                          </button>
+                        </div>
+                      </div>
+                      <div className='overflow-x-auto'>
+                        <table className='w-full border-collapse'>
+                          <thead>
+                            <tr className='bg-[#F9F8F5]'>
+                              <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Team</th>
+                              <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Owner</th>
+                              <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Credits</th>
+                              <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Created</th>
+                              <th className='text-right text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {teams.length === 0 && !teamsLoading && (
+                              <tr>
+                                <td className='px-4 py-6 text-[13px] text-[#9E9893]' colSpan={5}>No teams found.</td>
+                              </tr>
+                            )}
+                            {teams.map((team) => {
+                              const owner = typeof team.ownerId === "string" ? null : team.ownerId;
+                              return (
+                                <tr
+                                  key={team._id}
+                                  className={`border-b border-[#E5E2DA] cursor-pointer transition-colors ${
+                                    selectedTeam?._id === team._id ? "bg-[#EEF3FF]" : "hover:bg-[#F9F8F5]"
+                                  }`}
+                                  onClick={() => fetchTeamDetail(team._id)}
+                                >
+                                  <td className='px-4 py-3.5 text-[13.5px] font-semibold text-stone-900'>{team.name}</td>
+                                  <td className='px-4 py-3.5 text-[13.5px] text-stone-900 font-mono'>{owner?.email || "Unknown"}</td>
+                                  <td className='px-4 py-3.5 text-[13.5px] font-mono font-bold text-stone-900'>{team.credits ?? 0}</td>
+                                  <td className='px-4 py-3.5 text-[13.5px] text-stone-900 font-mono'>{new Date(team.createdAt).toLocaleDateString()}</td>
+                                  <td className='px-4 py-3.5 text-right'>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); fetchTeamDetail(team._id); }}
+                                      className='h-[30px] px-2.5 rounded-lg border border-[#E5E2DA] bg-white text-xs font-semibold text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
+                                    >
+                                      Manage
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      {/* Pagination */}
+                      <Pagination
+                        page={teamPage}
+                        totalPages={teamTotalPages}
+                        onPrev={() => setTeamPage((prev) => Math.max(prev - 1, 1))}
+                        onNext={() => setTeamPage((prev) => Math.min(prev + 1, teamTotalPages))}
+                      />
                     </div>
-                    <div className='text-slate-400'>
-                      Balance: {entry.balance} · {new Date(entry.createdAt).toLocaleString()}
-                    </div>
-                    {entry.reason && <div className='text-slate-300 mt-1'>{entry.reason}</div>}
+
+                    {/* Team Members */}
+                    <TeamMembersPanel selectedTeam={selectedTeam} />
+
+                    {/* Credit History */}
+                    <CreditHistoryList
+                      title='Credit History'
+                      entries={creditHistory}
+                      variant='compact'
+                    />
+
+                    {/* Team Credit History */}
+                    <CreditHistoryList
+                      title='Team Credit History'
+                      entries={teamCreditHistory}
+                      variant='compact'
+                    />
                   </div>
-                ))}
-              </div>
-            </section>
+
+                  {/* Right: Manage Team Credits */}
+                  <ManageCreditsPanel
+                    title='Manage Team Credits'
+                    hasSelection={!!selectedTeam}
+                    entityLabel={selectedTeam?.name || ''}
+                    entitySubLabel='Selected Team'
+                    creditsDisplay={
+                      <strong className='text-stone-900 font-mono'>{selectedTeam?.credits ?? 0}</strong>
+                    }
+                    amountInput={teamAmountInput}
+                    onAmountChange={setTeamAmountInput}
+                    reasonInput={teamReasonInput}
+                    onReasonChange={setTeamReasonInput}
+                    onAdd={() => handleAdjustTeamCredits("add")}
+                    onRemove={() => handleAdjustTeamCredits("remove")}
+                    emptyMessage='Select a team to manage credits.'
+                  />
+                </div>
               </>
             )}
           </div>

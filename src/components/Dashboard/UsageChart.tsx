@@ -5,25 +5,27 @@ interface UsageChartProps {
   data: any[];
   type: 'line' | 'bar' | 'pie';
   title?: string;
+  subtitle?: string;
   dataKey?: string;
   xAxisKey?: string;
   colors?: string[];
 }
 
-const DEFAULT_COLORS = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+const DEFAULT_COLORS = ['#0F62FE', '#7C3AED', '#0891B2', '#D97706', '#059669'];
 
 const UsageChart: FC<UsageChartProps> = ({
   data,
   type,
   title,
+  subtitle,
   dataKey = 'count',
   xAxisKey = '_id',
   colors = DEFAULT_COLORS,
 }) => {
   if (!data || data.length === 0) {
     return (
-      <div className='flex h-64 items-center justify-center rounded-lg border border-slate-800 bg-slate-900'>
-        <p className='text-slate-400'>No data available</p>
+      <div className='flex h-64 items-center justify-center rounded-2xl border border-[#E5E2DA] bg-white'>
+        <p className='text-[#9E9893]'>No data available</p>
       </div>
     );
   }
@@ -34,15 +36,16 @@ const UsageChart: FC<UsageChartProps> = ({
         return (
           <ResponsiveContainer width='100%' height={300}>
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray='3 3' stroke='#334155' />
-              <XAxis dataKey={xAxisKey} stroke='#94a3b8' fontSize={12} />
-              <YAxis stroke='#94a3b8' fontSize={12} />
+              <CartesianGrid strokeDasharray='3 3' stroke='#E5E2DA' />
+              <XAxis dataKey={xAxisKey} stroke='#9E9893' fontSize={12} />
+              <YAxis stroke='#9E9893' fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#1e293b',
-                  border: '1px solid #334155',
-                  borderRadius: '8px',
-                  color: '#fff',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #E5E2DA',
+                  borderRadius: '12px',
+                  color: '#1C1917',
+                  boxShadow: '0 4px 16px rgba(28,25,23,0.09)',
                 }}
               />
               <Legend />
@@ -50,7 +53,7 @@ const UsageChart: FC<UsageChartProps> = ({
                 type='monotone'
                 dataKey={dataKey}
                 stroke={colors[0]}
-                strokeWidth={2}
+                strokeWidth={2.5}
                 dot={{ fill: colors[0], r: 4 }}
                 activeDot={{ r: 6 }}
               />
@@ -62,15 +65,16 @@ const UsageChart: FC<UsageChartProps> = ({
         return (
           <ResponsiveContainer width='100%' height={300}>
             <BarChart data={data}>
-              <CartesianGrid strokeDasharray='3 3' stroke='#334155' />
-              <XAxis dataKey={xAxisKey} stroke='#94a3b8' fontSize={12} />
-              <YAxis stroke='#94a3b8' fontSize={12} />
+              <CartesianGrid strokeDasharray='3 3' stroke='#E5E2DA' />
+              <XAxis dataKey={xAxisKey} stroke='#9E9893' fontSize={12} />
+              <YAxis stroke='#9E9893' fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#1e293b',
-                  border: '1px solid #334155',
-                  borderRadius: '8px',
-                  color: '#fff',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #E5E2DA',
+                  borderRadius: '12px',
+                  color: '#1C1917',
+                  boxShadow: '0 4px 16px rgba(28,25,23,0.09)',
                 }}
               />
               <Legend />
@@ -88,7 +92,7 @@ const UsageChart: FC<UsageChartProps> = ({
                 cx='50%'
                 cy='50%'
                 labelLine={false}
-                label={(entry) => entry._id}
+                label={(entry) => entry[xAxisKey] || entry._id}
                 outerRadius={100}
                 fill='#8884d8'
                 dataKey={dataKey}
@@ -99,10 +103,11 @@ const UsageChart: FC<UsageChartProps> = ({
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#1e293b',
-                  border: '1px solid #334155',
-                  borderRadius: '8px',
-                  color: '#fff',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #E5E2DA',
+                  borderRadius: '12px',
+                  color: '#1C1917',
+                  boxShadow: '0 4px 16px rgba(28,25,23,0.09)',
                 }}
               />
               <Legend />
@@ -116,9 +121,12 @@ const UsageChart: FC<UsageChartProps> = ({
   };
 
   return (
-    <div className='rounded-xl border border-slate-800 bg-slate-900 p-6'>
-      {title && (
-        <h3 className='mb-4 text-lg font-semibold text-white'>{title}</h3>
+    <div className='rounded-2xl border border-[#E5E2DA] bg-white p-6 shadow-[0_1px_3px_rgba(28,25,23,0.06)]'>
+      {(title || subtitle) && (
+        <div className='mb-4'>
+          {title && <h3 className='text-sm font-bold text-stone-900'>{title}</h3>}
+          {subtitle && <p className='text-xs text-[#9E9893] mt-0.5'>{subtitle}</p>}
+        </div>
       )}
       {renderChart()}
     </div>

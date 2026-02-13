@@ -152,6 +152,26 @@ class AuthService extends BaseService {
     }
   }
 
+  async updateProfile(username: string): Promise<ApiResponse & { user: IUser }> {
+    try {
+      const response = await this.axiosInstance.patch(`/auth/profile`, { username });
+      return response.data;
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async changePassword(currentPassword: string, newPassword: string): Promise<ApiResponse> {
+    try {
+      const response = await this.axiosInstance.patch(`/auth/password`, { currentPassword, newPassword });
+      return response.data;
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
   async forgotPassword(data: ForgotPasswordData): Promise<ApiResponse> {
     try {
       const response = await this.axiosInstance.post("/auth/forgot-password", data);

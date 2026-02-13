@@ -21,6 +21,8 @@ export interface AdminUser {
   teamId?: string | null;
   teamRole?: "owner" | "admin" | "member" | null;
   creditHistory?: CreditHistoryEntry[];
+  isActive?: boolean;
+  isVerified?: boolean;
 }
 
 export interface AdminUserListResponse {
@@ -119,6 +121,26 @@ class AdminService extends BaseService {
         amount,
         reason,
       });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async updateUserRole(userId: string, role: "admin" | "user"): Promise<{ success: boolean; message: string; user: AdminUser }> {
+    try {
+      const response = await this.axiosInstance.patch<{ success: boolean; message: string; user: AdminUser }>(`/admin/users/${userId}/role`, { role });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async toggleUserStatus(userId: string, isActive: boolean): Promise<{ success: boolean; message: string; user: AdminUser }> {
+    try {
+      const response = await this.axiosInstance.patch<{ success: boolean; message: string; user: AdminUser }>(`/admin/users/${userId}/status`, { isActive });
       return this.handleResponse(response);
     } catch (error) {
       const errInfo = this.handleCommonError(error as any);

@@ -12,6 +12,9 @@ interface StatsCardProps {
   description?: string;
   onClick?: () => void;
   className?: string;
+  featured?: boolean;
+  iconBgClass?: string;
+  iconColorClass?: string;
 }
 
 const StatsCard: FC<StatsCardProps> = ({
@@ -22,40 +25,85 @@ const StatsCard: FC<StatsCardProps> = ({
   description,
   onClick,
   className = '',
+  featured = false,
+  iconBgClass,
+  iconColorClass,
 }) => {
+  if (featured) {
+    return (
+      <div
+        className={`relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-[#0F62FE] to-[#0047B3] shadow-[0_8px_24px_rgba(15,98,254,0.22)] transition-all ${
+          onClick ? 'cursor-pointer' : ''
+        } ${className}`}
+        onClick={onClick}
+      >
+        {/* Decorative circle */}
+        <div className='absolute -top-5 -right-5 w-[70px] h-[70px] rounded-full bg-white/[0.07] pointer-events-none' />
+        {Icon && (
+          <div className='w-[34px] h-[34px] rounded-[9px] bg-white/20 flex items-center justify-center mb-3 shrink-0'>
+            <Icon className='h-4 w-4 text-white' />
+          </div>
+        )}
+        <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-white/70 mb-1'>
+          {title}
+        </p>
+        <div className='flex items-baseline gap-2'>
+          <p className='text-[30px] font-bold tracking-tight text-white leading-none mb-1'>
+            {value}
+          </p>
+          {trend && (
+            <span
+              className={`text-sm font-medium ${
+                trend.isPositive ? 'text-green-300' : 'text-red-300'
+              }`}
+            >
+              {trend.isPositive ? '+' : ''}
+              {trend.value}%
+            </span>
+          )}
+        </div>
+        {description && (
+          <p className='text-xs text-white/60'>{description}</p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`rounded-xl border border-slate-800 bg-slate-900 p-6 transition-all hover:border-slate-700 ${
-        onClick ? 'cursor-pointer hover:bg-slate-800/50' : ''
+      className={`relative overflow-hidden rounded-2xl border border-[#E5E2DA] bg-white p-5 shadow-[0_1px_3px_rgba(28,25,23,0.06)] transition-all hover:border-[#D0CBBF] hover:shadow-[0_4px_16px_rgba(28,25,23,0.09)] hover:-translate-y-0.5 ${
+        onClick ? 'cursor-pointer' : ''
       } ${className}`}
       onClick={onClick}
     >
-      <div className='flex items-start justify-between'>
-        <div className='flex-1'>
-          <p className='text-sm font-medium text-slate-400'>{title}</p>
-          <div className='mt-2 flex items-baseline gap-2'>
-            <p className='text-3xl font-bold text-white'>{value}</p>
-            {trend && (
-              <span
-                className={`text-sm font-medium ${
-                  trend.isPositive ? 'text-green-400' : 'text-red-400'
-                }`}
-              >
-                {trend.isPositive ? '+' : ''}
-                {trend.value}%
-              </span>
-            )}
-          </div>
-          {description && (
-            <p className='mt-1 text-sm text-slate-500'>{description}</p>
-          )}
+      {/* Decorative circle */}
+      <div className='absolute -top-5 -right-5 w-[70px] h-[70px] rounded-full bg-[#0F62FE]/[0.04] pointer-events-none' />
+      {Icon && (
+        <div className={`w-[34px] h-[34px] rounded-[9px] flex items-center justify-center mb-3 shrink-0 ${iconBgClass || 'bg-[#EEF3FF]'}`}>
+          <Icon className={`h-4 w-4 ${iconColorClass || 'text-[#0F62FE]'}`} />
         </div>
-        {Icon && (
-          <div className='rounded-lg bg-slate-800 p-3'>
-            <Icon className='h-6 w-6 text-cyan-400' />
-          </div>
+      )}
+      <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-[#9E9893] mb-1'>
+        {title}
+      </p>
+      <div className='flex items-baseline gap-2'>
+        <p className='text-[30px] font-bold tracking-tight text-stone-900 leading-none mb-1'>
+          {value}
+        </p>
+        {trend && (
+          <span
+            className={`text-sm font-medium ${
+              trend.isPositive ? 'text-emerald-600' : 'text-red-600'
+            }`}
+          >
+            {trend.isPositive ? '+' : ''}
+            {trend.value}%
+          </span>
         )}
       </div>
+      {description && (
+        <p className='text-xs text-[#9E9893]'>{description}</p>
+      )}
     </div>
   );
 };

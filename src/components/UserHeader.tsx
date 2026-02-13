@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import teamService from "../services/teamService";
+import { Zap, Home, ArrowLeft } from "lucide-react";
 
 interface UserHeaderProps {
   title: string;
@@ -45,37 +46,57 @@ const UserHeader = ({ title, subtitle, backTo = "/", actions }: UserHeaderProps)
     return user.username || user.email || "User";
   }, [user]);
 
+  const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
   return (
-    <header className='px-6 py-6 border-b border-slate-800 bg-slate-950/80 backdrop-blur'>
-      <div className='flex flex-col gap-4 md:flex-row md:items-center md:justify-between'>
-        <div>
-          <h1 className='text-3xl font-bold'>{title}</h1>
-          {subtitle && <p className='text-slate-400'>{subtitle}</p>}
+    <header className='sticky top-0 z-50 border-b border-[#E5E2DA] bg-white shadow-[0_1px_0_#E5E2DA]'>
+      <div className='flex h-[60px] items-center justify-between px-7'>
+        {/* Logo */}
+        <div className='flex items-center gap-5'>
+          <Link to='/' className='flex items-center gap-2'>
+            <div className='w-[28px] h-[28px] bg-[#2563EB] rounded-lg flex items-center justify-center'>
+              <Zap className='h-3 w-3 text-white' />
+            </div>
+            <span className='text-base font-bold text-stone-900 tracking-tight'>Spark</span>
+          </Link>
         </div>
-        <div className='flex flex-wrap items-center gap-3'>
+
+        {/* Actions */}
+        <div className='flex items-center gap-2'>
           {actions}
           {user?.role === "admin" && (
-            <Link to='/admin' className='px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-white'>
+            <Link
+              to='/admin'
+              className='h-[34px] px-3.5 flex items-center rounded-lg border border-[#E5E2DA] bg-white text-[13px] font-medium text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
+            >
               Admin
             </Link>
           )}
-          <Link to='/' className='px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-white'>
+          <Link
+            to='/'
+            className='h-[34px] px-3.5 flex items-center gap-1.5 rounded-lg border border-[#E5E2DA] bg-white text-[13px] font-medium text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
+          >
             Home
           </Link>
           {backTo && (
-            <Link to={backTo} className='px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-white'>
+            <Link
+              to={backTo}
+              className='h-[34px] px-3.5 flex items-center gap-1.5 rounded-lg border border-[#E5E2DA] bg-white text-[13px] font-medium text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
+            >
               Back
             </Link>
           )}
           {user && (
-            <div className='flex items-center gap-3 rounded-xl bg-slate-900 border border-slate-800 px-4 py-2'>
-              <div className='h-9 w-9 rounded-full bg-slate-800 flex items-center justify-center text-xs font-semibold uppercase'>
-                {displayName.slice(0, 2)}
+            <div className='flex items-center gap-2 rounded-full border border-[#E5E2DA] pl-1 pr-3 py-1'>
+              <div
+                className='h-7 w-7 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-[11px] font-bold text-white shrink-0'
+              >
+                {initials}
               </div>
-              <div>
-                <div className='text-sm font-semibold text-white'>{displayName}</div>
-                <div className='text-xs text-slate-400'>
-                  {creditLabel}: {creditsValue} · {user.role || "user"}
+              <div className='text-left'>
+                <div className='text-xs font-bold text-stone-900'>{displayName}</div>
+                <div className='text-[10px] text-[#9E9893] font-mono'>
+                  {creditsValue} credits · {user.role || "user"}
                 </div>
               </div>
             </div>

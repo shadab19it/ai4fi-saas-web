@@ -1,5 +1,6 @@
 import { FC, useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { Settings, Info } from 'lucide-react';
 import adminService from '../../services/adminService';
 
 interface SystemSettings {
@@ -58,56 +59,71 @@ const SettingsPanel: FC = () => {
 
   if (loading) {
     return (
-      <div className='rounded-xl border border-slate-800 bg-slate-900 p-6'>
+      <div className='rounded-2xl border border-[#E5E2DA] bg-white p-6 shadow-[0_1px_3px_rgba(28,25,23,0.06)]'>
         <div className='animate-pulse space-y-4'>
-          <div className='h-6 w-1/4 rounded bg-slate-800'></div>
-          <div className='h-10 w-full rounded bg-slate-800'></div>
+          <div className='h-6 w-1/4 rounded bg-stone-100'></div>
+          <div className='h-10 w-full rounded bg-stone-100'></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className='rounded-xl border border-slate-800 bg-slate-900 p-6'>
-      <h2 className='mb-6 text-xl font-semibold text-white'>System Settings</h2>
+    <div className='space-y-4'>
+      <div className='rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden'>
+        {/* Header */}
+        <div className='px-6 py-[18px] border-b border-[#E5E2DA] flex items-center gap-3'>
+          <div className='w-9 h-9 rounded-[10px] bg-[#EEF3FF] flex items-center justify-center'>
+            <Settings className='h-[18px] w-[18px] text-[#0F62FE]' />
+          </div>
+          <div>
+            <h2 className='text-[15px] font-bold text-stone-900'>System Settings</h2>
+            <p className='text-xs text-[#9E9893] mt-0.5'>Configure platform-wide parameters</p>
+          </div>
+        </div>
 
-      <div className='space-y-6'>
         {/* Team Member Limit */}
-        <div>
-          <label className='mb-2 block text-sm font-medium text-slate-300'>
-            Team Member Limit
-          </label>
-          <p className='mb-3 text-xs text-slate-400'>
-            {settings?.teamMemberLimit?.description || 'Maximum team members allowed per team'}
+        <div className='px-6 py-5 border-b border-[#E5E2DA]'>
+          <h3 className='text-[13.5px] font-bold text-stone-900 mb-1'>Team Member Limit</h3>
+          <p className='text-[12.5px] text-[#6B6560] mb-3'>
+            {settings?.teamMemberLimit?.description || 'Maximum team members allowed per team (including owner)'}
           </p>
-          <div className='flex gap-3'>
+          <div className='flex items-center gap-2.5 max-w-[360px]'>
             <input
               type='number'
               min='1'
               value={teamMemberLimit}
               onChange={(e) => setTeamMemberLimit(e.target.value)}
-              className='w-full max-w-xs rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20'
+              className='w-[120px] h-9 px-3 rounded-lg border border-[#E5E2DA] bg-[#F9F8F5] text-[13px] text-stone-900 outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all'
               placeholder='Enter member limit'
             />
             <button
               onClick={handleTeamMemberLimitSave}
               disabled={saving}
-              className='rounded-lg bg-cyan-600 px-6 py-2 font-medium text-white transition-all hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50'
+              className='h-9 px-4 rounded-lg bg-[#0F62FE] text-white text-[13px] font-semibold hover:bg-[#0047B3] shadow-[0_1px_3px_rgba(15,98,254,0.28)] disabled:opacity-50 disabled:cursor-not-allowed transition-all'
             >
               {saving ? 'Saving...' : 'Save'}
             </button>
           </div>
-          <p className='mt-2 text-xs text-slate-500'>
-            Current value: {settings?.teamMemberLimit?.value || 5} members
+          <p className='mt-2 text-xs text-[#9E9893]'>
+            Current value: <strong className='text-stone-900'>{settings?.teamMemberLimit?.value || 5} members</strong>
           </p>
         </div>
 
         {/* Add more settings here in the future */}
-        <div className='rounded-lg border border-slate-800 bg-slate-950/50 p-4'>
-          <p className='text-sm text-slate-400'>
-            💡 More configuration options will be added here
+        <div className='px-6 py-5'>
+          <p className='text-sm text-[#9E9893]'>
+            More configuration options will be added here as the platform evolves.
           </p>
         </div>
+      </div>
+
+      {/* Info banner */}
+      <div className='flex items-center gap-2.5 px-[18px] py-3 bg-[#EEF3FF] border border-[#C7D7FF] rounded-xl'>
+        <Info className='h-4 w-4 text-[#0F62FE] shrink-0' />
+        <span className='text-[13px] text-[#0F62FE] font-medium'>
+          More configuration options will be added here as the platform evolves.
+        </span>
       </div>
     </div>
   );
