@@ -28,6 +28,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import Button from "../components/ui/Button";
 
 const CreditsPage = () => {
   const user = useSelector((state: RootState) => state.user.user);
@@ -536,12 +537,9 @@ const CreditsPage = () => {
                     <p className='text-xs text-[#9E9893] mt-0.5'>Manage your password</p>
                   </div>
                   {!showPasswordForm && (
-                    <button
-                      onClick={() => setShowPasswordForm(true)}
-                      className='text-[11px] font-semibold text-[#2563EB] border border-blue-200 bg-blue-50 rounded-md px-2.5 py-1 hover:bg-blue-100 transition-all'
-                    >
+                    <Button variant='soft' size='sm' onClick={() => setShowPasswordForm(true)}>
                       Change Password
-                    </button>
+                    </Button>
                   )}
                 </div>
                 {showPasswordForm ? (
@@ -616,15 +614,20 @@ const CreditsPage = () => {
                       )}
                     </div>
                     <div className='flex gap-2 pt-1'>
-                      <button
+                      <Button
+                        variant='primary'
+                        size='md'
                         type='submit'
-                        disabled={isChangingPassword || !currentPassword || !newPassword || newPassword !== confirmPassword}
-                        className='flex-1 h-9 rounded-lg bg-[#2563EB] text-white text-[13px] font-semibold hover:bg-[#1d4ed8] disabled:bg-[#E5E2DA] disabled:text-[#9E9893] disabled:cursor-not-allowed flex items-center justify-center gap-1.5 transition-all'
+                        loading={isChangingPassword}
+                        disabled={!currentPassword || !newPassword || newPassword !== confirmPassword}
+                        icon={!isChangingPassword ? <Lock className='h-3 w-3' /> : undefined}
+                        className='flex-1 h-9'
                       >
-                        {isChangingPassword ? <Loader2 className='h-3.5 w-3.5 animate-spin' /> : <Lock className='h-3 w-3' />}
                         {isChangingPassword ? "Updating..." : "Update Password"}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant='outline'
+                        size='md'
                         type='button'
                         onClick={() => {
                           setShowPasswordForm(false);
@@ -632,10 +635,10 @@ const CreditsPage = () => {
                           setNewPassword("");
                           setConfirmPassword("");
                         }}
-                        className='h-9 px-4 rounded-lg border border-[#E5E2DA] bg-white text-[13px] font-semibold text-[#6B6560] hover:bg-[#F9F8F5] transition-all'
+                        className='h-9 px-4'
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </form>
                 ) : (
@@ -672,18 +675,17 @@ const CreditsPage = () => {
                           className='w-full h-9 pl-8 pr-3 rounded-lg border border-[#E5E2DA] bg-[#F9F8F5] text-[13px] text-stone-900 placeholder:text-[#9E9893] outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 transition-all'
                         />
                       </div>
-                      <button
+                      <Button
+                        variant='primary'
+                        size='md'
                         type='submit'
-                        disabled={isSendingInvite || !inviteEmail.trim()}
-                        className='w-full h-9 rounded-lg bg-[#2563EB] text-white text-[13px] font-semibold hover:bg-[#1d4ed8] disabled:bg-[#E5E2DA] disabled:text-[#9E9893] disabled:cursor-not-allowed flex items-center justify-center gap-1.5 transition-all'
+                        loading={isSendingInvite}
+                        disabled={!inviteEmail.trim()}
+                        icon={!isSendingInvite ? <Send className='h-3 w-3' /> : undefined}
+                        className='w-full h-9'
                       >
-                        {isSendingInvite ? (
-                          <Loader2 className='h-3.5 w-3.5 animate-spin' />
-                        ) : (
-                          <Send className='h-3 w-3' />
-                        )}
                         {isSendingInvite ? "Sending..." : "Send Invitation"}
-                      </button>
+                      </Button>
                     </form>
                   </div>
                 ) : (

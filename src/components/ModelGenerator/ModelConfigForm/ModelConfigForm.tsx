@@ -8,8 +8,8 @@ import {
   Sparkles,
   Rocket,
   PanelLeftClose,
-  Loader2,
 } from "lucide-react";
+import Button from "../../ui/Button";
 import {
   nationalityOptions,
   eyeColorOptions,
@@ -36,7 +36,7 @@ import {
 } from "./optionInput";
 import Logo from "../../../../public/dark-logo2.png";
 import { Link } from "react-router-dom";
-import { useMediaQuery } from "../../useMediaQuery";
+
 
 const CollapsibleSection: FC<{
   title: string;
@@ -163,8 +163,6 @@ const ModelConfigForm: FC<any> = ({
   setIsSidebarOpen,
   isSidebarOpen,
 }) => {
-  const isMobile = useMediaQuery("(max-width: 440px)");
-
   return (
     <div className='w-full h-screen bg-white border-r border-[#E5E2DA] flex flex-col'>
       {/* Header */}
@@ -174,13 +172,14 @@ const ModelConfigForm: FC<any> = ({
             <img src={Logo} className='w-18 h-10 rounded-lg object-cover' alt='AI4FI' />
           </Link>
         </div>
-        <button
+        <Button
+          variant='outline'
+          size='icon'
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className='sm:hidden w-8 h-8 rounded-lg border border-[#E5E2DA] bg-white flex items-center justify-center text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
+          icon={<PanelLeftClose className='w-4 h-4' />}
           aria-label='Close sidebar'
-        >
-          <PanelLeftClose className='w-4 h-4' />
-        </button>
+          className='sm:hidden'
+        />
       </div>
 
       {/* Scrollable Content */}
@@ -310,15 +309,17 @@ const ModelConfigForm: FC<any> = ({
 
       {/* Footer CTA */}
       <div className='p-4 border-t border-[#E5E2DA] bg-white shrink-0'>
-        <button
+        <Button
+          variant='gradient'
+          size='lg'
           onClick={generateImage}
-          disabled={loading}
-          className='w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-bold text-[14px] px-6 py-3 rounded-xl shadow-[0_4px_12px_rgba(99,102,241,0.35)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.45)] transition-all disabled:opacity-50 disabled:cursor-not-allowed'
+          loading={loading}
+          icon={!loading ? <Rocket className='h-4 w-4' /> : undefined}
+          className='w-full font-bold'
           aria-label={loading ? "Generating model" : "Generate model"}
         >
-          {loading ? <Loader2 className='h-4 w-4 animate-spin' /> : <Rocket className='h-4 w-4' />}
-          <span>{loading ? "Generating..." : "Generate Model"}</span>
-        </button>
+          {loading ? "Generating..." : "Generate Model"}
+        </Button>
       </div>
     </div>
   );

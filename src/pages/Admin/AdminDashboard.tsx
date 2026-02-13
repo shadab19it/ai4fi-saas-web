@@ -25,8 +25,8 @@ import {
   ShieldOff,
   UserCheck,
   UserX,
-  Loader2,
 } from "lucide-react";
+import Button from "../../components/ui/Button";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -254,20 +254,16 @@ const AdminDashboard = () => {
 
           {/* Collapse / Expand Toggle */}
           <div className={`border-t border-[#E5E2DA] ${sidebarCollapsed ? 'px-1.5' : 'px-3'} py-3`}>
-            <button
+            <Button
+              variant='ghost'
+              size='md'
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className='w-full flex items-center justify-center gap-2 rounded-[9px] px-3 py-[9px] text-[13px] font-medium text-[#9E9893] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
+              icon={sidebarCollapsed ? <PanelLeftOpen className='h-4 w-4' /> : <PanelLeftClose className='h-4 w-4' />}
+              className='w-full justify-center'
               title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              {sidebarCollapsed ? (
-                <PanelLeftOpen className='h-4 w-4 shrink-0' />
-              ) : (
-                <>
-                  <PanelLeftClose className='h-4 w-4 shrink-0' />
-                  <span className='truncate'>Collapse</span>
-                </>
-              )}
-            </button>
+              {!sidebarCollapsed && 'Collapse'}
+            </Button>
           </div>
         </aside>
 
@@ -402,59 +398,40 @@ const AdminDashboard = () => {
                               <td className='px-4 py-3.5 text-[13.5px] text-stone-900 font-mono'>{new Date(u.createdAt).toLocaleDateString()}</td>
                               <td className='px-4 py-3.5 text-right'>
                                 <div className='inline-flex items-center gap-1.5'>
-                                  {/* Toggle Role */}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleChangeUserRole(u._id, u.role === "admin" ? "user" : "admin");
-                                    }}
-                                    disabled={changingRoleId === u._id}
+                                  <Button
+                                    size='icon'
+                                    loading={changingRoleId === u._id}
+                                    onClick={(e) => { e.stopPropagation(); handleChangeUserRole(u._id, u.role === "admin" ? "user" : "admin"); }}
                                     title={u.role === "admin" ? "Demote to user" : "Promote to admin"}
-                                    className={`w-[30px] h-[30px] rounded-lg border flex items-center justify-center transition-all disabled:opacity-50 ${
+                                    aria-label={u.role === "admin" ? "Demote to user" : "Promote to admin"}
+                                    className={`w-[30px] h-[30px] ${
                                       u.role === "admin"
                                         ? "border-violet-200 bg-violet-50 text-violet-600 hover:bg-violet-100"
                                         : "border-[#E5E2DA] bg-white text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900"
                                     }`}
-                                    aria-label={u.role === "admin" ? "Demote to user" : "Promote to admin"}
-                                  >
-                                    {changingRoleId === u._id ? (
-                                      <Loader2 className='h-3 w-3 animate-spin' />
-                                    ) : u.role === "admin" ? (
-                                      <ShieldOff className='h-3 w-3' />
-                                    ) : (
-                                      <ShieldCheck className='h-3 w-3' />
-                                    )}
-                                  </button>
-                                  {/* Toggle Status */}
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleToggleUserStatus(u._id, u.isActive !== false);
-                                    }}
-                                    disabled={togglingStatusId === u._id}
+                                    icon={u.role === "admin" ? <ShieldOff className='h-3 w-3' /> : <ShieldCheck className='h-3 w-3' />}
+                                  />
+                                  <Button
+                                    size='icon'
+                                    loading={togglingStatusId === u._id}
+                                    onClick={(e) => { e.stopPropagation(); handleToggleUserStatus(u._id, u.isActive !== false); }}
                                     title={u.isActive !== false ? "Disable user" : "Enable user"}
-                                    className={`w-[30px] h-[30px] rounded-lg border flex items-center justify-center transition-all disabled:opacity-50 ${
+                                    aria-label={u.isActive !== false ? "Disable user" : "Enable user"}
+                                    className={`w-[30px] h-[30px] ${
                                       u.isActive !== false
                                         ? "border-[#E5E2DA] bg-white text-[#6B6560] hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                                         : "border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                                     }`}
-                                    aria-label={u.isActive !== false ? "Disable user" : "Enable user"}
-                                  >
-                                    {togglingStatusId === u._id ? (
-                                      <Loader2 className='h-3 w-3 animate-spin' />
-                                    ) : u.isActive !== false ? (
-                                      <UserX className='h-3 w-3' />
-                                    ) : (
-                                      <UserCheck className='h-3 w-3' />
-                                    )}
-                                  </button>
-                                  {/* Manage */}
-                                  <button
+                                    icon={u.isActive !== false ? <UserX className='h-3 w-3' /> : <UserCheck className='h-3 w-3' />}
+                                  />
+                                  <Button
+                                    variant='outline'
+                                    size='sm'
                                     onClick={(e) => { e.stopPropagation(); fetchUserDetail(u._id); }}
-                                    className='h-[30px] px-2.5 rounded-lg border border-[#E5E2DA] bg-white text-xs font-semibold text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
+                                    className='h-[30px]'
                                   >
                                     Manage
-                                  </button>
+                                  </Button>
                                 </div>
                               </td>
                             </tr>
@@ -512,40 +489,29 @@ const AdminDashboard = () => {
                             </span>
                           </div>
                           <div className='border-t border-[#E5E2DA] pt-3 flex flex-col gap-2'>
-                            {/* Toggle Role */}
-                            <button
+                            <Button
+                              variant='outline'
+                              size='md'
                               onClick={() => handleChangeUserRole(selectedUser._id, selectedUser.role === "admin" ? "user" : "admin")}
-                              disabled={changingRoleId === selectedUser._id}
-                              className='w-full h-9 rounded-lg border border-[#E5E2DA] bg-white text-[13px] font-semibold text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 flex items-center justify-center gap-2 transition-all disabled:opacity-50'
+                              loading={changingRoleId === selectedUser._id}
+                              icon={changingRoleId !== selectedUser._id ? (selectedUser.role === "admin" ? <ShieldOff className='h-3.5 w-3.5' /> : <ShieldCheck className='h-3.5 w-3.5' />) : undefined}
+                              className='w-full h-9'
                             >
-                              {changingRoleId === selectedUser._id ? (
-                                <Loader2 className='h-3.5 w-3.5 animate-spin' />
-                              ) : selectedUser.role === "admin" ? (
-                                <ShieldOff className='h-3.5 w-3.5' />
-                              ) : (
-                                <ShieldCheck className='h-3.5 w-3.5' />
-                              )}
                               {selectedUser.role === "admin" ? "Demote to User" : "Promote to Admin"}
-                            </button>
-                            {/* Toggle Status */}
-                            <button
+                            </Button>
+                            <Button
+                              size='md'
                               onClick={() => handleToggleUserStatus(selectedUser._id, selectedUser.isActive !== false)}
-                              disabled={togglingStatusId === selectedUser._id}
-                              className={`w-full h-9 rounded-lg text-[13px] font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${
+                              loading={togglingStatusId === selectedUser._id}
+                              icon={togglingStatusId !== selectedUser._id ? (selectedUser.isActive !== false ? <UserX className='h-3.5 w-3.5' /> : <UserCheck className='h-3.5 w-3.5' />) : undefined}
+                              className={`w-full h-9 ${
                                 selectedUser.isActive !== false
                                   ? "border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
                                   : "border border-emerald-200 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                               }`}
                             >
-                              {togglingStatusId === selectedUser._id ? (
-                                <Loader2 className='h-3.5 w-3.5 animate-spin' />
-                              ) : selectedUser.isActive !== false ? (
-                                <UserX className='h-3.5 w-3.5' />
-                              ) : (
-                                <UserCheck className='h-3.5 w-3.5' />
-                              )}
                               {selectedUser.isActive !== false ? "Disable User" : "Enable User"}
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       </div>

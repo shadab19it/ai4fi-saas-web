@@ -12,7 +12,6 @@ import {
   PanelLeftOpen,
   PanelLeftClose,
   ImageIcon,
-  Loader2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import modelService from "../../services/modelService";
@@ -25,6 +24,7 @@ import appConstant from "../../services/appConstant";
 import { setUserRefresh } from "../../store/userReducer";
 import commonService from "../../services/commonService";
 import { useMediaQuery } from "../useMediaQuery";
+import Button from "../ui/Button";
 
 export interface ModifiedModelData {
   url: string;
@@ -297,17 +297,13 @@ const ModelGeneratorUI: React.FC = () => {
         {/* Top Bar */}
         <div className='shrink-0 border-b border-[#E5E2DA] bg-white px-5 py-3 flex items-center justify-between'>
           <div className='flex items-center gap-3'>
-            <button
+            <Button
+              variant='outline'
+              size='icon'
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className='w-8 h-8 rounded-lg border border-[#E5E2DA] bg-white flex items-center justify-center text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
               aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-            >
-              {isSidebarOpen ? (
-                <PanelLeftClose className='w-4 h-4' />
-              ) : (
-                <PanelLeftOpen className='w-4 h-4' />
-              )}
-            </button>
+              icon={isSidebarOpen ? <PanelLeftClose className='w-4 h-4' /> : <PanelLeftOpen className='w-4 h-4' />}
+            />
             <div>
               <h1 className='text-[14px] font-bold text-stone-900'>AI4FI — Model Generation</h1>
               <p className='text-[11.5px] text-[#9E9893] font-medium'>
@@ -331,12 +327,9 @@ const ModelGeneratorUI: React.FC = () => {
               Home
             </Link>
             {generatedImages.length > 0 && (
-              <button
-                onClick={handleVirtualTryOn}
-                className='h-8 px-4 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-[12px] font-bold shadow-sm transition-all'
-              >
+              <Button variant='gradient' size='md' onClick={handleVirtualTryOn} className='font-bold'>
                 Virtual Try Room
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -351,31 +344,28 @@ const ModelGeneratorUI: React.FC = () => {
               </span>
             </h2>
             <div className='flex items-center gap-3'>
-              <button
+              <Button
+                variant='ghost'
+                size='sm'
                 onClick={handleSelectAll}
                 className={clsx(
-                  "text-[12px] font-semibold transition-colors",
                   selectedModel.length === generatedImages.length && selectedModel.length > 0
-                    ? "text-[#2563EB]"
-                    : "text-[#6B6560] hover:text-stone-900"
+                    ? "!text-[#2563EB]"
+                    : ""
                 )}
               >
                 {selectedModel.length === generatedImages.length && selectedModel.length > 0
                   ? "Deselect All"
                   : "Select All"}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant='outline'
+                size='icon'
                 onClick={handleDownloadAll}
-                disabled={downloadLoading}
-                className='w-8 h-8 rounded-lg border border-[#E5E2DA] bg-white flex items-center justify-center text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all disabled:opacity-50'
+                loading={downloadLoading}
+                icon={<Download className='w-4 h-4' />}
                 aria-label='Download selected'
-              >
-                {downloadLoading ? (
-                  <Loader2 className='w-4 h-4 animate-spin' />
-                ) : (
-                  <Download className='w-4 h-4' />
-                )}
-              </button>
+              />
             </div>
           </div>
         )}
@@ -385,14 +375,10 @@ const ModelGeneratorUI: React.FC = () => {
           {/* Loading State */}
           {loading && generatedImages.length === 0 && (
             <div className='flex flex-col items-center justify-center h-full'>
-              <div className='w-16 h-16 rounded-2xl bg-white border border-[#E5E2DA] shadow-sm flex items-center justify-center mb-4'>
-                <Loader2 className='w-7 h-7 text-[#2563EB] animate-spin' />
-              </div>
+              <Button variant='outline' size='icon' loading className='w-16 h-16 rounded-2xl mb-4' />
               <p className='text-[14px] font-bold text-stone-900'>Generating your model...</p>
               <p className='text-[12px] text-[#9E9893] mt-1'>
-                {startTime[`image_${0}`] && (
-                  <TimerDisplay startTime={startTime[`image_${0}`]} />
-                )}
+                {startTime[`image_${0}`] && <TimerDisplay startTime={startTime[`image_${0}`]} />}
               </p>
             </div>
           )}
@@ -417,7 +403,6 @@ const ModelGeneratorUI: React.FC = () => {
             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
               {generatedImages.map((image, index) => (
                 <div key={index} className='group'>
-                  {/* Time Badge */}
                   {startTime[`image_${0}`] && endTime[`image_${0}`] && (
                     <div className='mb-1.5'>
                       <span className='inline-flex items-center px-2 py-0.5 rounded-md bg-white border border-[#E5E2DA] text-[11px] font-mono text-[#9E9893]'>
@@ -426,7 +411,6 @@ const ModelGeneratorUI: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Image Card */}
                   <div
                     className='relative rounded-2xl overflow-hidden bg-white border border-[#E5E2DA] shadow-[0_1px_3px_rgba(28,25,23,0.06)] cursor-pointer transition-all hover:shadow-[0_4px_12px_rgba(28,25,23,0.1)]'
                     onClick={() => dispatch(setSelectedModel(`${index}`))}
@@ -445,7 +429,6 @@ const ModelGeneratorUI: React.FC = () => {
                       />
                     </div>
 
-                    {/* Selection Check */}
                     <div
                       className={`absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center transition-all ${
                         selectedModel.includes(`${index}`)
@@ -460,51 +443,41 @@ const ModelGeneratorUI: React.FC = () => {
                       />
                     </div>
 
-                    {/* Hover Actions */}
                     {isModelGenerated && (
                       <div className='absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity'>
                         <div className='flex items-center justify-center gap-2'>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownload(image.url);
-                            }}
-                            className='w-8 h-8 rounded-lg bg-white/90 backdrop-blur-sm flex items-center justify-center text-stone-700 hover:bg-white transition-all'
+                          <Button
+                            size='icon'
+                            className='bg-white/90 backdrop-blur-sm text-stone-700 hover:bg-white border-0'
+                            onClick={(e) => { e.stopPropagation(); handleDownload(image.url); }}
+                            icon={<DownloadIcon className='w-4 h-4' />}
                             aria-label='Download image'
-                          >
-                            <DownloadIcon className='w-4 h-4' />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteImage(index);
-                            }}
-                            className='w-8 h-8 rounded-lg bg-white/90 backdrop-blur-sm flex items-center justify-center text-stone-700 hover:bg-red-50 hover:text-red-600 transition-all'
+                          />
+                          <Button
+                            size='icon'
+                            className='bg-white/90 backdrop-blur-sm text-stone-700 hover:bg-red-50 hover:text-red-600 border-0'
+                            onClick={(e) => { e.stopPropagation(); handleDeleteImage(index); }}
+                            icon={<Trash2 className='w-4 h-4' />}
                             aria-label='Delete image'
-                          >
-                            <Trash2 className='w-4 h-4' />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleShareImage(image.url);
-                            }}
-                            className='w-8 h-8 rounded-lg bg-white/90 backdrop-blur-sm flex items-center justify-center text-stone-700 hover:bg-blue-50 hover:text-blue-600 transition-all'
+                          />
+                          <Button
+                            size='icon'
+                            className='bg-white/90 backdrop-blur-sm text-stone-700 hover:bg-blue-50 hover:text-blue-600 border-0'
+                            onClick={(e) => { e.stopPropagation(); handleShareImage(image.url); }}
+                            icon={<Share2 className='w-4 h-4' />}
                             aria-label='Share image'
-                          >
-                            <Share2 className='w-4 h-4' />
-                          </button>
-                          <button
+                          />
+                          <Button
+                            size='icon'
+                            className='bg-white/90 backdrop-blur-sm text-stone-700 hover:bg-violet-50 hover:text-violet-600 border-0'
                             onClick={(e) => {
                               e.stopPropagation();
                               setZoomedImage(image.url);
                               setIsModalOpen(true);
                             }}
-                            className='w-8 h-8 rounded-lg bg-white/90 backdrop-blur-sm flex items-center justify-center text-stone-700 hover:bg-violet-50 hover:text-violet-600 transition-all'
+                            icon={<ZoomIn className='w-4 h-4' />}
                             aria-label='Zoom image'
-                          >
-                            <ZoomIn className='w-4 h-4' />
-                          </button>
+                          />
                         </div>
                       </div>
                     )}
@@ -531,13 +504,14 @@ const ModelGeneratorUI: React.FC = () => {
               alt='Zoomed model'
               className='max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain'
             />
-            <button
+            <Button
+              variant='outline'
+              size='icon'
               onClick={() => setIsModalOpen(false)}
-              className='absolute -top-3 -right-3 w-9 h-9 rounded-full bg-white border border-[#E5E2DA] shadow-lg flex items-center justify-center text-[#6B6560] hover:text-stone-900 hover:bg-[#F9F8F5] transition-all'
+              icon={<X className='w-4 h-4' />}
               aria-label='Close zoomed view'
-            >
-              <X className='w-4 h-4' />
-            </button>
+              className='absolute -top-3 -right-3 w-9 h-9 rounded-full shadow-lg'
+            />
           </div>
         </div>
       )}
