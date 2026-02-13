@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useMemo } from "react"
-import { Plus, X, Download, Loader2, Upload, ZoomIn, Sparkles, ChevronDown, Info } from "lucide-react"
+import { Plus, X, Download, Upload, ZoomIn, Sparkles, ChevronDown, Info } from "lucide-react"
 import axios from "axios"
 import appConstant from "../../services/appConstant"
 import { dataURLtoFile } from "../../services/utils"
@@ -18,6 +18,7 @@ import {
 } from "./optionInputs"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
+import ZoomImageModal from "../ui/ZoomImageModal"
 
 interface ModelEditorProps {
   selectedModel: string
@@ -143,9 +144,9 @@ let MALE_POSES = [
 
 export default function ModelEditor({ 
   selectedModel, 
-  dressImage, 
+  dressImage: _dressImage, 
   onBack, 
-  onComplete, 
+  onComplete: _onComplete, 
   gender,
   tier: propTier = "basic",
   aspectRatio: propAspectRatio,
@@ -974,35 +975,32 @@ export default function ModelEditor({
       </div>
 
       {/* Zoom Modal */}
-      {isZoomOpen && zoomedImage && (
-        <div
-          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => {
-            setIsZoomOpen(false)
-            setZoomedImage(null)
-          }}
-        >
-          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={zoomedImage}
-              alt="Zoomed preview"
-              className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                setIsZoomOpen(false)
-                setZoomedImage(null)
-              }}
-              className="absolute -top-3 -right-3 shadow-lg"
-              aria-label="Close zoomed view"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      <ZoomImageModal
+        open={isZoomOpen}
+        onClose={() => {
+          setIsZoomOpen(false)
+          setZoomedImage(null)
+        }}
+        images={
+          generatedImages.length > 0
+            ? [currentModel, ...generatedImages].filter(Boolean) as string[]
+            : currentModel
+              ? [currentModel]
+              : []
+        }
+        initialIndex={
+          zoomedImage
+            ? Math.max(
+                0,
+                (generatedImages.length > 0
+                  ? [currentModel, ...generatedImages]
+                  : [currentModel]
+                ).indexOf(zoomedImage)
+              )
+            : 0
+        }
+        alt="Pose preview"
+      />
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { female_model_tryon_prompt, male_model_tryon_prompt } from "../../servic
 import modelGalleryList from "../../services/ModelGallery"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
+import ZoomImageModal from "../ui/ZoomImageModal"
 
 interface DressUploadProps {
   onUploadComplete: (
@@ -673,29 +674,12 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
       </div>
 
       {/* Zoom Modal */}
-      {isZoomOpen && dressImage && (
-        <div
-          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setIsZoomOpen(false)}
-        >
-          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={dressImage}
-              alt="Dress preview - zoomed"
-              className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsZoomOpen(false)}
-              className="absolute -top-3 -right-3 shadow-lg"
-              aria-label="Close zoomed view"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      <ZoomImageModal
+        open={isZoomOpen}
+        onClose={() => setIsZoomOpen(false)}
+        images={dressImage ? [dressImage] : []}
+        alt="Dress preview"
+      />
 
       {/* Model Gallery Modal */}
       {isGalleryOpen && (

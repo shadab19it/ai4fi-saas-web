@@ -1,12 +1,13 @@
 "use client"
 import { useEffect, useState } from "react"
-import { ZoomIn, X, Sparkles, Download, RefreshCw } from "lucide-react"
+import { ZoomIn, Sparkles, Download, RefreshCw } from "lucide-react"
 import axios from "axios"
 import appConstant from "../../services/appConstant"
 import { dataURLtoFile } from "../../services/utils"
 import { toast } from "sonner"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
+import ZoomImageModal from "../ui/ZoomImageModal"
 
 interface ModelSelectionProps {
   dressImage: string
@@ -390,35 +391,16 @@ export default function ModelSelection({
       </div>
 
       {/* Zoom Modal */}
-      {isZoomOpen && zoomedImage && (
-        <div
-          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => {
-            setIsZoomOpen(false)
-            setZoomedImage(null)
-          }}
-        >
-          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-            <img
-              src={zoomedImage}
-              alt="Zoomed preview"
-              className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain"
-            />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                setIsZoomOpen(false)
-                setZoomedImage(null)
-              }}
-              className="absolute -top-3 -right-3 shadow-lg"
-              aria-label="Close zoomed view"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      )}
+      <ZoomImageModal
+        open={isZoomOpen}
+        onClose={() => {
+          setIsZoomOpen(false)
+          setZoomedImage(null)
+        }}
+        images={[dressImage, ...(generatedModel ? [generatedModel] : [])].filter(Boolean)}
+        initialIndex={zoomedImage === dressImage ? 0 : zoomedImage === generatedModel ? 1 : 0}
+        alt="Model preview"
+      />
     </div>
   )
 }

@@ -8,7 +8,6 @@ import {
   Share2,
   Trash2,
   ZoomIn,
-  X,
   PanelLeftOpen,
   PanelLeftClose,
   ImageIcon,
@@ -25,6 +24,7 @@ import { setUserRefresh } from "../../store/userReducer";
 import commonService from "../../services/commonService";
 import { useMediaQuery } from "../useMediaQuery";
 import Button from "../ui/Button";
+import ZoomImageModal from "../ui/ZoomImageModal";
 
 export interface ModifiedModelData {
   url: string;
@@ -490,31 +490,16 @@ const ModelGeneratorUI: React.FC = () => {
       </main>
 
       {/* Zoom Modal */}
-      {isModalOpen && (
-        <div
-          className='fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4'
-          onClick={() => setIsModalOpen(false)}
-          role='dialog'
-          aria-modal='true'
-          aria-label='Zoomed image view'
-        >
-          <div className='relative max-w-[90vw] max-h-[90vh]' onClick={(e) => e.stopPropagation()}>
-            <img
-              src={zoomedImage}
-              alt='Zoomed model'
-              className='max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain'
-            />
-            <Button
-              variant='outline'
-              size='icon'
-              onClick={() => setIsModalOpen(false)}
-              icon={<X className='w-4 h-4' />}
-              aria-label='Close zoomed view'
-              className='absolute -top-3 -right-3 w-9 h-9 rounded-full shadow-lg'
-            />
-          </div>
-        </div>
-      )}
+      <ZoomImageModal
+        open={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setZoomedImage("");
+        }}
+        images={generatedImages.map((img) => img.url)}
+        initialIndex={Math.max(0, generatedImages.findIndex((img) => img.url === zoomedImage))}
+        alt='Generated model'
+      />
     </div>
   );
 };
