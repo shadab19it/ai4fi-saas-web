@@ -51,6 +51,19 @@ export interface ModelConfig {
   requiredCredits: number;
 }
 
+export interface IFastGenModelGenerateConfig {
+  seed?: string | number;
+  poses: string[];
+  gender: string;
+  shootType: string;
+  outfit: string;
+  prompt?: string;
+  aspectRatio?: string;
+  hairstyle?: string;
+  guidance?: string | number;
+  requiredCredits?: number;
+}
+
 const ModelGeneratorUI: React.FC = () => {
   const { selectedModel } = useSelector((state: RootState) => state.modelList);
   const isMobile = useMediaQuery("(max-width: 440px)");

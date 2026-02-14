@@ -129,7 +129,7 @@ const ZoomImageModal: FC<ZoomImageModalProps> = ({
             disabled={zoomLevel === 0}
             aria-label="Zoom out"
           >
-            <ZoomOut className="w-4 h-4" />
+            <ZoomOut className="w-4 h-4 " />
           </Button>
           <div className="flex items-center gap-0.5 px-2">
             {ZOOM_LEVELS.map((level, idx) => (

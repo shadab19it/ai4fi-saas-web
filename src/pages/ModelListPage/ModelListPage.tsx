@@ -1,17 +1,15 @@
 import { useState, useEffect, FC } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  AlignLeft,
   ArrowLeft,
   ArrowRight,
   Check,
   ChevronLeft,
   ChevronRight,
-  CopyIcon,
-  Delete,
-  DownloadCloud,
+  Download,
   DownloadIcon,
-  Trash,
+  ImageIcon,
+  Trash2,
   ZoomIn,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -20,10 +18,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { clearSelectedModel, setModelList, setSelectedModel } from "../../store/modelSlice";
 
-import DarkLogo from "../../../public/dark-logo.png";
-import { copySeed } from "../../services/utils";
 import commonService from "../../services/commonService";
-import authService from "../../services/authService";
+import Button from "../../components/ui/Button";
+import ZoomImageModal from "../../components/ui/ZoomImageModal";
+import clsx from "clsx";
 
 const ModelListPage: FC = () => {
   const dispatch = useDispatch();
@@ -33,17 +31,21 @@ const ModelListPage: FC = () => {
   const [totalPages, setTotalPages] = useState<number>(0);
   const { modelList, selectedModel } = useSelector((state: RootState) => state.modelList);
   const [loading, setLoading] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState("existingModels"); // Default to show Existing Models
+  const [activeTab, setActiveTab] = useState("existingModels");
   const [imageType, setImageType] = useState<string>("model");
   const [selectedResult, setSelectedResult] = useState<string[]>([]);
   const [downloadLoading, setDownloadLoading] = useState<boolean>(false);
-  const [refreh, setRefresh] = useState<boolean>(false);
+  const [refresh, setRefresh] = useState<boolean>(false);
 
+  // Zoom Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [zoomedImage, setZoomedImage] = useState<string>("");
+  
+  // Flows / Ads
   const [flowsList, setFlowsList] = useState<any[]>([]);
   const [selectedFlow, setSelectedFlow] = useState<any | null>(null);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState<boolean>(false);
+  
   const navigate = useNavigate();
 
   const getModelList = async () => {
@@ -82,7 +84,8 @@ const ModelListPage: FC = () => {
     } else {
       getModelList();
     }
-  }, [pageSize, imageType, activeTab, refreh]);
+  }, [pageSize, imageType, activeTab, refresh]);
+
   useEffect(() => {
     dispatch(clearSelectedModel());
   }, []);
@@ -93,36 +96,42 @@ const ModelListPage: FC = () => {
 
   const handleDownloadAll = async (): Promise<void> => {
     if (selectedModel.length === 0) {
-      toast.info("Please select atleast one model to download");
+      toast.info("Please select at least one model to download");
       return;
     }
 
     if (!selectedResult || selectedResult.length === 0) return;
     setDownloadLoading(true);
     const filterModel: any[] = [];
-    let fileExt: string = ".png";
+    
+    // Logic to extract URL based on imageType
     if (imageType === "model" || imageType === "tryon_beta" || imageType === "pose_variants") {
-      fileExt = ".jpeg";
       selectedModel.forEach((key, i1) => {
         const [leftIndex, rightIndex] = key.split("_").map(Number);
         if (modelList[leftIndex]) {
           const element = modelList[leftIndex];
-          const imageUrl = element.generatedImages.image_urls[rightIndex];
+          let imageUrl = "";
+          if (imageType === "model") {
+             imageUrl = element.generatedImages?.image_urls?.[rightIndex];
+          } else {
+             imageUrl = element.generatedImages?.[rightIndex];
+          }
+
           if (imageUrl) {
             filterModel.push(imageUrl);
           }
         }
       });
     } else {
-      fileExt = ".png";
       selectedModel.forEach((key, i1) => {
         const [leftIndex, rightIndex] = key.split("_").map(Number);
         if (modelList[leftIndex]) {
           const element = modelList[leftIndex];
-          const imageUrl = element.generatedImages[rightIndex];
-          if (imageUrl) {
-            filterModel.push(imageUrl[0]);
-          }
+           const imageUrl = element.generatedImages?.[rightIndex];
+           if (imageUrl) {
+             if (Array.isArray(imageUrl)) filterModel.push(imageUrl[0]);
+             else filterModel.push(imageUrl);
+           }
         }
       });
     }
@@ -139,7 +148,7 @@ const ModelListPage: FC = () => {
         document.body.removeChild(link);
         URL.revokeObjectURL(blobUrl);
       } else {
-        const result = await commonService.downloadFileFromAPI(filterModel, imageType);
+        await commonService.downloadFileFromAPI(filterModel, imageType);
       }
       setDownloadLoading(false);
     } catch (error: any) {
@@ -153,9 +162,6 @@ const ModelListPage: FC = () => {
     if (selectedResult.includes(id)) {
       setSelectedResult((prev) => prev.filter((pId) => pId !== id));
     } else {
-      if (selectedModel.length === 4 || selectedResult.length === 4) {
-        return toast.info("You can select only 4 images at a time ");
-      }
       setSelectedResult((prev) => [...prev, id]);
     }
   };
@@ -163,19 +169,18 @@ const ModelListPage: FC = () => {
   const onChangeTab = (tab: string) => {
     setActiveTab(tab);
     dispatch(clearSelectedModel());
-    if (tab === "existingModels") {
-      setImageType("model");
-    } else if (tab === "ownModels") {
-      navigate("/model-gallery");
-    } else if (tab === "tryon") {
-      setImageType("tryon");
-    } else if (tab === "tryon_beta") {
-      setImageType("tryon_beta");
-    } else if (tab === "pose_variants") {
-      setImageType("pose_variants");
-    } else if (tab === "ads") {
-      setImageType("ads");
+    setSelectedResult([]);
+    // Update imageType based on tab
+    switch(tab) {
+        case "existingModels": setImageType("model"); break;
+        case "ownModels": navigate("/model-gallery"); break;
+        case "tryon": setImageType("tryon"); break;
+        case "tryon_beta": setImageType("tryon_beta"); break;
+        case "pose_variants": setImageType("pose_variants"); break;
+        case "ads": setImageType("ads"); break;
+        default: setImageType("model");
     }
+    setPageSize(1); // Reset to first page on tab change
   };
 
   const handleFlowClick = (flow: any) => {
@@ -183,644 +188,455 @@ const ModelListPage: FC = () => {
     setIsFlowModalOpen(true);
   };
 
-  const onPrv = () => {
-    if (pageSize > 1) {
-      setPageSize(pageSize - 1);
-    }
+  const onPrev = () => {
+    if (pageSize > 1) setPageSize(pageSize - 1);
   };
 
   const onNext = () => {
-    if (totalPages > pageSize) {
-      setPageSize(pageSize + 1);
-    }
+    if (totalPages > pageSize) setPageSize(pageSize + 1);
   };
 
   const onDeleteImage = async (id: string, url: string) => {
-    try {
-      const res = await modelService.deleteGenerateImage(id, url);
-      toast.success(res.message);
-      setRefresh(!refreh);
-    } catch (error: any) {
-      toast.error(error.message);
-    }
+    toast("Delete this image?", {
+        description: "This action cannot be undone.",
+        action: {
+            label: "Delete",
+            onClick: async () => {
+                try {
+                    const res = await modelService.deleteGenerateImage(id, url);
+                    toast.success(res.message);
+                    setRefresh(!refresh);
+                } catch (error: any) {
+                    toast.error(error.message);
+                }
+            }
+        },
+        cancel: {
+            label: "Cancel",
+            onClick: () => {}
+        }
+    });
+  };
+
+  // Helper to render image cards
+  const renderImageCard = (model: any, url: string, i: number, index: number) => {
+      const uniqueId = `${i}_${index}`;
+      const isSelected = selectedModel.includes(uniqueId);
+
+      return (
+        <div 
+            key={uniqueId} 
+            className={clsx(
+                "group relative rounded-2xl overflow-hidden bg-white border cursor-pointer transition-all duration-300",
+                isSelected ? "border-violet-600 ring-2 ring-violet-600/20 shadow-md" : "border-[#E5E2DA] shadow-sm hover:shadow-[0_4px_12px_rgba(28,25,23,0.1)] hover:border-[#D0CBBF]"
+            )}
+            onClick={() => {
+                dispatch(setSelectedModel(uniqueId));
+                onSelectResult(uniqueId);
+            }}
+        >
+            <div className="aspect-[3/4] overflow-hidden bg-gray-50">
+                <img 
+                    src={url} 
+                    alt={`Model ${uniqueId}`} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                />
+            </div>
+
+            {/* Selection Badge */}
+            <div className={clsx(
+                "absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 z-10",
+                isSelected ? "bg-violet-600 scale-100" : "bg-white/80 backdrop-blur-sm border border-[#E5E2DA] opacity-0 group-hover:opacity-100 scale-90"
+            )}>
+                 <Check className={clsx("w-4 h-4", isSelected ? "text-white" : "text-[#9E9893]")} />
+            </div>
+
+            {/* Hover Actions Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex justify-center gap-2">
+                 <Button 
+                    size="icon" 
+                    className="h-8 w-8 bg-white/95 backdrop-blur hover:bg-white border-0 rounded-full shadow-sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setZoomedImage(url);
+                        setIsModalOpen(true);
+                    }}
+                 >
+                     <ZoomIn className="w-4 h-4 fill-black" />
+                 </Button>
+                 <Button 
+                    size="icon" 
+                    className="h-8 w-8 bg-white/95 backdrop-blur hover:!bg-red-50 hover:!text-red-700 border-0 rounded-full shadow-sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteImage(model._id, url);
+                    }}
+                 >
+                     <Trash2 className="w-4 h-4 fill-red-600" />
+                 </Button>
+            </div>
+        </div>
+      );
   };
 
   return (
-    <div className='min-h-screen bg-gray-900 p-6 relative'>
-      <div className='max-w-6xl mx-auto'>
-        {/* Navigation & Header */}
-        <div className='flex items-center justify-between mb-8'>
-          <Link to={"/"}>
-            <img src={DarkLogo} className='w-20 h-8  top-3 left-3' alt='AI4FI' />
-          </Link>
-          <h1 className='text-2xl font-bold text-white'>Select model images</h1>
-          <div className='flex  items-center gap-2 '>
-            <button
-              onClick={() => navigate("/features")}
-              className='flex items-center text-white hover:text-gray-300 transition-colors'>
-              <ArrowLeft className='w-5 h-5 mr-2' />
-              Back
-            </button>
-            <Link to={"/"} className='text-white hover:text-gray-300'>
-              Home
-            </Link>
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className='flex justify-between items-start'>
-          <div className='flex flex-wrap space-x-8 mb-8'>
-            <button
-              className={`text-lg font-medium ${activeTab === "existingModels" ? "text-blue-500" : "text-white"}`}
-              onClick={() => onChangeTab("existingModels")}>
-              Generated Models
-            </button>
-            <button
-              className={`text-lg font-medium ${activeTab === "ownModels" ? "text-blue-500" : "text-white"}`}
-              onClick={() => onChangeTab("ownModels")}>
-              Custom Models
-            </button>
-            <button
-              className={`text-lg font-medium ${activeTab === "tryon" ? "text-blue-500" : "text-white"}`}
-              onClick={() => onChangeTab("tryon")}>
-              Virtual Try On
-            </button>
-            <button
-              className={`text-lg font-medium ${activeTab === "tryon_beta" ? "text-blue-500" : "text-white"}`}
-              onClick={() => onChangeTab("tryon_beta")}>
-              Try On Beta
-            </button>
-            <button
-              className={`text-lg font-medium ${activeTab === "pose_variants" ? "text-blue-500" : "text-white"}`}
-              onClick={() => onChangeTab("pose_variants")}>
-              Pose Variants
-            </button>
-            <button
-              className={`text-lg font-medium ${activeTab === "ads" ? "text-blue-500" : "text-white"}`}
-              onClick={() => onChangeTab("ads")}>
-              Ads
-            </button>
-          </div>
-          {((activeTab === "ads" && flowsList.length > 0) || (activeTab !== "ads" && modelList.length > 0)) && (
-            <div className='pt-2 flex gap-3 text-gray-100'>
-              <h2 className='text-xl'>
-                {pageSize * (activeTab === "ads" ? flowsList.length : modelList.length)}/{totalCount}
-              </h2>
-              <div className='flex items-center'>
-                <ChevronLeft className='cursor-pointer hover:text-blue-400' onClick={onPrv} />
-                <ChevronRight className='cursor-pointer hover:text-blue-400' onClick={onNext} />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Models Grid */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-24'>
-          {!loading &&
-            modelList.length > 0 &&
-            (imageType === "model" || imageType === "tryon" || imageType === "tryon_beta" || imageType === "pose_variants") &&
-            modelList.map(
-              (model, i) =>
-                model?.generatedImages?.image_urls?.length > 0 &&
-                model?.generatedImages?.image_urls.map((url: string, index: number) => (
-                  <div key={model._id} className='relative cursor-pointer group'>
-            
-                    <div
-                      className='relative aspect-square overflow-hidden rounded-xl'
-                      onClick={() => {
-                        dispatch(setSelectedModel(`${i}_${index}`));
-                        onSelectResult(`${i}_${index}`);
-                      }}>
-                      <img
-                        key={index}
-                        src={url}
-                        alt={`Model ${model._id} - Image ${index + 1}`}
-                        className='w-auto h-auto max-w-full max-h-[500px] mx-auto object-cover rounded-xl transition-transform duration-300 group-hover:scale-105'
-                      />
-
-                      <div
-                        className={`absolute inset-0 bg-black/40 transition-opacity ${
-                          zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}>
-                        <div className='flex items-center h-full justify-center'>
-                          <div className='flex space-x-4'>
-                            <ZoomIn
-                              className='h-6 w-6 z-[10] cursor-pointer text-gray-100 hover:text-blue-400'
-                              onClick={() => {
-                                setZoomedImage(url);
-                                setIsModalOpen(true);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Delete Image */}
-                      <div
-                        className={`absolute inset-0 bg-black/40 transition-opacity ${
-                          zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}>
-                        <div className='absolute top-4 left-4'>
-                          <div className='flex space-x-4'>
-                            <Trash
-                              className='h-6 w-6 z-[10] cursor-pointer text-red-400 hover:text-red-700'
-                              onClick={() => {
-                                onDeleteImage(model._id, url);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div
-                        className={`absolute inset-0 bg-black/40 transition-opacity ${
-                          selectedModel.includes(`${i}_${index}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}>
-                        <div className='absolute top-4 right-4'>
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              selectedModel.includes(`${i}_${index}`) ? "bg-blue-500" : "bg-white"
-                            }`}>
-                            <Check className={`w-5 h-5 ${selectedModel.includes(`${i}_${index}`) ? "text-white" : "text-gray-900"}`} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-            )}
-          {!loading &&
-            modelList.length > 0 &&
-            imageType === "tryon" &&
-            modelList.map(
-              (model, i) =>
-                model?.generatedImages?.length > 0 &&
-                model?.generatedImages?.map((url: string, index: number) => (
-                  <div
-                    key={`${i}_${index}`}
-                    className='relative cursor-pointer group'
-                    onClick={() => {
-                      dispatch(setSelectedModel(`${i}_${index}`));
-                      onSelectResult(`${i}_${index}`);
-                    }}>
-                    <div className='relative aspect-square overflow-hidden rounded-xl'>
-                      <img
-                        src={url && url}
-                        alt={`Model ${i}_${index}`}
-                        className='w-auto h-auto max-w-full max-h-[500px] mx-auto object-contain rounded-xl transition-transform duration-300 group-hover:scale-105'
-                      />
-                      <div
-                        className={`absolute inset-0 bg-black/40 transition-opacity ${
-                          selectedModel.includes(`${i}_${index}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}>
-                        <div className='absolute top-4 right-4'>
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              selectedModel.includes(`${i}_${index}`) ? "bg-blue-500" : "bg-white"
-                            }`}>
-                            <Check className={`w-5 h-5 ${selectedModel.includes(`${i}_${index}`) ? "text-white" : "text-gray-900"}`} />
-                          </div>
-                        </div>
-
-                        {/* Delete Image */}
-                        <div
-                          className={`absolute inset-0 bg-black/40 transition-opacity ${
-                            zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                          }`}>
-                          <div className='absolute top-4 left-4'>
-                            <div className='flex space-x-4'>
-                              <Trash
-                                className='h-6 w-6 z-[10] cursor-pointer text-red-400 hover:text-red-700'
-                                onClick={() => {
-                                  onDeleteImage(model._id, url);
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div
-                          className={`absolute inset-0 bg-black/40 transition-opacity ${
-                            zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                          }`}>
-                          <div className='flex items-center h-full justify-center'>
-                            <div className='flex space-x-4'>
-                              <ZoomIn
-                                className='h-6 w-6 z-[10] cursor-pointer text-gray-100 hover:text-blue-400'
-                                onClick={() => {
-                                  setZoomedImage(url);
-                                  setIsModalOpen(true);
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-            )}
-          {!loading &&
-            modelList.length > 0 &&
-            imageType === "tryon_beta" &&
-            modelList.map(
-              (model, i) =>
-                model?.generatedImages?.length > 0 &&
-                model?.generatedImages?.map((url: string, index: number) => (
-                  <div
-                    key={`${i}_${index}`}
-                    className='relative cursor-pointer group'
-                    onClick={() => {
-                      dispatch(setSelectedModel(`${i}_${index}`));
-                      onSelectResult(`${i}_${index}`);
-                    }}>
-                    <div className='relative aspect-square overflow-hidden rounded-xl'>
-                      <img
-                        src={url && url}
-                        alt={`Model ${i}_${index}`}
-                        className='w-auto h-auto max-w-full max-h-[500px] mx-auto object-contain rounded-xl transition-transform duration-300 group-hover:scale-105'
-                      />
-                      <div
-                        className={`absolute inset-0 bg-black/40 transition-opacity ${
-                          selectedModel.includes(`${i}_${index}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}>
-                        <div className='absolute top-4 right-4'>
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              selectedModel.includes(`${i}_${index}`) ? "bg-blue-500" : "bg-white"
-                            }`}>
-                            <Check className={`w-5 h-5 ${selectedModel.includes(`${i}_${index}`) ? "text-white" : "text-gray-900"}`} />
-                          </div>
-                        </div>
-
-                        {/* Delete Image */}
-                        <div
-                          className={`absolute inset-0 bg-black/40 transition-opacity ${
-                            zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                          }`}>
-                          <div className='absolute top-4 left-4'>
-                            <div className='flex space-x-4'>
-                              <Trash
-                                className='h-6 w-6 z-[10] cursor-pointer text-red-400 hover:text-red-700'
-                                onClick={() => {
-                                  onDeleteImage(model._id, url);
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div
-                          className={`absolute inset-0 bg-black/40 transition-opacity ${
-                            zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                          }`}>
-                          <div className='flex items-center h-full justify-center'>
-                            <div className='flex space-x-4'>
-                              <ZoomIn
-                                className='h-6 w-6 z-[10] cursor-pointer text-gray-100 hover:text-blue-400'
-                                onClick={() => {
-                                  setZoomedImage(url);
-                                  setIsModalOpen(true);
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-            )}
-          {!loading &&
-            modelList.length > 0 &&
-            imageType === "pose_variants" &&
-            modelList.map(
-              (model, i) =>
-                model?.generatedImages?.length > 0 &&
-                model?.generatedImages?.map((url: string, index: number) => (
-                  <div
-                    key={`${i}_${index}`}
-                    className='relative cursor-pointer group'
-                    onClick={() => {
-                      dispatch(setSelectedModel(`${i}_${index}`));
-                      onSelectResult(`${i}_${index}`);
-                    }}>
-                    <div className='relative aspect-square overflow-hidden rounded-xl'>
-                      <img
-                        src={url && url}
-                        alt={`Model ${i}_${index}`}
-                        className='w-auto h-auto max-w-full max-h-[500px] mx-auto object-contain rounded-xl transition-transform duration-300 group-hover:scale-105'
-                      />
-                      <div
-                        className={`absolute inset-0 bg-black/40 transition-opacity ${
-                          selectedModel.includes(`${i}_${index}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                        }`}>
-                        <div className='absolute top-4 right-4'>
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                              selectedModel.includes(`${i}_${index}`) ? "bg-blue-500" : "bg-white"
-                            }`}>
-                            <Check className={`w-5 h-5 ${selectedModel.includes(`${i}_${index}`) ? "text-white" : "text-gray-900"}`} />
-                          </div>
-                        </div>
-
-                        {/* Delete Image */}
-                        <div
-                          className={`absolute inset-0 bg-black/40 transition-opacity ${
-                            zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                          }`}>
-                          <div className='absolute top-4 left-4'>
-                            <div className='flex space-x-4'>
-                              <Trash
-                                className='h-6 w-6 z-[10] cursor-pointer text-red-400 hover:text-red-700'
-                                onClick={() => {
-                                  onDeleteImage(model._id, url);
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div
-                          className={`absolute inset-0 bg-black/40 transition-opacity ${
-                            zoomedImage.includes(`${url}`) ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                          }`}>
-                          <div className='flex items-center h-full justify-center'>
-                            <div className='flex space-x-4'>
-                              <ZoomIn
-                                className='h-6 w-6 z-[10] cursor-pointer text-gray-100 hover:text-blue-400'
-                                onClick={() => {
-                                  setZoomedImage(url);
-                                  setIsModalOpen(true);
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-            )}
-          {/* Flows/Ads Card List */}
-          {!loading &&
-            activeTab === "ads" &&
-            flowsList.length > 0 &&
-            flowsList.map((flow, index) => {
-              const productName = flow?.step1_generatePrompt?.product_name || "Unknown Product";
-              const flowStatus = flow?.flowStatus || "pending";
-              const thumbnailUrl = flow?.step3_createAdFromProduct?.urls?.[0] || flow?.step2_productPreprocessing?.urls?.[0] || "";
-              const createdAt = flow?.createdAt ? new Date(flow.createdAt).toLocaleDateString() : "";
-
-              return (
-                <div
-                  key={index}
-                  onClick={() => handleFlowClick(flow)}
-                  className='bg-gray-800 rounded-xl p-4 cursor-pointer hover:bg-gray-700 transition-colors border border-gray-700'>
-                  {thumbnailUrl && (
-                    <img
-                      src={thumbnailUrl}
-                      alt={productName}
-                      className='w-full h-48 object-cover rounded-lg mb-3'
-                    />
-                  )}
-                  <div>
-                    <h3 className='text-white font-semibold text-lg mb-2'>{productName}</h3>
-                    <div className='flex items-center gap-4 text-sm text-gray-400'>
-                      <span className={`px-2 py-1 rounded ${
-                        flowStatus === "completed" ? "bg-green-500/20 text-green-400" :
-                        flowStatus === "pending" ? "bg-yellow-500/20 text-yellow-400" :
-                        "bg-gray-500/20 text-gray-400"
-                      }`}>
-                        <span className="capitalize">{flowStatus}</span>
-                      </span>
-                      {createdAt && <span>Created: {createdAt}</span>}
-                    </div>
-                  </div>
+    <div className="min-h-screen bg-[#F4F3EF] flex flex-col">
+        {/* Sticky Header */}
+        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-[#E5E2DA] px-5 py-3">
+            <div className="max-w-[1600px] mx-auto w-full flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Link to="/" className="flex items-center gap-2 group">
+                        {/* <img src={DarkLogo} alt="AI4FI" className="h-6 w-auto opacity-80 group-hover:opacity-100 transition-opacity" /> */}
+                        <span className="font-bold text-stone-900 text-lg tracking-tight">AI4FI Gallery</span>
+                    </Link>
+                    <div className="h-6 w-px bg-[#E5E2DA] hidden sm:block" />
+                    <nav className="hidden sm:flex items-center gap-1">
+                        <Link to="/" className="text-[13px] font-medium text-[#9E9893] hover:text-stone-900 px-2 py-1 rounded-md hover:bg-[#F9F8F5] transition-colors">
+                            Home
+                        </Link>
+                        <span className="text-[#E5E2DA]">/</span>
+                        <span className="text-[13px] font-medium text-stone-900 px-2 py-1">
+                            Gallery
+                        </span>
+                    </nav>
                 </div>
-              );
-            })}
+
+                <div className="flex items-center gap-3">
+                     {selectedModel.length > 0 && (
+                         <div className="hidden sm:flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 mr-2">
+                             <span className="text-xs font-medium text-[#9E9893] bg-[#F9F8F5] px-2 py-1 rounded-md border border-[#E5E2DA]">
+                                 {selectedModel.length} Selected
+                             </span>
+                             <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={handleDownloadAll} 
+                                loading={downloadLoading}
+                                icon={<DownloadIcon className="w-3.5 h-3.5 text-stone-700" />}
+                             >
+                                 Download
+                             </Button>
+                             {imageType === "model" && (
+                                <Button 
+                                    variant="gradient" 
+                                    size="sm" 
+                                    onClick={handleContinue}
+                                    icon={<ArrowRight className="w-3.5 h-3.5 text-white" />}
+                                >
+                                    Try Room
+                                </Button>
+                             )}
+                         </div>
+                     )}
+                     <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => navigate("/")}
+                        icon={<ArrowLeft className="w-3.5 h-3.5" />}
+                     >
+                        Back
+                     </Button>
+                </div>
+            </div>
+        </header>
+
+        {/* Filters / Tabs Bar */}
+        <div className="bg-white border-b border-[#E5E2DA] px-5 py-1 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <div className="max-w-[1600px] mx-auto w-full overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-6">
+                    {[
+                        { id: "existingModels", label: "Generated Models" },
+                        { id: "ownModels", label: "Custom Models" },
+                        { id: "tryon", label: "Virtual Try On" },
+                        { id: "tryon_beta", label: "Try On Beta" },
+                        { id: "pose_variants", label: "Pose Variants" },
+                        { id: "ads", label: "Ads" },
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => onChangeTab(tab.id)}
+                            className={clsx(
+                                "relative py-3 text-[13px] font-medium transition-colors whitespace-nowrap",
+                                activeTab === tab.id 
+                                    ? "text-violet-600" 
+                                    : "text-[#9E9893] hover:text-stone-700"
+                            )}
+                        >
+                            {tab.label}
+                            {activeTab === tab.id && (
+                                <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-violet-600 rounded-t-full" />
+                            )}
+                        </button>
+                    ))}
+                </div>
+            </div>
         </div>
 
-        {/* Continue Button */}
-        <div className='fixed bottom-0 left-0 right-0 bg-gray-800 p-4'>
-          <div className='max-w-6xl h-6  mx-auto flex items-center justify-between'>
-            {imageType === "model" && selectedModel.length > 0 ? (
-              <p className='text-white'>Selected: {selectedModel.length}</p>
-            ) : (
-              <div></div>
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-[1600px] mx-auto w-full p-5 sm:p-6 lg:p-8">
+            
+            {/* Pagination / Info Top Bar */}
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-stone-900">
+                    {activeTab === "ads" ? "Ad Campaigns" : "Model Gallery"}
+                </h2>
+                
+                {((activeTab === "ads" && flowsList.length > 0) || (activeTab !== "ads" && modelList.length > 0)) && (
+                     <div className="flex items-center gap-3 bg-white border border-[#E5E2DA] rounded-lg p-1 pr-3 shadow-sm">
+                         <div className="flex items-center">
+                             <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={onPrev} 
+                                disabled={pageSize <= 1}
+                                className="h-8 w-8 rounded-md"
+                             >
+                                 <ChevronLeft className="w-4 h-4 text-stone-600" />
+                             </Button>
+                             <span className="text-[13px] font-mono font-medium text-stone-600 min-w-[3rem] text-center">
+                                 {pageSize} / {totalPages}
+                             </span>
+                             <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={onNext} 
+                                disabled={pageSize >= totalPages}
+                                className="h-8 w-8 rounded-md"
+                             >
+                                 <ChevronRight className="w-4 h-4 text-stone-600" />
+                             </Button>
+                         </div>
+                         <div className="h-4 w-px bg-[#E5E2DA]" />
+                         <span className="text-[12px] font-medium text-[#9E9893]">
+                             Total: {totalCount}
+                         </span>
+                     </div>
+                )}
+            </div>
+
+            {/* Content Grid */}
+            {!loading && (
+                <>
+                    {/* Models Grid */}
+                    {activeTab !== "ads" && modelList.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                             {/* Map Logic for Different Types */}
+                             {imageType === "model" && modelList.map((model, i) => 
+                                 model.generatedImages?.image_urls?.map((url: string, index: number) => 
+                                    renderImageCard(model, url, i, index)
+                                 )
+                             )}
+
+                             {/* Unified Mapping for TryOn / Variants which have flat array structure in backend response usually */}
+                             {/* Unified Mapping for TryOn / Variants which have flat array structure in backend response usually */}
+                             {(imageType === "tryon" || imageType === "tryon_beta" || imageType === "pose_variants") && modelList.map((model, i) => {
+                                 const images = Array.isArray(model?.generatedImages) 
+                                    ? model.generatedImages 
+                                    : (model?.generatedImages ? [model.generatedImages] : []);
+                                 
+                                 return images.map((urlOrArray: any, index: number) => {
+                                     // Handle inconsistencies in backend response
+                                     const url = Array.isArray(urlOrArray) ? urlOrArray[0] : urlOrArray;
+                                     if (!url) return null;
+                                     return renderImageCard(model, url, i, index);
+                                 })
+                             })}
+                        </div>
+                    )}
+
+                    {/* Ads List */}
+                    {activeTab === "ads" && flowsList.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {flowsList.map((flow, index) => {
+                                const productName = flow?.step1_generatePrompt?.product_name || "Unknown Product";
+                                const flowStatus = flow?.flowStatus || "pending";
+                                const statusColors = {
+                                    completed: "bg-green-50 text-green-700 border-green-200",
+                                    pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
+                                    failed: "bg-red-50 text-red-700 border-red-200"
+                                } as any;
+                                const thumbnailUrl = flow?.step3_createAdFromProduct?.urls?.[0] || flow?.step2_productPreprocessing?.urls?.[0];
+                                
+                                return (
+                                    <div 
+                                        key={index}
+                                        onClick={() => handleFlowClick(flow)}
+                                        className="bg-white rounded-2xl border border-[#E5E2DA] overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
+                                    >
+                                        <div className="aspect-video bg-gray-50 overflow-hidden relative">
+                                            {thumbnailUrl ? (
+                                                <img src={thumbnailUrl} alt={productName} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                                            ) : (
+                                                <div className="flex items-center justify-center h-full text-[#D0CBBF]">
+                                                    <ImageIcon className="w-10 h-10 opacity-50" />
+                                                </div>
+                                            )}
+                                            <div className="absolute top-3 right-3">
+                                                <span className={clsx("text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border", statusColors[flowStatus] || "bg-gray-100 text-gray-500")}>
+                                                    {flowStatus}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="p-4">
+                                            <h3 className="font-bold text-stone-900 truncate">{productName}</h3>
+                                            <p className="text-[12px] text-[#9E9893] mt-1">
+                                                {new Date(flow.createdAt).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )}
+
+                    {/* Empty State */}
+                    {((activeTab !== "ads" && modelList.length === 0) || (activeTab === "ads" && flowsList.length === 0)) && (
+                        <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="w-24 h-24 rounded-3xl bg-white border border-[#E5E2DA] shadow-sm flex items-center justify-center mb-6">
+                                <ImageIcon className="w-10 h-10 text-[#D0CBBF]" />
+                            </div>
+                            <h3 className="text-lg font-bold text-stone-900 mb-2">No items found</h3>
+                            <p className="text-[#9E9893] max-w-md">
+                                {activeTab === "ads" 
+                                    ? "You haven't created any ad campaigns yet." 
+                                    : "You haven't generated any models in this category yet."}
+                            </p>
+                            <div className="mt-8">
+                                <Button onClick={() => navigate("/")}>Go to Generator</Button>
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
-            <div className='space-x-2 flex'>
-              {selectedModel.length > 0 && (
-                <button
-                  onClick={handleDownloadAll}
-                  className='flex text-sm justify-center gap-2 items-center hover:bg-gradient-to-r hover:from-purple-800 hover:to-indigo-800 text-white font-bold px-8 py-2 rounded-lg shadow-lg transition-transform'>
-                  <span>{downloadLoading ? "Downloading... " : "Download"}</span> <DownloadIcon size={20} />
-                </button>
-              )}
-              {imageType === "model" && selectedModel.length > 0 && (
-                <button
-                  onClick={handleContinue}
-                  className='flex text-sm justify-center gap-2 items-center bg-gradient-to-r from-purple-600 to-indigo-600 hover:bg-gradient-to-r hover:from-purple-800 hover:to-indigo-800 text-white font-bold px-8 py-2 rounded-lg shadow-lg transition-transform'>
-                  <span>Virtual Try Room</span> <ArrowRight size={20} />
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
 
-        {isModalOpen && (
-          <div
-            className='fixed inset-0 bg-black bg-opacity-75  !ml-0 flex items-center justify-center z-50'
-            onClick={() => setIsModalOpen(false)}>
-            <div className='relative'>
-              <img src={zoomedImage} alt='Zoomed' className='max-w-full max-h-screen' />
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setZoomedImage("");
-                }}
-                className='absolute top-4 right-4 bg-gray-800 text-white p-2 rounded-full'>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  strokeWidth={1.5}
-                  stroke='currentColor'
-                  className='w-6 h-6'>
-                  <path strokeLinecap='round' strokeLinejoin='round' d='M6 18L18 6M6 6l12 12' />
-                </svg>
-              </button>
+            {/* Loading State */}
+            {loading && (
+                 <div className="flex items-center justify-center py-32">
+                     <div className="flex flex-col items-center gap-4">
+                         <div className="w-10 h-10 border-4 border-violet-100 border-t-violet-600 rounded-full animate-spin" />
+                         <p className="text-[13px] font-medium text-[#9E9893] animate-pulse">Loading gallery...</p>
+                     </div>
+                 </div>
+            )}
+        </main>
+
+        {/* Floating Action Bar (Mobile Only) */}
+        {selectedModel.length > 0 && (
+            <div className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-stone-900/90 backdrop-blur-md text-white p-2 rounded-full shadow-xl border border-white/10 animate-in slide-in-from-bottom-6 px-4">
+                <span className="text-xs font-bold mr-2">{selectedModel.length}</span>
+                <div className="h-4 w-px bg-white/20" />
+                <button onClick={handleDownloadAll} className="p-2 hover:text-blue-400"><Download className="w-4 h-4 text-white" /></button>
+                {imageType === "model" && (
+                    <button onClick={handleContinue} className="p-2 hover:text-violet-400"><ArrowRight className="w-4 h-4 text-white" /></button>
+                )}
             </div>
-          </div>
         )}
 
-        {/* Flow Details Modal */}
+        {/* Modals */}
+        <ZoomImageModal 
+            open={isModalOpen}
+            onClose={() => {
+                setIsModalOpen(false);
+                setZoomedImage("");
+            }}
+            images={[zoomedImage]} // Simple single image zoom for now as array logic is complex with pagination
+            initialIndex={0}
+            alt="Expanded view"
+            onDownload={(url) => {
+                 // Re-use logic or simple download
+                 const link = document.createElement("a");
+                 link.href = url;
+                 link.download = `image-${Date.now()}.jpg`;
+                 document.body.appendChild(link);
+                 link.click();
+                 document.body.removeChild(link);
+            }}
+        />
+
+        {/* Ads Flow Details Modal */}
         {isFlowModalOpen && selectedFlow && (
           <div
-            className='fixed inset-0 bg-black bg-opacity-75 !ml-0 flex items-center justify-center z-50 p-4'
+            className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200'
             onClick={() => setIsFlowModalOpen(false)}>
             <div
-              className='bg-gray-900 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto'
+              className='bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col'
               onClick={(e) => e.stopPropagation()}>
-              <div className='sticky top-0 bg-gray-900 border-b border-gray-700 p-4 flex justify-between items-center'>
-                <h2 className='text-2xl font-bold text-white'>
-                  {selectedFlow?.step1_generatePrompt?.product_name || "Flow Details"}
-                </h2>
-                <button
-                  onClick={() => {
-                    setIsFlowModalOpen(false);
-                    setSelectedFlow(null);
-                  }}
-                  className='bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700'>
-                  <svg
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    strokeWidth={1.5}
-                    stroke='currentColor'
-                    className='w-6 h-6'>
-                    <path strokeLinecap='round' strokeLinejoin='round' d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                </button>
+              
+              <div className='p-5 border-b border-[#E5E2DA] flex justify-between items-center bg-gray-50/50'>
+                <div>
+                    <h2 className='text-xl font-bold text-stone-900'>
+                    {selectedFlow?.step1_generatePrompt?.product_name || "Flow Details"}
+                    </h2>
+                    <p className="text-xs text-[#9E9893]">Campaign Details</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setIsFlowModalOpen(false)}>
+                     <ChevronLeft className="w-5 h-5" /> 
+                </Button>
               </div>
 
-              <div className='p-6 space-y-6'>
-                {/* Step 1: Generate Prompt */}
+              <div className='p-6 overflow-y-auto space-y-8'>
+                {/* Step 1 */}
                 {selectedFlow?.step1_generatePrompt && (
-                  <div className='bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500'>
-                    <h3 className='text-xl font-semibold text-white mb-3'>Step 1: Generate Prompt</h3>
-                    <div className='space-y-2 text-gray-300'>
-                      <p><span className='font-semibold'>Product:</span> {selectedFlow.step1_generatePrompt.product_name}</p>
-                      <p><span className='font-semibold'>Description:</span> {selectedFlow.step1_generatePrompt.description}</p>
-                      <p><span className='font-semibold'>Tagline:</span> {selectedFlow.step1_generatePrompt.product_tagline}</p>
-                      <p><span className='font-semibold'>Model Gender:</span> {selectedFlow.step1_generatePrompt.model_gender}</p>
-                      <p><span className='font-semibold'>Model Ethnicity:</span> {selectedFlow.step1_generatePrompt.model_ethnicity}</p>
-                      <p><span className='font-semibold'>Tone:</span> {selectedFlow.step1_generatePrompt.tone}</p>
-                      {/* <div className='mt-3'>
-                        <p className='font-semibold mb-2'>Prompt:</p>
-                        <p className='bg-gray-700 p-3 rounded text-sm'>{selectedFlow.step1_generatePrompt.prompt}</p>
-                      </div> */}
-                      <p className='text-green-400 text-sm mt-2'>
-                        ✓ Completed at: {new Date(selectedFlow.step1_generatePrompt.completedAt).toLocaleString()}
-                      </p>
-                    </div>
+                  <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">1</div>
+                          <h3 className="font-bold text-stone-900">Campaign Strategy</h3>
+                      </div>
+                      <div className="ml-11 grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-[#E5E2DA]">
+                          <div><span className="text-xs font-semibold text-[#9E9893] uppercase">Product</span><p className="font-medium">{selectedFlow.step1_generatePrompt.product_name}</p></div>
+                          <div><span className="text-xs font-semibold text-[#9E9893] uppercase">Target Audience</span><p className="font-medium">{selectedFlow.step1_generatePrompt.model_gender} / {selectedFlow.step1_generatePrompt.model_ethnicity}</p></div>
+                          <div className="md:col-span-2"><span className="text-xs font-semibold text-[#9E9893] uppercase">Description</span><p className="text-sm text-stone-600">{selectedFlow.step1_generatePrompt.description}</p></div>
+                      </div>
                   </div>
                 )}
 
-                {/* Step 2: Product Preprocessing */}
-                {selectedFlow?.step2_productPreprocessing && (
-                  <div className='bg-gray-800 rounded-lg p-4 border-l-4 border-purple-500'>
-                    <h3 className='text-xl font-semibold text-white mb-3'>Step 2: Product Preprocessing</h3>
-                    <div className='space-y-2 text-gray-300'>
-                      <p><span className='font-semibold'>Mode:</span> {selectedFlow.step2_productPreprocessing.mode}</p>
-                      <p><span className='font-semibold'>Requested Count:</span> {selectedFlow.step2_productPreprocessing.requested_count}</p>
-                      {selectedFlow.step2_productPreprocessing.urls && selectedFlow.step2_productPreprocessing.urls.length > 0 && (
-                        <div className='mt-3'>
-                          <p className='font-semibold mb-2'>Processed Images:</p>
-                          <div className='grid grid-cols-2 gap-4'>
-                            {selectedFlow.step2_productPreprocessing.urls.map((url: string, idx: number) => (
-                              <img key={idx} src={url} alt={`Preprocessed ${idx + 1}`} className='w-full rounded-lg' />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      <p className='text-green-400 text-sm mt-2'>
-                        ✓ Completed at: {new Date(selectedFlow.step2_productPreprocessing.completedAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
+                {/* Step 2 */}
+                {selectedFlow?.step2_productPreprocessing && selectedFlow.step2_productPreprocessing.urls?.length > 0 && (
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-sm">2</div>
+                          <h3 className="font-bold text-stone-900">Product Assets</h3>
+                      </div>
+                      <div className="ml-11 grid grid-cols-2 md:grid-cols-4 gap-3">
+                          {selectedFlow.step2_productPreprocessing.urls.map((url: string, idx: number) => (
+                              <img key={idx} src={url} className="rounded-lg border border-[#E5E2DA] bg-white shadow-sm hover:scale-105 transition-transform" />
+                          ))}
+                      </div>
+                   </div>
+                )}
+                
+                {/* Step 3 */}
+                {selectedFlow?.step3_createAdFromProduct && selectedFlow.step3_createAdFromProduct.urls?.length > 0 && (
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center font-bold text-sm">3</div>
+                          <h3 className="font-bold text-stone-900">Generated Ads</h3>
+                      </div>
+                      <div className="ml-11 grid grid-cols-2 gap-4">
+                          {selectedFlow.step3_createAdFromProduct.urls.map((url: string, idx: number) => (
+                              <img key={idx} src={url} className="w-full rounded-xl border border-[#E5E2DA] shadow-sm" />
+                          ))}
+                      </div>
+                   </div>
                 )}
 
-                {/* Step 3: Create Ad From Product */}
-                {selectedFlow?.step3_createAdFromProduct && (
-                  <div className='bg-gray-800 rounded-lg p-4 border-l-4 border-green-500'>
-                    <h3 className='text-xl font-semibold text-white mb-3'>Step 3: Create Ad From Product</h3>
-                    <div className='space-y-2 text-gray-300'>
-                      <p><span className='font-semibold'>Mode:</span> {selectedFlow.step3_createAdFromProduct.mode}</p>
-                      <p><span className='font-semibold'>Requested Count:</span> {selectedFlow.step3_createAdFromProduct.requested_count}</p>
-                      {/* {selectedFlow.step3_createAdFromProduct.prompt && (
-                        <div className='mt-3'>
-                          <p className='font-semibold mb-2'>Prompt Used:</p>
-                          <p className='bg-gray-700 p-3 rounded text-sm'>{selectedFlow.step3_createAdFromProduct.prompt}</p>
-                        </div>
-                      )} */}
-                      {selectedFlow.step3_createAdFromProduct.urls && selectedFlow.step3_createAdFromProduct.urls.length > 0 && (
-                        <div className='mt-3'>
-                          <p className='font-semibold mb-2'>Generated Ad Images:</p>
-                          <div className='grid grid-cols-2 gap-4'>
-                            {selectedFlow.step3_createAdFromProduct.urls.map((url: string, idx: number) => (
-                              <img key={idx} src={url} alt={`Ad ${idx + 1}`} className='w-full rounded-lg' />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      <p className='text-green-400 text-sm mt-2'>
-                        ✓ Completed at: {new Date(selectedFlow.step3_createAdFromProduct.completedAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 4: Generate Video Ad Prompt */}
-                {selectedFlow?.step4_generateVideoAdPrompt && (
-                  <div className='bg-gray-800 rounded-lg p-4 border-l-4 border-yellow-500'>
-                    <h3 className='text-xl font-semibold text-white mb-3'>Step 4: Generate Video Ad Prompt</h3>
-                    <div className='space-y-2 text-gray-300'>
-                      <p><span className='font-semibold'>Product Name:</span> {selectedFlow.step4_generateVideoAdPrompt.product_name}</p>
-                      {selectedFlow.step4_generateVideoAdPrompt.audio_script && (
-                        <p><span className='font-semibold'>Audio Script:</span> {selectedFlow.step4_generateVideoAdPrompt.audio_script}</p>
-                      )}
-                      {/* {selectedFlow.step4_generateVideoAdPrompt.video_prompt && (
-                        <div className='mt-3'>
-                          <p className='font-semibold mb-2'>Video Prompt:</p>
-                          <p className='bg-gray-700 p-3 rounded text-sm whitespace-pre-wrap'>{selectedFlow.step4_generateVideoAdPrompt.video_prompt}</p>
-                        </div>
-                      )} */}
-                      <p className='text-green-400 text-sm mt-2'>
-                        ✓ Completed at: {new Date(selectedFlow.step4_generateVideoAdPrompt.completedAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 5: Generate Ad Video */}
-                {selectedFlow?.step5_generateAdVideo && (
-                  <div className='bg-gray-800 rounded-lg p-4 border-l-4 border-red-500'>
-                    <h3 className='text-xl font-semibold text-white mb-3'>Step 5: Generate Ad Video</h3>
-                    <div className='space-y-2 text-gray-300'>
-                      {selectedFlow.step5_generateAdVideo.video_url && (
-                        <div className='mt-3'>
-                          <p className='font-semibold mb-2'>Video:</p>
-                          <video
-                            src={selectedFlow.step5_generateAdVideo.video_url}
-                            controls
-                            className='w-full rounded-lg'
-                          >
-                            Your browser does not support the video tag.
-                          </video>
-                        </div>
-                      )}
-                      {/* {selectedFlow.step5_generateAdVideo.prompt && (
-                        <div className='mt-3'>
-                          <p className='font-semibold mb-2'>Prompt:</p>
-                          <p className='bg-gray-700 p-3 rounded text-sm whitespace-pre-wrap'>{selectedFlow.step5_generateAdVideo.prompt}</p>
-                        </div>
-                      )} */}
-                      {selectedFlow.step5_generateAdVideo.duration_seconds && (
-                        <p><span className='font-semibold'>Duration:</span> {selectedFlow.step5_generateAdVideo.duration_seconds} seconds</p>
-                      )}
-                      <p className='text-green-400 text-sm mt-2'>
-                        ✓ Completed at: {new Date(selectedFlow.step5_generateAdVideo.completedAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
+                 {/* Step 5 - Video */}
+                 {selectedFlow?.step5_generateAdVideo?.video_url && (
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-sm">V</div>
+                          <h3 className="font-bold text-stone-900">Video Ad</h3>
+                      </div>
+                      <div className="ml-11">
+                          <video src={selectedFlow.step5_generateAdVideo.video_url} controls className="w-full rounded-xl bg-black" />
+                      </div>
+                   </div>
                 )}
               </div>
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 };
