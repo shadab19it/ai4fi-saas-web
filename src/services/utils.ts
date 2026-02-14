@@ -1,4 +1,10 @@
 import { toast } from "sonner";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: any[]) {
+  return twMerge(clsx(inputs));
+}
 
 export const setLocalStorage = (name: string, data: any) => localStorage.setItem(name, JSON.stringify(data));
 export const getLocalStorage = (name: string) => JSON.parse(localStorage.getItem(name) as any);

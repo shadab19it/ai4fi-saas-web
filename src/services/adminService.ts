@@ -258,6 +258,27 @@ class AdminService extends BaseService {
     }
   }
 
+  // Subscription Plans
+  async getSubscriptionPlans(): Promise<{ success: boolean; plans: any[] }> {
+    try {
+      const response = await this.axiosInstance.get("/admin/subscription-plans");
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async updateSubscriptionPlan(planId: string, updates: Record<string, any>): Promise<{ success: boolean; plan: any; message: string }> {
+    try {
+      const response = await this.axiosInstance.put(`/admin/subscription-plans/${planId}`, updates);
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
   // Subscription Analytics
   async getSubscriptionAnalytics(): Promise<any> {
     try {

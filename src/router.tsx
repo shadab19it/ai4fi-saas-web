@@ -26,6 +26,7 @@ import InviteAcceptPage from "./pages/InviteAccept";
 import TeamSettings from "./pages/TeamSettings";
 import SeedPage from "./pages/Seed/SeedPage";
 import ProductListingStudioPage from "./pages/ProductListingStudio/ProductListingStudioPage";
+import PricingPage from "./pages/Pricing/PricingPage";
 
 export const router = createBrowserRouter([
   {
@@ -59,6 +60,10 @@ export const router = createBrowserRouter([
       {
         path: "model-gallery",
         element: <HomePageGallery />,
+      },
+      {
+        path: "pricing",
+        element: <PricingPage />,
       },
       {
         path: "terms-of-service",
