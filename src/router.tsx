@@ -25,6 +25,7 @@ import CreditsPage from "./pages/Credits";
 import InviteAcceptPage from "./pages/InviteAccept";
 import TeamSettings from "./pages/TeamSettings";
 import SeedPage from "./pages/Seed/SeedPage";
+import ProductListingStudioPage from "./pages/ProductListingStudio/ProductListingStudioPage";
 
 export const router = createBrowserRouter([
   {
@@ -125,5 +126,9 @@ export const router = createBrowserRouter([
   {
     path: "/team-settings",
     element: <ProtectedRoute component={TeamSettings} />,
+  },
+  {
+    path: "/product-listing-studio",
+    element: <ProtectedRoute component={ProductListingStudioPage} />,
   },
 ]);

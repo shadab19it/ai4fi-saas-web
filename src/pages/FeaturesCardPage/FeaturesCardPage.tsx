@@ -1,183 +1,376 @@
-
-import { Sparkles } from "lucide-react"
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import DarkLogo from "../../../public/dark-logo.png"
+import { useNavigate } from "react-router-dom"
+import {
+  Sparkles,
+  ArrowRight,
+  Wand2,
+  Shirt,
+  Film,
+  UserRound,
+  LayoutGrid,
+  Zap,
+  Star,
+  TrendingUp,
+  ShoppingBag,
+} from "lucide-react"
+import AppHeader from "../../components/Layout/AppHeader"
+import Button from "../../components/ui/Button"
+
 import CardImage1 from "../../assets/unnamed (1).jpg"
 import CardImage5 from "../../assets/unnamed (5).jpg"
 import CardImage6 from "../../assets/unnamed (6).jpg"
 import CardImage7 from "../../assets/unnamed (7).jpg"
 import CardImage3 from "../../assets/Gemini_Generated_Image_x1zejnx1zejnx1ze.png"
-import bgImage from "../../assets/features-bg.png"
+import CardImageProduct from "../../assets/ads-product-img.png"
 
+interface FeatureTool {
+  id: number
+  title: string
+  description: string
+  icon: React.ReactNode
+  accentColor: string
+  accentBg: string
+  accentBorder: string
+  accentShadow: string
+  path: string
+  image: string
+  badge?: string
+  badgeColor?: string
+}
 
 export default function FeaturesPage() {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const navigate = useNavigate()
 
-  const tools = [
+  const tools: FeatureTool[] = [
     {
-      id: 5,
-      title: "AI FASHION STUDIO",
-      description: "All-one platform for design & creation",
-      icon: "✨",
-      color: "from-cyan-400 to-purple-500",
-      borderColor: "border-cyan-500/30 hover:border-cyan-400",
+      id: 1,
+      title: "AI Fashion Studio",
+      description:
+        "All-in-one platform for AI-powered fashion design, creation, and visualization.",
+      icon: <Wand2 className="h-5 w-5" />,
+      accentColor: "text-violet-600",
+      accentBg: "bg-violet-50",
+      accentBorder: "border-violet-200",
+      accentShadow: "shadow-violet-500/12",
       path: "/try-on-v2-beta",
       image: CardImage6,
+      badge: "PRO",
+      badgeColor: "bg-violet-600",
     },
-
     {
       id: 2,
-      title: "VIRTUAL TRY-ON",
-      description: "Real-time outfit visualization on user photos",
-      icon: "👗",
-      color: "from-purple-500 to-pink-500",
-      borderColor: "border-purple-500/30 hover:border-purple-400",
+      title: "Virtual Try-On",
+      description:
+        "Real-time outfit visualization on user photos with AI-powered fitting.",
+      icon: <Shirt className="h-5 w-5" />,
+      accentColor: "text-rose-600",
+      accentBg: "bg-rose-50",
+      accentBorder: "border-rose-200",
+      accentShadow: "shadow-rose-500/12",
       path: "/virtualtryon",
       image: CardImage7,
+      badge: "POPULAR",
+      badgeColor: "bg-rose-600",
     },
     {
       id: 3,
-      title: "AD CREATOR SUITE",
-      description: "Generate AI powered fashion ads instantly",
-      icon: "🎬",
-      color: "from-blue-500 to-cyan-500",
-      borderColor: "border-blue-500/30 hover:border-blue-400",
+      title: "Ad Creator Suite",
+      description:
+        "Generate high-converting, AI-powered fashion ad creatives instantly.",
+      icon: <Film className="h-5 w-5" />,
+      accentColor: "text-blue-600",
+      accentBg: "bg-blue-50",
+      accentBorder: "border-blue-200",
+      accentShadow: "shadow-blue-500/12",
       path: "/ads-generator",
       image: CardImage3,
+      badge: "NEW",
+      badgeColor: "bg-blue-600",
     },
     {
-      id: 1,
-      title: "AI MODEL GENERATOR",
-      description: "Create custom virtual models for any need.",
-      icon: "👤",
-      color: "from-cyan-500 to-blue-500",
-      borderColor: "border-cyan-500/30 hover:border-cyan-400",
+      id: 4,
+      title: "AI Model Generator",
+      description:
+        "Create custom photorealistic virtual fashion models for any campaign.",
+      icon: <UserRound className="h-5 w-5" />,
+      accentColor: "text-emerald-600",
+      accentBg: "bg-emerald-50",
+      accentBorder: "border-emerald-200",
+      accentShadow: "shadow-emerald-500/12",
       path: "/model",
       image: CardImage1,
     },
     {
-      id: 4,
-      title: "MODEL & ASSET GALLERY",
-      description: "Access a vast collection of models & digital assets",
-      icon: "🖼️",
-      color: "from-pink-500 to-purple-500",
-      borderColor: "border-pink-500/30 hover:border-pink-400",
+      id: 5,
+      title: "Model & Asset Gallery",
+      description:
+        "Browse and manage your generated models, try-ons, and digital assets.",
+      icon: <LayoutGrid className="h-5 w-5" />,
+      accentColor: "text-amber-600",
+      accentBg: "bg-amber-50",
+      accentBorder: "border-amber-200",
+      accentShadow: "shadow-amber-500/12",
       path: "/generated-model",
       image: CardImage5,
     },
-
+    {
+      id: 6,
+      title: "Product Listing Studio",
+      description:
+        "Generate marketplace-ready product images and listing copy for eCommerce.",
+      icon: <ShoppingBag className="h-5 w-5" />,
+      accentColor: "text-teal-600",
+      accentBg: "bg-teal-50",
+      accentBorder: "border-teal-200",
+      accentShadow: "shadow-teal-500/12",
+      path: "/product-listing-studio",
+      image: CardImageProduct,
+      badge: "NEW",
+      badgeColor: "bg-teal-600",
+    },
   ]
 
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    navigate("/login")
+  }
+
   return (
-    <div
-      className="min-h-screen bg-gray-900 text-white overflow-hidden"
-      style={{
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
-      }}
-    >
+    <div className="min-h-screen bg-[#F4F2EE] flex flex-col">
+      <AppHeader title="AI Tools" onLogout={handleLogout} />
 
-      <div className='p-3 relative  flex justify-between z-[100]'>
-        <h2 className='text-xl font-bold flex items-center gap-2'>
-          <Link to={"/"}>
-            <img src={DarkLogo} className='w-20 h-8' alt='AI4FI' />
-          </Link>
-          <Sparkles className='w-5 h-5 text-purple-600' />
-        
-          <span className='text-white'>Try On V2 (beta)</span>
-          {/* Model Generator */}
-        </h2>
-        <div className='flex items-center gap-2'>
-         <Link to={"/"}>
-          <button className='bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-800 hover:to-indigo-800 text-white  px-4 py-2  rounded-lg shadow-lg transition-transform transform hover:scale-105'>
-            Back
-          </button>
-         </Link>
-       </div>
-      </div>
+      {/* ─── Tools Grid ─── */}
+      <section className="relative flex-1 max-w-6xl mx-auto w-full px-5 sm:px-8 pt-8 sm:pt-10 pb-8">
+        {/* Decorative gradient blobs */}
+        <div className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full bg-gradient-to-br from-violet-200/40 via-indigo-100/30 to-transparent blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-[320px] h-[320px] rounded-full bg-gradient-to-tr from-blue-200/30 via-cyan-100/20 to-transparent blur-3xl pointer-events-none" />
 
-
-
-      {/* Animated starfield background */}
-      {/* <div className="fixed inset-0 z-0">
-        {[...Array(120)].map((_, i) => (
+        {/* Featured Card (First Tool) — includes hero headline */}
+        <div
+          className="relative mb-5 cursor-pointer group"
+          onMouseEnter={() => setHoveredCard(tools[0].id)}
+          onMouseLeave={() => setHoveredCard(null)}
+          onClick={() => navigate(tools[0].path)}
+        >
           <div
-            key={i}
-            className="absolute w-1 h-1 bg-white rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animation: `twinkle ${2 + Math.random() * 3}s infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
-          />
-        ))}
-        <svg className="absolute inset-0 w-full h-full opacity-10" preserveAspectRatio="none">
-          <defs>
-            <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-              <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(0, 229, 255, 0.1)" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-      </div> */}
+            className={`relative overflow-hidden rounded-2xl border bg-white transition-all duration-300 ${
+              hoveredCard === tools[0].id
+                ? `${tools[0].accentBorder} shadow-[0_12px_40px_rgba(99,102,241,0.12)]`
+                : "border-[#E5E2DA] shadow-[0_1px_3px_rgba(28,25,23,0.06)]"
+            }`}
+          >
+            <div className="flex flex-col md:flex-row">
+              {/* Image */}
+              <div className="relative md:w-[40%] aspect-[16/10] md:aspect-auto md:max-h-[340px] overflow-hidden">
+                <img
+                  src={tools[0].image}
+                  alt={tools[0].title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:via-transparent md:to-white pointer-events-none" />
+              </div>
 
-      {/* Content */}
-      <div className="relative">
-        {/* Main Section */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Title */}
-          <div className="mb-16">
-            <h1 className="text-4xl md:text-4xl font-bold mb-8">OUR POWERFUL AI TOOLS</h1>
-          </div>
+              {/* Content — Hero headline + tool info */}
+              <div className="flex-1 p-5 sm:p-6 lg:p-8 flex flex-col justify-center">
+                {/* Hero headline inside card */}
+                <div className="mb-4">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F9F8F5] border border-[#E5E2DA] mb-3">
+                    <Sparkles className="h-3.5 w-3.5 text-violet-500" />
+                    <span className="text-[11px] font-bold text-[#6B6560] tracking-wide uppercase">
+                      AI-Powered Platform
+                    </span>
+                  </div>
+                  <h1 className="text-[22px] sm:text-[26px] lg:text-[30px] font-extrabold text-stone-900 tracking-tight leading-[1.15] mb-2">
+                    Powerful Tools to{" "}
+                    <span className="bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 bg-clip-text text-transparent">
+                      Transform
+                    </span>{" "}
+                    Fashion
+                  </h1>
+                  <p className="text-[12.5px] sm:text-[13px] text-[#9E9893] leading-relaxed max-w-md">
+                    From generating photorealistic models to creating ad campaigns — everything you need to build stunning fashion content.
+                  </p>
+                </div>
 
-          {/* Tools Grid - Horizontal Scroll */}
-          <div className="pb-6 mb-4">
-            <div className="flex flex-wrap justify-center md:justify-center gap-6 ">
-              {tools.map((tool, index) => (
-                <div
-                  key={tool.id}
-                  className="w-[220px] flex-shrink-0 cursor-pointer"
-                  onMouseEnter={() => setHoveredCard(index)}
-                  onMouseLeave={() => setHoveredCard(null)}
-                  onClick={() => navigate(tool.path)}
-                >
-                  <div
-                    className={`h-96  rounded-3xl border-2 ${tool.borderColor} bg-gradient-to-br from-gray-900/50 to-black/50 backdrop-blur-xl  flex flex-col justify-between transition-all duration-300 ${
-                      hoveredCard === index ? "scale-105 shadow-2xl shadow-cyan-500/20" : ""
-                    }`}
-                  >
-                    <img src={tool.image} alt={tool.title} className="w-full h-full object-cover rounded-3xl" />
+                {/* Divider */}
+                <div className="border-t border-[#E5E2DA] pt-3 mb-0">
+                  <div className="flex items-center gap-2.5 mb-2.5">
+                    <div
+                      className={`w-9 h-9 rounded-lg ${tools[0].accentBg} flex items-center justify-center ${tools[0].accentColor}`}
+                    >
+                      {tools[0].icon}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-[15px] font-bold text-stone-900 tracking-tight">
+                          {tools[0].title}
+                        </h2>
+                        {tools[0].badge && (
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[9px] font-bold tracking-wider text-white ${tools[0].badgeColor}`}
+                          >
+                            {tools[0].badge}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[12px] text-[#9E9893] leading-snug">
+                        {tools[0].description}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              ))}
+
+                <div>
+                  <Button
+                    variant="gradient"
+                    size="lg"
+                    icon={<ArrowRight className="h-4 w-4" />}
+                    className="font-bold"
+                  >
+                    Launch Studio
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* CTA Button */}
-          <div className="flex justify-center mb-20">
-            <a
-              href="/model"
-              className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 rounded-full font-bold text-white transition transform hover:scale-105 shadow-lg hover:shadow-cyan-500/50"
+        {/* Remaining Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {tools.slice(1).map((tool) => (
+            <div
+              key={tool.id}
+              className="cursor-pointer group"
+              onMouseEnter={() => setHoveredCard(tool.id)}
+              onMouseLeave={() => setHoveredCard(null)}
+              onClick={() => navigate(tool.path)}
             >
-              START BUILDING WITH AI
-            </a>
-          </div>
-        </section>
-      </div>
+              <div
+                className={`relative overflow-hidden rounded-2xl border bg-white h-full flex flex-col transition-all duration-300 ${
+                  hoveredCard === tool.id
+                    ? `${tool.accentBorder} shadow-[0_8px_28px_rgba(28,25,23,0.1)] -translate-y-0.5`
+                    : "border-[#E5E2DA] shadow-[0_1px_3px_rgba(28,25,23,0.06)]"
+                }`}
+              >
+                {/* Image */}
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    src={tool.image}
+                    alt={tool.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                  />
+                  {/* Gradient overlay at bottom */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none" />
 
+                  {/* Badge */}
+                  {tool.badge && (
+                    <div className="absolute top-3 right-3">
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-[9.5px] font-bold tracking-wider text-white ${tool.badgeColor} shadow-sm`}
+                      >
+                        {tool.badge}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 p-4 flex flex-col">
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <div
+                      className={`w-8 h-8 rounded-lg ${tool.accentBg} flex items-center justify-center ${tool.accentColor} shrink-0`}
+                    >
+                      {tool.icon}
+                    </div>
+                    <h3 className="text-[14px] font-bold text-stone-900 tracking-tight leading-tight">
+                      {tool.title}
+                    </h3>
+                  </div>
+                  <p className="text-[12px] text-[#9E9893] leading-relaxed mb-4 flex-1">
+                    {tool.description}
+                  </p>
+                  <div
+                    className={`flex items-center gap-1 text-[12px] font-semibold ${tool.accentColor} transition-all group-hover:gap-2`}
+                  >
+                    <span>Open tool</span>
+                    <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Bottom CTA ─── */}
+      <section className="border-t border-[#E5E2DA] bg-white">
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+            {/* Left: CTA Content */}
+            <div className="text-center lg:text-left">
+              <h2 className="text-[20px] sm:text-[24px] font-bold text-stone-900 tracking-tight mb-2">
+                Ready to build with AI?
+              </h2>
+              <p className="text-[13.5px] text-[#6B6560] max-w-md">
+                Start generating photorealistic models, virtual try-ons, and
+                ad creatives in minutes — no design skills required.
+              </p>
+            </div>
+
+            {/* Right: Stats + Button */}
+            <div className="flex flex-col sm:flex-row items-center gap-5">
+              {/* Mini Stats */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F9F8F5] border border-[#E5E2DA]">
+                  <Zap className="h-3.5 w-3.5 text-amber-500" />
+                  <span className="text-[11.5px] font-bold text-stone-900">
+                    6
+                  </span>
+                  <span className="text-[11.5px] text-[#9E9893]">
+                    AI Tools
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F9F8F5] border border-[#E5E2DA]">
+                  <Star className="h-3.5 w-3.5 text-violet-500" />
+                  <span className="text-[11.5px] font-bold text-stone-900">
+                    Pro
+                  </span>
+                  <span className="text-[11.5px] text-[#9E9893]">
+                    Quality
+                  </span>
+                </div>
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F9F8F5] border border-[#E5E2DA]">
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="text-[11.5px] font-bold text-stone-900">
+                    Fast
+                  </span>
+                  <span className="text-[11.5px] text-[#9E9893]">
+                    Generate
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                variant="gradient"
+                size="lg"
+                onClick={() => navigate("/model")}
+                icon={<ArrowRight className="h-4 w-4" />}
+                className="font-bold whitespace-nowrap"
+              >
+                Start Building
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Subtle animated gradient bar at the very top */}
       <style>{`
-        @keyframes twinkle {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 1; }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 1; }
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
         }
       `}</style>
     </div>
