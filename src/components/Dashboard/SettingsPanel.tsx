@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Settings, Coins, CreditCard, Save, Loader2 } from "lucide-react";
+import { Settings, Coins, CreditCard, Save, Loader2, Droplets } from "lucide-react";
 import adminService from "../../services/adminService";
 
 interface SettingEntry {
@@ -42,7 +42,8 @@ const CREDIT_COST_KEYS = [
   "creditsPerImage",
 ];
 
-const SPECIAL_KEYS = ["supportedCurrencies"];
+const WATERMARK_KEYS = ["watermarkEnabled", "watermarkText"];
+const SPECIAL_KEYS = ["supportedCurrencies", ...WATERMARK_KEYS];
 
 const formatSettingLabel = (key: string): string => {
   return key
@@ -60,6 +61,11 @@ const SettingsPanel: FC = () => {
   const [editValues, setEditValues] = useState<Record<string, string>>({});
   const [planEdits, setPlanEdits] = useState<Record<string, Partial<PlanData>>>({});
   const [savingPlanId, setSavingPlanId] = useState<string | null>(null);
+
+  // Watermark state
+  const [watermarkEnabled, setWatermarkEnabled] = useState(false);
+  const [watermarkText, setWatermarkText] = useState("AI4FI");
+  const [savingWatermark, setSavingWatermark] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
@@ -79,6 +85,12 @@ const SettingsPanel: FC = () => {
         }
       }
       setEditValues(initVals);
+
+      // Watermark
+      const wmEnabled = settingsRes.settings.watermarkEnabled;
+      const wmText = settingsRes.settings.watermarkText;
+      if (wmEnabled) setWatermarkEnabled(!!wmEnabled.value);
+      if (wmText) setWatermarkText(String(wmText.value || "AI4FI"));
     } catch (error: any) {
       toast.error(error.message || "Failed to load settings");
     } finally {
@@ -106,6 +118,36 @@ const SettingsPanel: FC = () => {
       toast.error(error.message || "Failed to update setting");
     } finally {
       setSavingKey(null);
+    }
+  };
+
+  const handleSaveWatermark = async (key: "watermarkEnabled" | "watermarkText") => {
+    setSavingWatermark(key);
+    try {
+      const value = key === "watermarkEnabled" ? watermarkEnabled : watermarkText;
+      await adminService.updateSetting(key, value);
+      toast.success(key === "watermarkEnabled" ? "Watermark toggled" : "Watermark text updated");
+      await fetchData();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update watermark setting");
+    } finally {
+      setSavingWatermark(null);
+    }
+  };
+
+  const handleToggleWatermark = async () => {
+    const newValue = !watermarkEnabled;
+    setWatermarkEnabled(newValue);
+    setSavingWatermark("watermarkEnabled");
+    try {
+      await adminService.updateSetting("watermarkEnabled", newValue);
+      toast.success(newValue ? "Watermark enabled" : "Watermark disabled");
+      await fetchData();
+    } catch (error: any) {
+      setWatermarkEnabled(!newValue);
+      toast.error(error.message || "Failed to toggle watermark");
+    } finally {
+      setSavingWatermark(null);
     }
   };
 
@@ -202,6 +244,74 @@ const SettingsPanel: FC = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Watermark Settings */}
+      <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden">
+        <div className="px-6 py-[18px] border-b border-[#E5E2DA] flex items-center gap-3">
+          <div className="w-9 h-9 rounded-[10px] bg-[#F3E8FF] flex items-center justify-center">
+            <Droplets className="h-[18px] w-[18px] text-purple-600" />
+          </div>
+          <div>
+            <h2 className="text-[15px] font-bold text-stone-900">Watermark Settings</h2>
+            <p className="text-xs text-[#9E9893] mt-0.5">Applied on image downloads for free / unsubscribed users</p>
+          </div>
+        </div>
+
+        <div className="px-6 py-4 space-y-4">
+          {/* Enable / Disable toggle */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-[13.5px] font-bold text-stone-900">Enable Watermark</h3>
+              <p className="text-[12px] text-[#6B6560]">Users without an active subscription will see watermarked images</p>
+            </div>
+            <button
+              onClick={handleToggleWatermark}
+              disabled={savingWatermark === "watermarkEnabled"}
+              aria-label="Toggle watermark"
+              tabIndex={0}
+              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                watermarkEnabled ? "bg-purple-600" : "bg-gray-300"
+              } disabled:opacity-50`}
+            >
+              {savingWatermark === "watermarkEnabled" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-white absolute left-1/2 -translate-x-1/2" />
+              ) : (
+                <span
+                  className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    watermarkEnabled ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              )}
+            </button>
+          </div>
+
+          {/* Watermark Text */}
+          <div>
+            <h3 className="text-[13.5px] font-bold text-stone-900 mb-0.5">Watermark Text</h3>
+            <p className="text-[12px] text-[#6B6560] mb-2">Text overlaid diagonally across downloaded images</p>
+            <div className="flex items-center gap-2.5 max-w-[400px]">
+              <input
+                type="text"
+                value={watermarkText}
+                onChange={(e) => setWatermarkText(e.target.value)}
+                maxLength={50}
+                placeholder="e.g. AI4FI"
+                className="flex-1 h-9 px-3 rounded-lg border border-[#E5E2DA] bg-[#F9F8F5] text-[13px] text-stone-900 outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/10 transition-all"
+                aria-label="Watermark text"
+              />
+              <button
+                onClick={() => handleSaveWatermark("watermarkText")}
+                disabled={savingWatermark === "watermarkText"}
+                className="h-9 px-4 rounded-lg bg-purple-600 text-white text-[13px] font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+                aria-label="Save watermark text"
+              >
+                {savingWatermark === "watermarkText" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Credit Cost Settings */}
