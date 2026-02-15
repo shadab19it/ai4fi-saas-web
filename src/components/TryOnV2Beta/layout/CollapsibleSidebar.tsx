@@ -25,7 +25,7 @@ export default function CollapsibleSidebar({
           size="md"
           onClick={onToggle}
           icon={collapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-          className="w-full xl:w-auto"
+          className="w-full "
         >
           {!collapsed && buttonLabel}
         </Button>

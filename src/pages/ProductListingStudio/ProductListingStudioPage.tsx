@@ -22,6 +22,7 @@ import {
 } from "lucide-react"
 import AppHeader from "../../components/Layout/AppHeader"
 import Button from "../../components/ui/Button"
+import commonService from "../../services/commonService"
 import productListingService, {
   type BannerResponse,
   type LifestyleListingResponse,
@@ -101,6 +102,7 @@ export default function ProductListingStudioPage() {
   const [listingData, setListingData] = useState<ListingData | null>(null)
   const [generationTime, setGenerationTime] = useState(0)
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [downloadAllLoading, setDownloadAllLoading] = useState(false)
 
   // Refs
   const productInputRef = useRef<HTMLInputElement>(null)
@@ -118,6 +120,7 @@ export default function ProductListingStudioPage() {
         } else {
           setModelImage(file)
           setModelImagePreview(url)
+          setModelImageCount((prev) => (prev === 0 ? Math.min(2, count - 1) : prev))
         }
       }
       reader.readAsDataURL(file)
@@ -220,6 +223,42 @@ export default function ProductListingStudioPage() {
   const handleLogout = () => {
     localStorage.removeItem("token")
     navigate("/login")
+  }
+
+  const handleDownloadImage = async (url: string, idx: number) => {
+    try {
+      const blob = await commonService.downloadSingleFile(url)
+      const blobUrl = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = blobUrl
+      link.download = `product-listing-${idx + 1}-${new Date().getTime()}.jpg`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(blobUrl)
+    } catch {
+      toast.error("Failed to download image")
+    }
+  }
+
+  const handleDownloadAll = async () => {
+    if (resultImages.length === 0) return
+    setDownloadAllLoading(true)
+    try {
+      if (resultImages.length === 1) {
+        await handleDownloadImage(resultImages[0], 0)
+      } else {
+        await commonService.downloadFileFromAPI(
+          resultImages,
+          mode === "banner" ? "product_listing_banner" : "product_listing",
+          `product-listing-${new Date().getTime()}.zip`
+        )
+      }
+    } catch {
+      toast.error("Failed to download images")
+    } finally {
+      setDownloadAllLoading(false)
+    }
   }
 
   // ─── Render Helpers ───────────────────────────────
@@ -622,24 +661,40 @@ export default function ProductListingStudioPage() {
                 in {generationTime.toFixed(1)}s
               </span>
             </div>
-            {resultTagline && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#E5E2DA]">
-                <span className="text-[11px] text-[#9E9893]">Tagline:</span>
-                <span className="text-[11.5px] font-semibold text-stone-900 max-w-[200px] truncate">
-                  "{resultTagline}"
-                </span>
+            <div className="flex items-center gap-2">
+              {resultTagline && (
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-[#E5E2DA]">
+                  <span className="text-[11px] text-[#9E9893]">Tagline:</span>
+                  <span className="text-[11.5px] font-semibold text-stone-900 max-w-[200px] truncate">
+                    "{resultTagline}"
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(resultTagline, "tagline")}
+                    className="p-0.5 hover:bg-[#F5F3F0] rounded"
+                  >
+                    {copiedField === "tagline" ? (
+                      <Check className="h-3 w-3 text-emerald-500" />
+                    ) : (
+                      <Copy className="h-3 w-3 text-[#B5B0AA]" />
+                    )}
+                  </button>
+                </div>
+              )}
+              {resultImages.length > 1 && (
                 <button
-                  onClick={() => copyToClipboard(resultTagline, "tagline")}
-                  className="p-0.5 hover:bg-[#F5F3F0] rounded"
+                  onClick={handleDownloadAll}
+                  disabled={downloadAllLoading}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-[11.5px] font-semibold transition-colors shadow-sm"
                 >
-                  {copiedField === "tagline" ? (
-                    <Check className="h-3 w-3 text-emerald-500" />
+                  {downloadAllLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
-                    <Copy className="h-3 w-3 text-[#B5B0AA]" />
+                    <Download className="h-3.5 w-3.5" />
                   )}
+                  {downloadAllLoading ? "Downloading..." : "Download All"}
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
@@ -668,16 +723,16 @@ export default function ProductListingStudioPage() {
                 />
                 {/* Hover overlay */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-end justify-center p-3 opacity-0 group-hover:opacity-100">
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(e) => e.stopPropagation()}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDownloadImage(url, idx)
+                    }}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/95 border border-[#E5E2DA] text-[11px] font-semibold text-stone-900 hover:bg-white transition-colors"
                   >
                     <Download className="h-3 w-3" />
                     Download
-                  </a>
+                  </button>
                 </div>
                 {/* Index badge */}
                 <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/50 text-[10px] font-bold text-white">

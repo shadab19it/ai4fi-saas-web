@@ -339,11 +339,11 @@ const ModelGeneratorUI: React.FC = () => {
             >
               Home
             </Link>
-            {generatedImages.length > 0 && (
+            {/* {generatedImages.length > 0 && (
               <Button variant='gradient' size='md' onClick={handleVirtualTryOn} className='font-bold'>
                 Virtual Try Room
               </Button>
-            )}
+            )} */}
           </div>
         </div>
 

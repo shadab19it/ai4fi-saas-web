@@ -43,8 +43,9 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   const [isLinked, setIsLinked] = useState(true)
   const [showProfessionalOptions, setShowProfessionalOptions] = useState(true)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [segment, setSegment] = useState<string>("Women")
-  const [garmentCategory, setGarmentCategory] = useState<string>("Top wear")
+  const [segment] = useState<string>("Women")
+  const [garmentCategory] = useState<string>("Top wear")
+  const [ecommercePlatform, setEcommercePlatform] = useState<string>("")
   const dressInputRef = useRef<HTMLInputElement>(null)
   const modelImageInputRef = useRef<HTMLInputElement>(null)
   const dropZoneRef = useRef<HTMLDivElement>(null)
@@ -127,14 +128,32 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   const handleAspectRatioSelect = (ratio: string) => {
     if (ratio === "custom") {
       setAspectRatio("")
+      setEcommercePlatform("")
       return
     }
     setAspectRatio(ratio)
+    setEcommercePlatform("")
     const [w, h] = ratio.split(":").map(Number)
     const baseWidth = 1024
     const calculatedHeight = Math.round((baseWidth * h) / w)
     setWidth(baseWidth.toString())
     setHeight(calculatedHeight.toString())
+  }
+
+  const platformPresets: Record<string, { label: string; ratio: string; width: number; height: number; description: string }> = {
+    amazon:   { label: "Amazon",   ratio: "1:1", width: 2000, height: 2000, description: "2000×2000 (1:1)" },
+    flipkart: { label: "Flipkart", ratio: "3:4", width: 1500, height: 2000, description: "1500×2000 (3:4)" },
+    myntra:   { label: "Myntra",   ratio: "3:4", width: 1500, height: 2000, description: "1500×2000 (3:4)" },
+    meesho:   { label: "Meesho",   ratio: "1:1", width: 1200, height: 1200, description: "1200×1200 (1:1)" },
+  }
+
+  const handlePlatformSelect = (platform: string) => {
+    const preset = platformPresets[platform]
+    if (!preset) return
+    setEcommercePlatform(platform)
+    setAspectRatio(preset.ratio)
+    setWidth(preset.width.toString())
+    setHeight(preset.height.toString())
   }
 
   const handleWidthChange = (value: string) => {
@@ -327,70 +346,71 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                     </select>
                   </div>
 
-                  {/* Prompt Settings */}
-                  <div>
-                    <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
-                      Prompt Settings
-                      <div className="group relative">
-                        <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                          Choose between AI-recommended prompts or customize your own
-                        </div>
-                      </div>
-                    </label>
-                    <div className="space-y-2">
-                      <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-colors ${
-                        !useCustomPrompt
-                          ? "border-violet-300 bg-violet-50"
-                          : "border-[#E5E2DA] hover:bg-[#F9F8F5]"
-                      }`}>
-                        <input
-                          type="radio"
-                          name="promptType"
-                          checked={!useCustomPrompt}
-                          onChange={() => {
-                            setUseCustomPrompt(false)
-                            setPromptOverride("")
-                          }}
-                          className="w-4 h-4 text-violet-600 border-[#E5E2DA] focus:ring-violet-500 focus:ring-2"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <span className="block text-[13px] font-semibold text-stone-900">AI Recommended</span>
-                          <p className="text-[11.5px] text-[#9E9893] mt-0.5">Optimized prompts for best results</p>
-                        </div>
-                      </label>
-                      <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-colors ${
-                        useCustomPrompt
-                          ? "border-violet-300 bg-violet-50"
-                          : "border-[#E5E2DA] hover:bg-[#F9F8F5]"
-                      }`}>
-                        <input
-                          type="radio"
-                          name="promptType"
-                          checked={useCustomPrompt}
-                          onChange={() => setUseCustomPrompt(true)}
-                          className="w-4 h-4 text-violet-600 border-[#E5E2DA] focus:ring-violet-500 focus:ring-2"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <span className="block text-[13px] font-semibold text-stone-900">Custom Prompt</span>
-                          <p className="text-[11.5px] text-[#9E9893] mt-0.5">Define your own styling preferences</p>
+                  {/* Model Face Image Section */}
+                  <div className="border-t border-[#E5E2DA] pt-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Sparkles className="w-4 h-4 text-violet-500" />
+                      <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
+                        Model Face Image
+                        <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
+                        <div className="group relative">
+                          <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                            Upload a face image or choose from gallery to preserve model identity
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
+                          </div>
                         </div>
                       </label>
                     </div>
-                    {useCustomPrompt && (
-                      <div className="mt-3">
-                        <textarea
-                          rows={5}
-                          value={promptOverride}
-                          onChange={(e) => setPromptOverride(e.target.value)}
-                          placeholder="e.g., 'wearing a red dress, professional look, studio lighting'"
-                          className="w-full px-3.5 py-3 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] placeholder-[#9E9893] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all resize-none"
+
+                    {modelImage ? (
+                      <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
+                        <img
+                          src={modelImage}
+                          alt="Model face"
+                          className="w-full h-32 object-cover"
                         />
+                        <button
+                          onClick={() => {
+                            setModelImage(null)
+                            if (modelImageInputRef.current) {
+                              modelImageInputRef.current.value = ""
+                            }
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => modelImageInputRef.current?.click()}
+                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
+                        >
+                          <Upload className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
+                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Upload Image</span>
+                        </button>
+                        <button
+                          onClick={() => setIsGalleryOpen(true)}
+                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
+                        >
+                          <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
+                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Choose from Gallery</span>
+                        </button>
                       </div>
                     )}
+                    <input
+                      ref={modelImageInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleModelFileInput}
+                      className="hidden"
+                    />
                   </div>
 
-                  {/* Quality Tier Selection */}
+
+                       {/* Quality Tier Selection */}
                   <div>
                     <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
                       Quality Tier
@@ -458,7 +478,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                             {/* Aspect Ratio Selection */}
                             <div>
                               <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Select Aspect Ratio</label>
-                              <div className="grid grid-cols-3 gap-2">
+                              <div className="grid grid-cols-5 gap-2">
                                 {[
                                   { value: "1:1", label: "1:1" },
                                   { value: "3:4", label: "3:4" },
@@ -474,6 +494,8 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                                     key={ratio.value}
                                     onClick={() => handleAspectRatioSelect(ratio.value)}
                                     className={`px-2.5 py-2 rounded-lg text-[11.5px] font-semibold transition-all ${
+                                      ratio.value === "custom" ? "col-span-2" : ""
+                                    } ${
                                       aspectRatio === ratio.value
                                         ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border border-violet-400 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
                                         : "bg-white border border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
@@ -512,6 +534,28 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                                   <option value="4K">4K</option>
                                 </select>
                                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
+                              </div>
+                            </div>
+
+                            {/* Ecommerce Platform Presets */}
+                            <div>
+                              <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Ecommerce Platform</label>
+                              <p className="text-[10.5px] text-[#9E9893] mb-3">Auto-sets optimal aspect ratio & dimensions for the selected marketplace</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                {Object.entries(platformPresets).map(([key, preset]) => (
+                                  <button
+                                    key={key}
+                                    onClick={() => handlePlatformSelect(key)}
+                                    className={`px-3 py-2.5 rounded-xl text-left transition-all ${
+                                      ecommercePlatform === key
+                                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border border-violet-400 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
+                                        : "bg-white border border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
+                                    }`}
+                                  >
+                                    <div className="text-[12px] font-bold">{preset.label}</div>
+                                    <div className={`text-[10px] mt-0.5 ${ecommercePlatform === key ? "text-white/75" : "text-[#9E9893]"}`}>{preset.description}</div>
+                                  </button>
+                                ))}
                               </div>
                             </div>
 
@@ -557,115 +601,79 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              {/* Segment */}
-                              <div>
-                                <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Segment</label>
-                                <div className="relative">
-                                  <select
-                                    value={segment}
-                                    onChange={(e) => setSegment(e.target.value)}
-                                    className="w-full px-3 py-2.5 pr-10 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
-                                  >
-                                    <option value="Women">Women</option>
-                                    <option value="Men">Men</option>
-                                    <option value="Kids">Kids</option>
-                                    <option value="Unisex">Unisex</option>
-                                  </select>
-                                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
-                                </div>
-                              </div>
-
-                              {/* Garment Category */}
-                              <div>
-                                <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Garment Category</label>
-                                <div className="relative">
-                                  <select
-                                    value={garmentCategory}
-                                    onChange={(e) => setGarmentCategory(e.target.value)}
-                                    className="w-full px-3 py-2.5 pr-10 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
-                                  >
-                                    <option value="Top wear">Top wear</option>
-                                    <option value="Bottom wear">Bottom wear</option>
-                                    <option value="Dress">Dress</option>
-                                    <option value="Outerwear">Outerwear</option>
-                                    <option value="Accessories">Accessories</option>
-                                    <option value="Footwear">Footwear</option>
-                                    <option value="Lingerie">Lingerie</option>
-                                    <option value="Swimwear">Swimwear</option>
-                                  </select>
-                                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
-                                </div>
-                              </div>
-                            </div>
+                    
                           </div>
                         )}
                       </div>
                     )}
                   </div>
 
-                  {/* Model Face Image Section */}
-                  <div className="border-t border-[#E5E2DA] pt-5">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Sparkles className="w-4 h-4 text-violet-500" />
-                      <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
-                        Model Face Image
-                        <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
-                        <div className="group relative">
-                          <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
-                            Upload a face image or choose from gallery to preserve model identity
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
-                          </div>
+
+                  {/* Prompt Settings */}
+                  <div>
+                    <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
+                      Prompt Settings
+                      <div className="group relative">
+                        <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                          Choose between AI-recommended prompts or customize your own
+                        </div>
+                      </div>
+                    </label>
+                    <div className="space-y-2">
+                      <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-colors ${
+                        !useCustomPrompt
+                          ? "border-violet-300 bg-violet-50"
+                          : "border-[#E5E2DA] hover:bg-[#F9F8F5]"
+                      }`}>
+                        <input
+                          type="radio"
+                          name="promptType"
+                          checked={!useCustomPrompt}
+                          onChange={() => {
+                            setUseCustomPrompt(false)
+                            setPromptOverride("")
+                          }}
+                          className="w-4 h-4 text-violet-600 border-[#E5E2DA] focus:ring-violet-500 focus:ring-2"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-[13px] font-semibold text-stone-900">AI Recommended</span>
+                          <p className="text-[11.5px] text-[#9E9893] mt-0.5">Optimized prompts for best results</p>
+                        </div>
+                      </label>
+                      <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-colors ${
+                        useCustomPrompt
+                          ? "border-violet-300 bg-violet-50"
+                          : "border-[#E5E2DA] hover:bg-[#F9F8F5]"
+                      }`}>
+                        <input
+                          type="radio"
+                          name="promptType"
+                          checked={useCustomPrompt}
+                          onChange={() => setUseCustomPrompt(true)}
+                          className="w-4 h-4 text-violet-600 border-[#E5E2DA] focus:ring-violet-500 focus:ring-2"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-[13px] font-semibold text-stone-900">Custom Prompt</span>
+                          <p className="text-[11.5px] text-[#9E9893] mt-0.5">Define your own styling preferences</p>
                         </div>
                       </label>
                     </div>
-
-                    {modelImage ? (
-                      <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
-                        <img
-                          src={modelImage}
-                          alt="Model face"
-                          className="w-full h-32 object-cover"
+                    {useCustomPrompt && (
+                      <div className="mt-3">
+                        <textarea
+                          rows={5}
+                          value={promptOverride}
+                          onChange={(e) => setPromptOverride(e.target.value)}
+                          placeholder="e.g., 'wearing a red dress, professional look, studio lighting'"
+                          className="w-full px-3.5 py-3 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] placeholder-[#9E9893] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all resize-none"
                         />
-                        <button
-                          onClick={() => {
-                            setModelImage(null)
-                            if (modelImageInputRef.current) {
-                              modelImageInputRef.current.value = ""
-                            }
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          onClick={() => modelImageInputRef.current?.click()}
-                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
-                        >
-                          <Upload className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
-                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Upload Image</span>
-                        </button>
-                        <button
-                          onClick={() => setIsGalleryOpen(true)}
-                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
-                        >
-                          <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
-                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Choose from Gallery</span>
-                        </button>
                       </div>
                     )}
-                    <input
-                      ref={modelImageInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleModelFileInput}
-                      className="hidden"
-                    />
                   </div>
+
+             
+            
                 </div>
               </CollapsibleSidebar>
             </div>

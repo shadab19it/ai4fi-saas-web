@@ -105,13 +105,13 @@ const ModelListPage: FC = () => {
     const filterModel: any[] = [];
     
     // Logic to extract URL based on imageType
-    if (imageType === "model" || imageType === "tryon_beta" || imageType === "pose_variants") {
+    if (imageType === "model" || imageType === "tryon_beta" || imageType === "pose_variants" || imageType === "product_listing_banner" || imageType === "product_listing") {
       selectedModel.forEach((key, i1) => {
         const [leftIndex, rightIndex] = key.split("_").map(Number);
         if (modelList[leftIndex]) {
           const element = modelList[leftIndex];
           let imageUrl = "";
-          if (imageType === "model") {
+          if (imageType === "model" || imageType === "product_listing_banner" || imageType === "product_listing") {
              imageUrl = element.generatedImages?.image_urls?.[rightIndex];
           } else {
              imageUrl = element.generatedImages?.[rightIndex];
@@ -177,6 +177,8 @@ const ModelListPage: FC = () => {
         case "tryon": setImageType("tryon"); break;
         case "tryon_beta": setImageType("tryon_beta"); break;
         case "pose_variants": setImageType("pose_variants"); break;
+        case "product_listing_banner": setImageType("product_listing_banner"); break;
+        case "product_listing": setImageType("product_listing"); break;
         case "ads": setImageType("ads"); break;
         default: setImageType("model");
     }
@@ -348,9 +350,11 @@ const ModelListPage: FC = () => {
                     {[
                         { id: "existingModels", label: "Generated Models" },
                         { id: "ownModels", label: "Custom Models" },
-                        { id: "tryon", label: "Virtual Try On" },
+                        // { id: "tryon", label: "Virtual Try On" }, // Removed as per user request
                         { id: "tryon_beta", label: "Try On Beta" },
                         { id: "pose_variants", label: "Pose Variants" },
+                        { id: "product_listing_banner", label: "Banners" },
+                        { id: "product_listing", label: "Lifestyle Listing" },
                         { id: "ads", label: "Ads" },
                     ].map((tab) => (
                         <button
@@ -379,7 +383,10 @@ const ModelListPage: FC = () => {
             {/* Pagination / Info Top Bar */}
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-stone-900">
-                    {activeTab === "ads" ? "Ad Campaigns" : "Model Gallery"}
+                    {activeTab === "ads" ? "Ad Campaigns" 
+                     : activeTab === "product_listing_banner" ? "Product Banners" 
+                     : activeTab === "product_listing" ? "Lifestyle Listings" 
+                     : "Model Gallery"}
                 </h2>
                 
                 {((activeTab === "ads" && flowsList.length > 0) || (activeTab !== "ads" && modelList.length > 0)) && (
@@ -422,13 +429,13 @@ const ModelListPage: FC = () => {
                     {activeTab !== "ads" && modelList.length > 0 && (
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
                              {/* Map Logic for Different Types */}
-                             {imageType === "model" && modelList.map((model, i) => 
+                             {/* Models, Banners, and Lifestyle Listings which store as { image_urls: [...] } */}
+                             {(imageType === "model" || imageType === "product_listing_banner" || imageType === "product_listing") && modelList.map((model, i) => 
                                  model.generatedImages?.image_urls?.map((url: string, index: number) => 
                                     renderImageCard(model, url, i, index)
                                  )
                              )}
 
-                             {/* Unified Mapping for TryOn / Variants which have flat array structure in backend response usually */}
                              {/* Unified Mapping for TryOn / Variants which have flat array structure in backend response usually */}
                              {(imageType === "tryon" || imageType === "tryon_beta" || imageType === "pose_variants") && modelList.map((model, i) => {
                                  const images = Array.isArray(model?.generatedImages) 
