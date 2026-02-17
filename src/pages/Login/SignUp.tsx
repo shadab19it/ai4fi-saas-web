@@ -1,235 +1,136 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { FC, useEffect } from "react";
+import { useTheme } from "../../context/ThemeContext";
 
-import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail } from "lucide-react";
-import authService from "../../services/authService";
-import { toast } from "sonner";
-import { LoadingSpinner } from "../../components/ModelGenerator/ModelConfigForm/ModelConfigForm";
+const AboutUs = () => {
+  const { isDark } = useTheme();
 
-interface FormData {
-  username: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-  otp: string;
-}
+  const features = [
+    {
+      icon: "🎨",
+      title: "Customization",
+      description: "Create models tailored to your brand’s vision with adjustable features like gender, skin tone, pose, and more.",
+    },
+    {
+      icon: "⚡",
+      title: "Efficiency",
+      description: "Generate professional outputs in minutes, saving you months of effort.",
+    },
+    {
+      icon: "💰",
+      title: "Cost-Effective",
+      description: "Eliminate the high costs of traditional shoots, models, and logistics.",
+    },
+    {
+      icon: "🌎",
+      title: "Global Appeal",
+      description: "Showcase garments on models from various regions, styles, and cultures.",
+    },
+    {
+      icon: "♻️",
+      title: "Sustainability",
+      description: "Reduce your environmental footprint by adopting a digital-first approach.",
+    },
+    {
+      icon: "🚀",
+      title: "Innovation",
+      description: "Embrace the latest advancements in AI for a competitive edge.",
+    },
+  ];
 
-const SignUpForm: React.FC = () => {
-  const [formData, setFormData] = useState<FormData>({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    otp: "",
-  });
-  const [isOtpSent, setIsOtpSent] = useState<boolean>(false);
-  const [isOtpVerified, setIsOtpVerified] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
-  const navigate = useNavigate();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-  };
-
-  const handleSendOtp = async () => {
-    const { username, email, password, confirmPassword } = formData;
-
-    if (password !== confirmPassword) {
-      toast.info("Password and confirm-password doesn't matched");
-      return;
-    }
-    setLoading(true);
-    try {
-      const res = await authService.signup({ username, email, password, confirmPassword });
-      setIsOtpSent(true);
-      toast.success("Opt sent please verify your email");
-      setLoading(false);
-    } catch (error: any) {
-      toast.error(error.message);
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    const { email, otp } = formData;
-    try {
-      setLoading(true);
-      const res = await authService.userVerifyOtp(otp, email);
-      toast.success(res.message);
-      setLoading(false);
-      navigate("/login");
-    } catch (error: any) {
-      setLoading(false);
-      toast.error(error.message);
-    }
-  };
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
-    <div className='flex flex-col h-auto justify-center items-center bg-gradient-to-br from-sky-950 to-gray-950 pb-16 pt-36'>
-      <div className='max-w-7xl w-full flex flex-col md:flex-row justify-center items-center'>
-        {/* Left Div */}
-        <motion.div
-          className='flex flex-col w-full md:w-1/2 justify-center items-start md:items-start text-center md:text-left px-4 py-8'
-          initial={{ x: "-100vw", opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 1 }}>
-          <h6 className='text-gray-100 text-[25px] font-semibold mb-6'>Join Us Today</h6>
-          <h2 className='text-lg sm:text-3xl md:text-4xl lg:text-5xl mb-6 leading-10 text-cyan-400'>Create your account with us!</h2>
-          <div className='h-px w-3/4 bg-gray-800 mb-6'></div>
-          <div className='flex justify-center  md:justify-start items-center space-x-4'>
-            <Mail className='text-3xl text-white' />
-            <div>
-              <p className='text-white'>support@yourwebsite.com</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Right Div */}
-        <motion.div
-          className='flex flex-col w-full md:w-2/5 shadow-lg p-12 bg-white rounded-lg'
-          initial={{ x: "100vw", opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 1 }}>
-          <h4 className='text-cyan-600 text-[30px] font-semibold mb-6'>Create your account</h4>
-          <form onSubmit={handleSubmit}>
-            <div className='space-y-4'>
-              {/* Email Input Section */}
-              {!isOtpSent && (
-                <>
-                  <div>
-                    <p className='mb-2'>Name</p>
-                    <input
-                      type='text'
-                      name='username'
-                      value={formData.username}
-                      onChange={handleChange}
-                      placeholder='Enter your name'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-md text-black'
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <p className='mb-2'>Email</p>
-                    <input
-                      type='email'
-                      name='email'
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder='Enter your email'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-md text-black'
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <p className='mb-2'>
-                      Password <span className='text-xs text-gray-500'>(Must be at least 6 characters)</span>
-                    </p>
-                    <div className='relative'>
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        name='password'
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder='Enter your password'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-md text-black pr-10'
-                        required
-                      />
-                      <span
-                        className='absolute cursor-pointer right-3 top-3 text-gray-500 hover:text-gray-700'
-                        onClick={() => setShowPassword(!showPassword)}>
-                        {!showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                      </span>
-                    </div>
-                  </div>
-                  <div className='mt-4'>
-                    <p className='mb-2'>
-                      Confirm Password <span className='text-xs text-gray-500'>(Must be at least 6 characters)</span>
-                    </p>
-                    <div className='relative'>
-                      <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        name='confirmPassword'
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        placeholder='Confirm your password'
-                        className='w-full p-3 border border-gray-300 rounded-md text-black pr-10'
-                        required
-                      />
-                      <span
-                        className='absolute cursor-pointer right-3 top-3 text-gray-500 hover:text-gray-700'
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        {!showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    type='button'
-                    disabled={loading}
-                    onClick={handleSendOtp}
-                    className={`w-full p-3 text-white rounded-md mt-4 ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-cyan-600"}`}
-                    style={{ borderRadius: "40px", fontSize: 19 }}>
-                    {loading ? "Sending OTP..." : "Send OTP"}
-                  </button>
-                </>
-              )}
-
-              {/* OTP Input Section */}
-              {isOtpSent && !isOtpVerified && (
-                <div>
-                  <p className='mb-2'>OTP</p>
-                  <input
-                    type='text'
-                    name='otp'
-                    value={formData.otp}
-                    onChange={handleChange}
-                    placeholder='Enter OTP'
-                    className='w-full p-3 border border-gray-300 rounded-md text-black'
-                    required
-                  />
-                  <button
-                    type='button'
-                    onClick={handleVerifyOtp}
-                    className='w-full p-3 flex items-center justify-center gap-1 bg-cyan-600 text-white rounded-md mt-4'>
-                    <span>Verify OTP</span> {loading && <LoadingSpinner size={15} />}
-                  </button>
-                </div>
-              )}
-
-              {isOtpSent && isOtpVerified && (
-                <>
-                  <button
-                    type='submit'
-                    className='w-full p-3 bg-cyan-600 text-white rounded-md shadow-lg'
-                    style={{ borderRadius: "40px", fontSize: 19 }}>
-                    Sign Up
-                  </button>
-                </>
-              )}
-            </div>
-          </form>
-          <p className='mt-6 text-center text-sm text-gray-600'>
-            Already have an account?{" "}
-            <Link to='/login' className='text-cyan-600  transition font-semibold'>
-              Sign In
-            </Link>
-          </p>
-        </motion.div>
+    <section className='bg-background text-foreground transition-colors duration-300'>
+      {/* Hero Section */}
+      <div 
+        className={`relative min-h-[400px] transition-colors duration-500 ${
+          isDark 
+            ? "bg-gradient-to-br from-sky-950 to-gray-800" 
+            : "bg-background "
+        }`}
+      >
+        <div className='absolute inset-0 bg-opacity-40 flex items-center justify-center'>
+          <h1 className={`text-4xl md:text-6xl font-bold text-center px-4 transition-colors duration-300 ${isDark ? "text-white" : "text-foreground"}`}>
+            Revolutionizing Fashion with AI
+            <br /> Smarter, Faster, Sustainable
+          </h1>
+        </div>
       </div>
-    </div>
+
+      {/* About Content */}
+      <div className={`container mx-auto px-6 py-12 lg:py-20 transition-colors duration-500 ${isDark ? "bg-gradient-to-br from-sky-950 to-gray-950" : "bg-background"}`}>
+        <div className={`flex flex-col  lg:flex-row items-center gap-12 px-6 md:px-12 lg:px-20 py-12 rounded-xl transition-colors duration-500 ${
+            isDark 
+              ? "bg-gradient-to-r from-cyan-900/30 to-sky-900/30 border border-transparent" 
+              : "bg-card border border-border shadow-sm"
+          }`}>
+          {/* Content Section */}
+          <div className='lg:w-1/2 ' data-aos='fade-right' data-aos-duration='1000'>
+            <h2 className={`text-3xl md:text-4xl font-bold mb-6 relative inline-block ${isDark ? "text-gray-100" : "text-foreground"}`}>
+              <span
+                className='text-brand-gradient'
+                data-aos='zoom-in'
+                data-aos-delay='500'
+                data-aos-duration='800'>
+                Welcome to AI4FI
+              </span>
+              <div className='absolute left-0 bottom-[-6px] h-1 w-16 bg-purple-500 rounded-md animate-pulse'></div>
+            </h2>
+            <p className={`text-lg leading-relaxed mb-4 ${isDark ? "text-gray-300" : "text-muted-foreground"}`}>
+              we are shaping the future of fashion with innovative, AI-powered solutions. Our mission is to help garment brands
+              revolutionize the way they create, showcase, and market their collections.
+            </p>
+            <p className={`text-lg leading-relaxed mb-6 ${isDark ? "text-gray-300" : "text-muted-foreground"}`}>
+              At the heart of AI4FI is our advanced artificial intelligence platform that enables garment brands to generate lifelike
+              virtual models and deliver immersive virtual try-on experiences. Whether you need professional-grade marketing images in
+              minutes or aim to personalize your online storefront with diverse and customizable virtual models, AI4FI makes it all
+              possible.
+            </p>
+          </div>
+
+          {/* Image Section */}
+          <div className='lg:w-1/2' data-aos='fade-left' data-aos-duration='1000'>
+            <img
+              src='https://uploads-ssl.webflow.com/6082f2094ccb2d6ff32eb5d8/6435384cbe80c37bc1786fc9_Blog%2022.jpg'
+              alt='About AI4FI'
+              className='rounded-lg shadow-lg object-cover w-full h-[40vh] transform transition-transform duration-500 hover:scale-105'
+            />
+          </div>
+        </div>
+
+        <div className='mt-16'>
+          <h3 className={`text-3xl font-bold mb-6 text-center ${isDark ? "text-gray-100" : "text-foreground"}`}>Why Choose AI4FI?</h3>
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
+            {features.map((feature, idx) => (
+              <FeatureCard key={idx} icon={feature.icon} title={feature.title} description={feature.description} isDark={isDark} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
 
-export default SignUpForm;
+// Feature Card Component
+interface FeatureCardProps {
+  icon: string;
+  title: string;
+  description: string;
+  isDark: boolean;
+}
+
+const FeatureCard: FC<FeatureCardProps> = ({ icon, title, description, isDark }) => (
+  <div className={`p-6 rounded-lg shadow-md text-center transform transition-all duration-300 hover:scale-105 hover:shadow-xl ${
+      isDark 
+        ? "bg-gradient-to-r from-cyan-900/30 to-sky-900/30 text-gray-200 border border-transparent" 
+        : "bg-card border border-border text-foreground shadow-sm"
+    }`}>
+    <div className='text-4xl'>{icon}</div>
+    <h4 className={`text-xl font-semibold mt-4 ${isDark ? "text-gray-200" : "text-foreground"}`}>{title}</h4>
+    <p className={`mt-2 ${isDark ? "text-gray-400" : "text-muted-foreground"}`}>{description}</p>
+  </div>
+);
+
+export default AboutUs;

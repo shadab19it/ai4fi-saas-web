@@ -153,7 +153,7 @@ export default function FeaturesPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F2EE] flex flex-col">
-      <AppHeader title="AI Tools" onLogout={handleLogout} />
+      <AppHeader  onLogout={handleLogout} />
 
       {/* ─── Tools Grid ─── */}
       <section className="relative flex-1 max-w-6xl mx-auto w-full px-5 sm:px-8 pt-8 sm:pt-10 pb-8">

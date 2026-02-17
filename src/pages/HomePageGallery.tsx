@@ -77,7 +77,7 @@ const HomePageGallery: React.FC = () => {
   }, []);
 
   return (
-    <div className='min-h-screen px-10 py-32 bg-gradient-to-br from-sky-950 to-gray-950'>
+    <div className='min-h-screen px-10 py-32 bg-background dark:bg-transparent dark:bg-gradient-to-br from-sky-950 to-gray-950'>
       {/* Fixed Buttons */}
       <div className='flex justify-center md:justify-between gap-3 flex-wrap'>
         <div className=' flex space-x-4'>
@@ -86,8 +86,10 @@ const HomePageGallery: React.FC = () => {
               key={category}
               className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 transform shadow-md ${
                 activeCategory === category
-                  ? "bg-gradient-to-r from-blue-500 to-blue-700 text-white scale-105 shadow-lg"
-                  : "bg-white text-black hover:bg-gradient-to-r hover:from-gray-300 hover:to-gray-500 hover:text-white"
+                  ? "bg-brand-color text-white scale-105 shadow-lg"
+
+                  : "text-foreground bg-card hover:bg-brand-color dark:border-0 border-border border hover:text-white"
+
               }`}
               onClick={() => setActiveCategory(category)}>
               {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -106,8 +108,8 @@ const HomePageGallery: React.FC = () => {
           <button
             className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 transform shadow-md ${
               gender === "male"
-                ? "bg-gradient-to-r from-blue-500 to-blue-700 text-white scale-105 shadow-lg"
-                : "bg-white text-black hover:bg-gradient-to-r hover:from-gray-300 hover:to-gray-500 hover:text-white"
+                ? "bg-brand-color text-white scale-105 shadow-lg"
+                : "text-foreground  bg-card hover:bg-brand-color dark:border-0 border-border border hover:text-white"
             }`}
             onClick={() => (gender === "male" ? setGender("") : setGender("male"))}>
             Male
@@ -115,8 +117,8 @@ const HomePageGallery: React.FC = () => {
           <button
             className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 transform shadow-md ${
               gender === "female"
-                ? "bg-gradient-to-r from-blue-500 to-blue-700 text-white scale-105 shadow-lg"
-                : "bg-white text-black hover:bg-gradient-to-r hover:from-gray-300 hover:to-gray-500 hover:text-white"
+                ? "bg-brand-color text-white scale-105 shadow-lg"
+                : "text-foreground  bg-card hover:bg-brand-color dark:border-0 border-border border hover:text-white"
             }`}
             onClick={() => (gender === "female" ? setGender("") : setGender("female"))}>
             Female
@@ -126,10 +128,10 @@ const HomePageGallery: React.FC = () => {
 
       {/* Loader Overlay */}
       {isLoading && (
-        <div className='fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 !ml-0'>
+        <div className='fixed inset-0 bg-background bg-opacity-75 flex items-center justify-center z-50 !ml-0'>
           <div className='flex flex-col items-center gap-4'>
             <div className='w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin'></div>
-            <p className='text-white text-lg font-semibold'>Loading category...</p>
+            <p className='text-foreground text-lg font-semibold'>Loading category...</p>
           </div>
         </div>
       )}

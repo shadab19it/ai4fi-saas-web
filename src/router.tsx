@@ -43,6 +43,10 @@ export const router = createBrowserRouter([
         element: <SeedPage />,
       },
       {
+        path: "pricing",
+        element: <PricingPage />,
+      },
+      {
         path: "login",
         element: <LoginPage />,
       },
@@ -79,6 +83,16 @@ export const router = createBrowserRouter([
         element: <InviteAcceptPage />,
       },
     ],
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
+  
+  },
+  {
+    path: "/signup",
+    element: <SignUpForm />,
+  
   },
   {
     path: "/admin",

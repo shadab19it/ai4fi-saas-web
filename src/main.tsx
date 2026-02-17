@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 import "./index.css";
 import authService from "./services/authService";
 import { setUser } from "./store/userReducer";
+import { ThemeProvider } from "./context/ThemeContext";
 
 const MainRoute: FC = () => {
   const dispatch = useDispatch();
@@ -36,7 +37,9 @@ const MainRoute: FC = () => {
 createRoot(document.getElementById("root")!).render(
   // <StrictMode>
   <Provider store={store}>
-    <MainRoute />
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <MainRoute />
+    </ThemeProvider>
   </Provider>
   // </StrictMode>
 );

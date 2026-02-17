@@ -49,9 +49,6 @@ const ProductGeneratorPage: FC = () => {
             <img src={DarkLogo} className='w-20 h-8' alt='AI4FI' />
           </Link>
           <Sparkles className='w-5 h-5 text-purple-600' />
-        
-          <span className='text-white'>Try On V2 (beta)</span>
-          {/* Model Generator */}
         </h2>
         <div className='flex items-center gap-2'>
          <Link to={"/features"}>

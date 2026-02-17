@@ -59,7 +59,7 @@ const AppHeader: FC<AppHeaderProps> = ({ title, onLogout }) => {
         {/* Logo */}
         <div className='flex items-center gap-5'>
           <Link to='/' className='flex items-center gap-2'>
-           <img src={logo} alt="AI4FI" className='w-16 h-12 object-contain' />
+           <img src={logo} alt="AI4FI" className='w-18 h-12 object-contain' />
           </Link>
           {title && (
             <>

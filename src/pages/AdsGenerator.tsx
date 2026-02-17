@@ -44,8 +44,7 @@ const AdsGenerator: FC = () => {
             <img src={DarkLogo} className='w-20 h-8' alt='AI4FI' />
           </Link>
           <Sparkles className='w-5 h-5 text-purple-600' />
-        
-          <span className='text-white'>Try On V2 (beta)</span>
+    
           {/* Model Generator */}
         </h2>
         <div className='flex items-center gap-2'>
@@ -68,7 +67,7 @@ const AdsGenerator: FC = () => {
                 </span>
               </h1>
               <p className="text-lg text-gray-300 max-w-xl">
-                Upload, transform, and launch your product video commercial in just 3 steps — powered oi AI
+                Upload, transform, and launch your product video commercial in just 3 steps powered oi AI
               </p>
             </div>
             <div className="flex justify-center md:col-span-4 col-span-1 mt-8 md:mt-0">
@@ -192,7 +191,7 @@ const AdsGenerator: FC = () => {
 
         {/* Features */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-purple-500/20">
-          <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">AI4FI – Your Product. Your Ad. In Minutes</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 text-white">AI4FI – Your Product. Your Ad. In Minutes</h2>
           <p className="text-center text-gray-400 mb-16">AI4FI.com</p>
 
           <div className="grid md:grid-cols-6 gap-6 text-center">

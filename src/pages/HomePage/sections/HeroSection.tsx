@@ -166,7 +166,7 @@ const HeroSection = () => {
 
             <Link to='/contact'>
               <motion.button
-                className='bg-white/5 backdrop-blur-lg border border-white/10 text-white px-5 sm:px-5 py-3 sm:py-3 rounded-xl font-medium hover:bg-white/10 transition-all duration-300 flex items-center gap-2 text-sm sm:text-base'
+                className='bg-white/5 backdrop-blur-lg border border-border text-white px-5 sm:px-5 py-3 sm:py-3 rounded-xl font-medium hover:bg-white/10 transition-all duration-300 flex items-center gap-2 text-sm sm:text-base'
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}>
                 {/* <svg

@@ -79,20 +79,20 @@ const ContactForm: React.FC = () => {
   }, []);
 
   return (
-    <div className='flex flex-col h-auto justify-center items-center bg-gradient-to-br from-sky-950 to-gray-950 pb-16 lg:pt-28'>
+    <div className='flex flex-col h-auto justify-center items-center dark:bg-gradient-to-br from-sky-950 to-gray-950 bg-background dark:bg-transparent pb-16 lg:pt-28'>
       <div className='max-w-7xl w-full flex flex-col md:flex-row justify-center items-center'>
         {/* Left Section */}
         <motion.div
           className='flex flex-col w-full md:w-1/2 justify-center items-center md:items-start text-center md:text-left px-4 py-8'
           initial={{ x: "-100vw", opacity: 0 }}
           animate={{ x: 0, opacity: 1, transition: { duration: 0.7 } }}>
-          <h6 className='text-gray-100 text-2xl font-semibold mb-6'>Get in Touch</h6>
-          <h2 className='text-lg sm:text-3xl md:text-4xl lg:text-5xl mb-6 leading-10 text-cyan-400'>Are you ready to talk to us?</h2>
-          <div className='h-px w-3/4 bg-gray-800 mb-6'></div>
+          <h6 className='text-foreground text-2xl font-semibold mb-6'>Get in Touch</h6>
+          <h2 className='text-lg text-brand-gradient sm:text-3xl md:text-4xl lg:text-5xl mb-6 leading-10'>Are you ready to talk to us?</h2>
+          <div className='h-px w-3/4 bg-card mb-6'></div>
           <div className='flex items-center space-x-4'>
-            <Mail className='text-3xl text-white' />
+            <Mail className='text-3xl text-foreground' />
             <div>
-              <a href='mainto:sales@apricityts.com' className='cursor-pointer text-white'>
+              <a href='mainto:sales@apricityts.com' className='cursor-pointer text-foreground'>
                 sales@apricityts.com
               </a>
             </div>
@@ -101,7 +101,7 @@ const ContactForm: React.FC = () => {
 
         {/* Right Section */}
         <motion.div
-          className='flex flex-col w-full md:w-2/5 shadow-lg py-8 px-10 bg-white rounded-lg'
+          className='flex flex-col w-full md:w-2/5 shadow-lg py-8 px-10 bg-card rounded-lg'
           initial={{ x: "100vw", opacity: 0 }}
           animate={{ x: 0, opacity: 1, transition: { duration: 0.7 } }}>
           <h4 className='text-cyan-600 text-2xl font-semibold mb-6'>Send us a message</h4>
@@ -114,7 +114,7 @@ const ContactForm: React.FC = () => {
                 onChange={handleChange}
                 placeholder='Name'
                 required
-                className='w-full p-3 border border-gray-300 rounded-md text-black'
+                className='w-full p-3 border border-border  rounded-md text-foreground'
               />
               <input
                 type='text'
@@ -122,7 +122,7 @@ const ContactForm: React.FC = () => {
                 value={formData.company}
                 onChange={handleChange}
                 placeholder='Company'
-                className='w-full p-3 border border-gray-300 rounded-md text-black'
+                className='w-full p-3 border border-border rounded-md text-foreground'
               />
             </div>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
@@ -132,7 +132,7 @@ const ContactForm: React.FC = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder='Phone'
-                className='w-full p-3 border border-gray-300 rounded-md text-black'
+                className='w-full p-3 border border-border rounded-md text-foreground'
               />
               <input
                 type='email'
@@ -140,7 +140,7 @@ const ContactForm: React.FC = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder='Email'
-                className='w-full p-3 border border-gray-300 rounded-md text-black'
+                className='w-full p-3 border border-border rounded-md text-foreground'
                 required
               />
             </div>
@@ -216,7 +216,7 @@ const ContactForm: React.FC = () => {
                 name='howYouFoundUs'
                 onChange={handleChange}
                 value={formData.howYouFoundUs}
-                className='w-full p-3 border border-gray-300 rounded-md text-black'
+                className='w-full p-3 border border-border rounded-md text-foreground'
                 required>
                 <option value='' disabled selected>
                   Select an option
@@ -233,7 +233,7 @@ const ContactForm: React.FC = () => {
               value={formData.message}
               onChange={handleChange}
               placeholder='Why are you interested in us?'
-              className='w-full p-3 border border-gray-300 rounded-md text-black'
+              className='w-full p-3 border border-border rounded-md text-foreground'
               rows={4}
               required
             />
@@ -272,7 +272,7 @@ const ContactForm: React.FC = () => {
             </div>
             <button
               type='submit'
-              className='w-full p-3 flex items-center justify-center gap-2 bg-cyan-600 text-white rounded-md shadow-lg text-lg'>
+              className='w-full p-3 flex items-center justify-center gap-2 bg-brand-color text-white rounded-md shadow-lg text-lg'>
               <span>Send Message</span> {loading && <LoadingSpinner size={20} />}
             </button>
           </form>
@@ -283,3 +283,5 @@ const ContactForm: React.FC = () => {
 };
 
 export default ContactForm;
+
+

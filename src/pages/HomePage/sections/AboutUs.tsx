@@ -50,7 +50,7 @@ const AboutUs = () => {
   ];
 
   return (
-    <div id='about' className='min-h-screen bg-gradient-to-bl from-cyan-900 via-black to-cyan-800'>
+    <div id='about' className='min-h-screen bg-background'>
       {/* About Section */}
       <section className='py-20 relative overflow-hidden'>
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
@@ -59,10 +59,10 @@ const AboutUs = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className='text-center mb-16'>
-            <h1 className='text-5xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-sky-400'>
+            <h1 className='text-5xl font-bold mb-6 text-foreground'>
               Revolutionizing Fashion Showcase
             </h1>
-            <p className='text-gray-400 text-xl max-w-3xl mx-auto'>
+            <p className='text-muted-foreground text-xl max-w-3xl mx-auto'>
               We're transforming how fashion brands present their collections through innovative AI technology, making professional fashion
               photography accessible to everyone.
             </p>
@@ -75,10 +75,13 @@ const AboutUs = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: index * 0.2 }}
-                className='bg-slate-800 bg-opacity-50 backdrop-blur-xl rounded-2xl p-8 hover:bg-opacity-70 transition-all duration-300'>
-                <div className='bg-gradient-to-br from-cyan-500 to-sky-500 p-3 rounded-xl inline-block mb-4'>{feature.icon}</div>
-                <h3 className='text-xl font-bold mb-3 text-white'>{feature.title}</h3>
-                <p className='text-gray-400'>{feature.description}</p>
+                
+                className='glass-card p-8 hover:shadow-lg transition-all duration-300 border border-border'>
+    <div className="absolute -top-4 -right-4 w-20 h-20 bg-brand-color rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
+
+                <div className='bg-brand-color text-white p-3 rounded-xl inline-block mb-4'>{feature.icon}</div>
+                <h3 className='text-xl font-bold mb-3 text-foreground'>{feature.title}</h3>
+                <p className='text-muted-foreground'>{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -87,15 +90,15 @@ const AboutUs = () => {
 
       {/* Contact Section */}
       <section id='contact' className='py-20 relative'>
-        <div className='absolute inset-0 bg-gradient-to-b from-black to-transparent bg-opacity-20' />
+        <div className='absolute inset-0 bg-gradient-to-b from-[var(--background)] to-transparent bg-opacity-20 ' />
         <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative'>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className='text-center mb-12'>
-            <h2 className='text-4xl font-bold mb-4 text-white'>Get in Touch</h2>
-            <p className='text-gray-400 text-xl max-w-2xl mx-auto'>
+            <h2 className='text-4xl font-bold mb-4 text-foreground'>Get in Touch</h2>
+            <p className='text-muted-foreground text-xl max-w-2xl mx-auto'>
               Ready to transform your fashion showcase? Our team is here to help you get started with AI-powered fashion photography.
             </p>
           </motion.div>
@@ -104,15 +107,15 @@ const AboutUs = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className='bg-cyan-900 bg-opacity-50 backdrop-blur-xl rounded-2xl p-8 max-w-2xl mx-auto'>
+            className='bg-card backdrop-blur-xl rounded-2xl p-8 max-w-2xl mx-auto border border-border'>
             <div className='flex items-center justify-between mb-8 md:flex-row flex-col gap-4'>
               <div className='flex items-center space-x-4'>
                 <div className='bg-gradient-to-br from-cyan-500 to-sky-500 p-3 rounded-xl'>
                   <Mail className='w-6 h-6 text-white' />
                 </div>
                 <div>
-                  <h3 className='text-xl font-bold text-white'>Email Support</h3>
-                  <p className='text-gray-400'>Response within 24 hours</p>
+                  <h3 className='text-xl font-bold text-card-foreground'>Email Support</h3>
+                  <p className='text-muted-foreground'>Response within 24 hours</p>
                 </div>
               </div>
               <Link to='/contact'>
@@ -134,11 +137,11 @@ const AboutUs = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             className='text-center mb-16'>
-            <h2 className='text-4xl font-bold mb-4 text-white'>Frequently Asked Questions</h2>
-            <p className='text-gray-400 text-xl'>Everything you need to know about our AI fashion platform</p>
+            <h2 className='text-4xl font-bold mb-4 text-foreground'>Frequently Asked Questions</h2>
+            <p className='text-muted-foreground text-xl'>Everything you need to know about our AI fashion platform</p>
           </motion.div>
 
-          <div className='max-w-5xl mx-auto bg-cyan-950 p-8 rounded-2xl'>
+          <div className='max-w-5xl mx-auto bg-muted/30 p-8 rounded-2xl border border-border'>
             {faqs.map((faq, index) => (
               <motion.div
                 key={index}
@@ -148,15 +151,15 @@ const AboutUs = () => {
                 className='mb-4 last:mb-0'>
                 <button
                   onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
-                  className='w-full bg-cyan-900 bg-opacity-50 hover:bg-opacity-70 backdrop-blur-xl rounded-xl p-6 text-left transition-all duration-300'>
+                  className='w-full bg-card hover:bg-accent backdrop-blur-xl rounded-xl p-6 text-left transition-all duration-300 border border-border'>
                   <div className='flex justify-between items-center'>
-                    <h3 className='text-lg font-semibold text-white'>{faq.question}</h3>
+                    <h3 className='text-lg font-semibold text-foreground'>{faq.question}</h3>
                     <ChevronDown
-                      className={`w-5 h-5 text-white transform transition-transform duration-300 ${openFaq === index ? "rotate-180" : ""}`}
+                      className={`w-5 h-5 text-foreground transform transition-transform duration-300 ${openFaq === index ? "rotate-180" : ""}`}
                     />
                   </div>
                   <div
-                    className={`mt-4 text-gray-400 overflow-hidden transition-all duration-300 ${
+                    className={`mt-4 text-muted-foreground overflow-hidden transition-all duration-300 ${
                       openFaq === index ? "max-h-40" : "max-h-0"
                     }`}>
                     {faq.answer}

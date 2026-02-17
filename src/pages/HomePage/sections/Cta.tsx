@@ -6,8 +6,8 @@ import authService from "../../../services/authService";
 const CTASection = () => {
   const navigate = useNavigate();
   return (
-    <section className='py-20 relative overflow-hidden bg-gradient-to-t from-cyan-950 via-black to-black'>
-      <div className='absolute inset-0 bg-opacity-20 bg-cyan-900' />
+    <section className='py-20 relative overflow-hidden bg-background'>
+      <div className='absolute inset-0 bg-primary/5' />
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
 
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative'>
@@ -15,9 +15,9 @@ const CTASection = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className='text-center text-white'>
+          className='text-center text-foreground'>
           <h2 className='text-4xl md:text-5xl font-bold mb-6'>Start Your AI Fashion Journey Today!</h2>
-          <p className='text-xl text-gray-200 mb-8 max-w-2xl mx-auto'>
+          <p className='text-xl text-muted-foreground mb-8 max-w-2xl mx-auto'>
             Join the future of fashion visualization and transform your brand's digital presence
           </p>
 
