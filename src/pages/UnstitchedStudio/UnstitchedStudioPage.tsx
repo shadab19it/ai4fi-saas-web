@@ -37,8 +37,6 @@ interface FabricSlot {
   sublabel: string
   required: boolean
   icon: React.ReactNode
-  accentFrom: string
-  accentTo: string
   image: string | null
 }
 
@@ -58,13 +56,24 @@ type FitType = {
 // Constants
 // ──────────────────────────────────────────────
 
-const DRESS_TYPES: DressType[] = [
+const FEMALE_DRESS_TYPES: DressType[] = [
   { value: "salwar_kameez", label: "Salwar Kameez", description: "Classic Indo-Western", icon: <Scissors className="w-4 h-4" /> },
   { value: "anarkali", label: "Anarkali", description: "Flowing elegance", icon: <Layers className="w-4 h-4" /> },
   { value: "lehenga", label: "Lehenga", description: "Bridal & Festive", icon: <Crown className="w-4 h-4" /> },
   { value: "kurti", label: "Kurti", description: "Everyday chic", icon: <Palette className="w-4 h-4" /> },
   { value: "saree_blouse", label: "Saree Blouse", description: "Traditional drape", icon: <Sparkles className="w-4 h-4" /> },
   { value: "sharara", label: "Sharara", description: "Festive flare", icon: <Layers className="w-4 h-4" /> },
+  { value: "other", label: "Other", description: "Custom style", icon: <Layers className="w-4 h-4" /> },
+]
+
+const MALE_DRESS_TYPES: DressType[] = [
+  { value: "kurta_pajama", label: "Kurta Pajama", description: "Classic Ethnic", icon: <Scissors className="w-4 h-4" /> },
+  { value: "sherwani", label: "Sherwani", description: "Royal & Festive", icon: <Crown className="w-4 h-4" /> },
+  { value: "nehru_jacket", label: "Nehru Jacket", description: "Sophisticated", icon: <Layers className="w-4 h-4" /> },
+  { value: "pathani_suit", label: "Pathani Suit", description: "Traditional Bold", icon: <Palette className="w-4 h-4" /> },
+  { value: "jodhpuri", label: "Jodhpuri", description: "Premium Formal", icon: <Sparkles className="w-4 h-4" /> },
+  { value: "blazer", label: "Blazer", description: "Indo-Western", icon: <Scissors className="w-4 h-4" /> },
+  { value: "other", label: "Other", description: "Custom style", icon: <Layers className="w-4 h-4" /> },
 ]
 
 const FIT_TYPES: FitType[] = [
@@ -87,8 +96,6 @@ export default function UnstitchedStudioPage() {
       sublabel: "Main body fabric — required",
       required: true,
       icon: <Layers className="w-5 h-5" />,
-      accentFrom: "from-amber-500",
-      accentTo: "to-orange-500",
       image: null,
     },
     {
@@ -97,8 +104,6 @@ export default function UnstitchedStudioPage() {
       sublabel: "Pants / Lehenga fabric",
       required: false,
       icon: <Palette className="w-5 h-5" />,
-      accentFrom: "from-rose-500",
-      accentTo: "to-pink-500",
       image: null,
     },
     {
@@ -107,8 +112,6 @@ export default function UnstitchedStudioPage() {
       sublabel: "Scarf or drape fabric",
       required: false,
       icon: <Sparkles className="w-5 h-5" />,
-      accentFrom: "from-violet-500",
-      accentTo: "to-indigo-500",
       image: null,
     },
   ])
@@ -123,6 +126,20 @@ export default function UnstitchedStudioPage() {
   const [tier, setTier] = useState<"basic" | "professional">("professional")
   const [aspectRatio, setAspectRatio] = useState("")
   const [resolution, setResolution] = useState("")
+
+  const dressTypes = gender === "male" ? MALE_DRESS_TYPES : FEMALE_DRESS_TYPES
+
+  const handleGenderChange = (newGender: string) => {
+    setGender(newGender)
+    // Update default dress style based on gender
+    if (newGender === "male") {
+      setDressName("kurta_pajama")
+      // Clear dupatta for male
+      handleFabricRemove("dupatta_fabric")
+    } else {
+      setDressName("salwar_kameez")
+    }
+  }
 
   // Model face
   const [modelFace, setModelFace] = useState<string | null>(null)
@@ -229,7 +246,6 @@ export default function UnstitchedStudioPage() {
       if (fabricFiles.top_fabric) {
         formData.append("top_fabric", fabricFiles.top_fabric)
       } else if (fabrics[0].image) {
-        // Convert base64 to blob
         const resp = await fetch(fabrics[0].image)
         const blob = await resp.blob()
         formData.append("top_fabric", blob, "top_fabric.jpg")
@@ -257,7 +273,6 @@ export default function UnstitchedStudioPage() {
       if (modelFaceFile) {
         formData.append("model_face", modelFaceFile)
       } else if (modelFace && modelFace.startsWith("http")) {
-        // Gallery URL — fetch and convert to blob
         try {
           const resp = await fetch(modelFace)
           const blob = await resp.blob()
@@ -317,6 +332,10 @@ export default function UnstitchedStudioPage() {
     }
   }
 
+  // Filter fabric slots based on gender (no dupatta for male)
+  const visibleFabrics = gender === "male"
+    ? fabrics.filter((f) => f.id !== "dupatta_fabric")
+    : fabrics
 
   const hasResults = generatedImages.length > 0
 
@@ -331,7 +350,7 @@ export default function UnstitchedStudioPage() {
           <div className="h-6 w-px bg-[#E5E2DA]" />
           <div>
             <h1 className="text-[14px] font-bold text-stone-900 flex items-center gap-1.5">
-              <Scissors className="w-4 h-4 text-amber-500" />
+              <Scissors className="w-4 h-4 text-[#2563EB]" />
               Fabric Studio
             </h1>
             <p className="text-[11.5px] text-[#9E9893] font-medium">Unstitched → Stitched Try-On</p>
@@ -349,7 +368,7 @@ export default function UnstitchedStudioPage() {
       {/* ─── Main Content ─── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Hero Banner */}
-        <div className="relative mb-6 rounded-2xl overflow-hidden bg-gradient-to-r from-amber-600 via-orange-500 to-rose-500 p-6 sm:p-8">
+        <div className="relative mb-6 rounded-2xl overflow-hidden bg-gradient-to-r from-[#1e40af] via-[#2563EB] to-[#3b82f6] p-6 sm:p-8">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjEuNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9nPjwvc3ZnPg==')] opacity-60" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -385,8 +404,8 @@ export default function UnstitchedStudioPage() {
             {/* Fabric Upload Zone */}
             {!hasResults ? (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {fabrics.map((slot) => (
+                <div className={`grid grid-cols-1 gap-4 ${visibleFabrics.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                  {visibleFabrics.map((slot) => (
                     <div key={slot.id} className="group">
                       <div
                         onDragOver={(e) => handleDragOver(e, slot.id)}
@@ -396,8 +415,8 @@ export default function UnstitchedStudioPage() {
                           slot.image
                             ? "border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)]"
                             : draggingSlot === slot.id
-                            ? "border-amber-400 bg-amber-50/50 shadow-lg shadow-amber-500/10 scale-[1.01]"
-                            : "border-dashed border-[#D0CBBF] bg-white hover:border-amber-400 hover:bg-[#FFFBF5] shadow-[0_1px_3px_rgba(28,25,23,0.04)]"
+                            ? "border-[#2563EB] bg-blue-50/50 shadow-lg shadow-blue-500/10 scale-[1.01]"
+                            : "border-dashed border-[#D0CBBF] bg-white hover:border-[#2563EB] hover:bg-[#f0f5ff] shadow-[0_1px_3px_rgba(28,25,23,0.04)]"
                         }`}
                       >
                         {slot.image ? (
@@ -443,7 +462,7 @@ export default function UnstitchedStudioPage() {
                             </button>
                             {/* Label badge */}
                             <div className="absolute top-2.5 left-2.5 z-10">
-                              <div className={`inline-flex items-center gap-1 bg-gradient-to-r ${slot.accentFrom} ${slot.accentTo} text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm`}>
+                              <div className="inline-flex items-center gap-1 bg-[#2563EB] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                                 {slot.icon}
                                 {slot.label}
                               </div>
@@ -455,7 +474,7 @@ export default function UnstitchedStudioPage() {
                             onClick={() => fabricRefs.current[slot.id]?.click()}
                             className="aspect-[4/5] flex flex-col items-center justify-center gap-3 cursor-pointer p-4"
                           >
-                            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${slot.accentFrom} ${slot.accentTo} flex items-center justify-center text-white shadow-lg transition-transform duration-300 ${draggingSlot === slot.id ? "scale-110 animate-bounce" : "group-hover:scale-105"}`}>
+                            <div className={`w-14 h-14 rounded-2xl bg-[#2563EB] flex items-center justify-center text-white shadow-lg transition-transform duration-300 ${draggingSlot === slot.id ? "scale-110 animate-bounce" : "group-hover:scale-105"}`}>
                               {draggingSlot === slot.id ? (
                                 <Upload className="w-7 h-7 animate-bounce" />
                               ) : (
@@ -466,7 +485,7 @@ export default function UnstitchedStudioPage() {
                               <p className="text-[13px] font-bold text-stone-900 mb-0.5">{slot.label}</p>
                               <p className="text-[11px] text-[#9E9893]">{slot.sublabel}</p>
                               {slot.required && (
-                                <span className="inline-block mt-1 text-[9px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full border border-amber-200">
+                                <span className="inline-block mt-1 text-[9px] font-bold text-[#2563EB] bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-200">
                                   REQUIRED
                                 </span>
                               )}
@@ -497,13 +516,13 @@ export default function UnstitchedStudioPage() {
                 </div>
 
                 {/* Pro Tips */}
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60 rounded-xl p-4 flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                    <Info className="w-4 h-4 text-amber-600" />
+                <div className="bg-blue-50/60 border border-blue-200/60 rounded-xl p-4 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    <Info className="w-4 h-4 text-[#2563EB]" />
                   </div>
                   <div>
-                    <p className="font-semibold text-amber-800 text-[13px] mb-1">Tips for best results</p>
-                    <ul className="text-[12px] text-amber-700/80 space-y-0.5">
+                    <p className="font-semibold text-blue-800 text-[13px] mb-1">Tips for best results</p>
+                    <ul className="text-[12px] text-blue-700/80 space-y-0.5">
                       <li>• Use high-resolution fabric photos with even lighting</li>
                       <li>• Lay fabric flat for the most accurate texture capture</li>
                       <li>• Include pattern details — the AI will replicate them on the garment</li>
@@ -518,7 +537,7 @@ export default function UnstitchedStudioPage() {
                   onClick={handleGenerate}
                   disabled={!canGenerate || isGenerating}
                   loading={isGenerating}
-                  className="w-full !h-12 text-[15px] !rounded-xl !bg-gradient-to-r !from-amber-500 !to-orange-500 !hover:from-amber-600 !hover:to-orange-600 !shadow-[0_4px_16px_rgba(245,158,11,0.35)]"
+                  className="w-full !h-12 text-[15px] !rounded-xl"
                 >
                   {isGenerating ? "Generating your design..." : "Generate Stitched Design"}
                 </Button>
@@ -597,7 +616,7 @@ export default function UnstitchedStudioPage() {
                             alt={f.label}
                             className="w-16 h-16 rounded-lg object-cover border border-[#E5E2DA]"
                           />
-                          <span className={`absolute -top-1.5 -left-1.5 text-[8px] font-bold bg-gradient-to-r ${f.accentFrom} ${f.accentTo} text-white px-1.5 py-0.5 rounded-full`}>
+                          <span className="absolute -top-1.5 -left-1.5 text-[8px] font-bold bg-[#2563EB] text-white px-1.5 py-0.5 rounded-full">
                             {f.label.split(" ")[0]}
                           </span>
                         </div>
@@ -624,7 +643,7 @@ export default function UnstitchedStudioPage() {
             {/* ── Dress Configuration Card ── */}
             <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 space-y-5">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center">
                   <Scissors className="w-4 h-4 text-white" />
                 </div>
                 <div>
@@ -642,10 +661,10 @@ export default function UnstitchedStudioPage() {
                   {["female", "male"].map((g) => (
                     <button
                       key={g}
-                      onClick={() => setGender(g)}
+                      onClick={() => handleGenderChange(g)}
                       className={`px-3 py-2.5 rounded-xl border-2 text-[13px] font-semibold transition-all ${
                         gender === g
-                          ? "bg-gradient-to-r from-amber-500 to-orange-500 border-amber-400 text-white shadow-[0_2px_8px_rgba(245,158,11,0.25)]"
+                          ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
                           : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                       }`}
                     >
@@ -661,13 +680,13 @@ export default function UnstitchedStudioPage() {
                   Dress Style
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {DRESS_TYPES.map((d) => (
+                  {dressTypes.map((d) => (
                     <button
                       key={d.value}
                       onClick={() => setDressName(d.value)}
                       className={`px-3 py-2.5 rounded-xl border-2 text-left transition-all ${
                         dressName === d.value
-                          ? "bg-gradient-to-r from-amber-500 to-orange-500 border-amber-400 text-white shadow-[0_2px_8px_rgba(245,158,11,0.25)]"
+                          ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
                           : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                       }`}
                     >
@@ -697,7 +716,7 @@ export default function UnstitchedStudioPage() {
                       onClick={() => setFitType(f.value)}
                       className={`px-2 py-2 rounded-lg text-[11px] font-semibold transition-all ${
                         fitType === f.value
-                          ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border border-amber-400 shadow-[0_2px_8px_rgba(245,158,11,0.25)]"
+                          ? "bg-[#2563EB] text-white border border-[#2563EB] shadow-sm"
                           : "bg-white border border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                       }`}
                     >
@@ -711,7 +730,7 @@ export default function UnstitchedStudioPage() {
             {/* ── Model Face Card ── */}
             <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 space-y-4">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-500" />
+                <Sparkles className="w-4 h-4 text-[#2563EB]" />
                 <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
                   Model Face
                   <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
@@ -736,19 +755,19 @@ export default function UnstitchedStudioPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => modelFaceRef.current?.click()}
-                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-amber-400 hover:bg-amber-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
+                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
                   >
-                    <Upload className="w-5 h-5 text-[#9E9893] group-hover:text-amber-500 transition-colors" />
-                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-amber-600 transition-colors">
+                    <Upload className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
+                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
                       Upload Image
                     </span>
                   </button>
                   <button
                     onClick={() => setIsGalleryOpen(true)}
-                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-amber-400 hover:bg-amber-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
+                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
                   >
-                    <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-amber-500 transition-colors" />
-                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-amber-600 transition-colors">
+                    <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
+                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
                       From Gallery
                     </span>
                   </button>
@@ -770,7 +789,7 @@ export default function UnstitchedStudioPage() {
             <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden">
               <div className="p-5 space-y-4">
                 <div className="flex items-center gap-2">
-                  <Crown className="w-4 h-4 text-amber-500" />
+                  <Crown className="w-4 h-4 text-[#2563EB]" />
                   <label className="text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
                     Quality Tier
                   </label>
@@ -780,7 +799,7 @@ export default function UnstitchedStudioPage() {
                     onClick={() => setTier("basic")}
                     className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
                       tier === "basic"
-                        ? "bg-gradient-to-r from-amber-500 to-orange-500 border-amber-400 text-white shadow-[0_4px_12px_rgba(245,158,11,0.25)]"
+                        ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
                         : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                     }`}
                   >
@@ -791,7 +810,7 @@ export default function UnstitchedStudioPage() {
                     onClick={() => setTier("professional")}
                     className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
                       tier === "professional"
-                        ? "bg-gradient-to-r from-amber-500 to-orange-500 border-amber-400 text-white shadow-[0_4px_12px_rgba(245,158,11,0.25)]"
+                        ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
                         : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                     }`}
                   >
@@ -812,7 +831,7 @@ export default function UnstitchedStudioPage() {
                             onClick={() => setAspectRatio(r)}
                             className={`px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
                               aspectRatio === r
-                                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border border-amber-400"
+                                ? "bg-[#2563EB] text-white border border-[#2563EB]"
                                 : "bg-white border border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893]"
                             }`}
                           >
@@ -829,7 +848,7 @@ export default function UnstitchedStudioPage() {
                         <select
                           value={resolution}
                           onChange={(e) => setResolution(e.target.value)}
-                          className="w-full px-3 py-2.5 pr-10 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-400 transition-all appearance-none cursor-pointer"
+                          className="w-full px-3 py-2.5 pr-10 rounded-xl bg-[#F9F8F5] border border-[#E5E2DA] text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] transition-all appearance-none cursor-pointer"
                         >
                           <option value="">Default</option>
                           <option value="1K">1K</option>
@@ -878,7 +897,7 @@ export default function UnstitchedStudioPage() {
                   onClick={() => setActiveCategory(category)}
                   className={`px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
                     activeCategory === category
-                      ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_2px_8px_rgba(245,158,11,0.25)]"
+                      ? "bg-[#2563EB] text-white shadow-sm"
                       : "bg-[#F9F8F5] text-[#6B6560] hover:bg-[#E5E2DA]"
                   }`}
                 >
@@ -894,7 +913,7 @@ export default function UnstitchedStudioPage() {
                   <div
                     key={index}
                     onClick={() => handleGallerySelect(imageUrl)}
-                    className="relative aspect-square rounded-xl overflow-hidden border-2 border-[#E5E2DA] hover:border-amber-400 cursor-pointer transition-all group shadow-[0_1px_3px_rgba(28,25,23,0.06)]"
+                    className="relative aspect-square rounded-xl overflow-hidden border-2 border-[#E5E2DA] hover:border-[#2563EB] cursor-pointer transition-all group shadow-[0_1px_3px_rgba(28,25,23,0.06)]"
                   >
                     <img
                       src={imageUrl}
@@ -902,7 +921,7 @@ export default function UnstitchedStudioPage() {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-lg font-semibold text-[13px] shadow-lg">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-[#2563EB] text-white px-4 py-2 rounded-lg font-semibold text-[13px] shadow-lg">
                         Select
                       </div>
                     </div>
@@ -927,7 +946,7 @@ export default function UnstitchedStudioPage() {
       {isGenerating && (
         <div className="fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white rounded-2xl border border-[#E5E2DA] shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mx-auto mb-5">
+            <div className="w-16 h-16 rounded-2xl bg-[#2563EB] flex items-center justify-center mx-auto mb-5">
               <Loader2 className="w-8 h-8 text-white animate-spin" />
             </div>
             <h3 className="text-[17px] font-bold text-stone-900 mb-2">Crafting Your Design</h3>
@@ -935,7 +954,7 @@ export default function UnstitchedStudioPage() {
               Our AI is stitching your fabric into a beautiful garment. This may take a minute...
             </p>
             <div className="w-full bg-[#E5E2DA] rounded-full h-1.5 overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full animate-pulse" style={{ width: "60%" }} />
+              <div className="h-full bg-[#2563EB] rounded-full animate-pulse" style={{ width: "60%" }} />
             </div>
           </div>
         </div>

@@ -26,7 +26,7 @@ import clsx from "clsx";
 const ModelListPage: FC = () => {
   const dispatch = useDispatch();
   const [pageSize, setPageSize] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(10);
+  const [limit] = useState<number>(10);
   const [totalCount, setTotalCount] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(0);
   const { modelList, selectedModel } = useSelector((state: RootState) => state.modelList);
@@ -105,13 +105,13 @@ const ModelListPage: FC = () => {
     const filterModel: any[] = [];
     
     // Logic to extract URL based on imageType
-    if (imageType === "model" || imageType === "tryon_beta" || imageType === "pose_variants" || imageType === "product_listing_banner" || imageType === "product_listing") {
-      selectedModel.forEach((key, i1) => {
+    if (imageType === "model" || imageType === "tryon_beta" || imageType === "pose_variants" || imageType === "product_listing_banner" || imageType === "product_listing" || imageType === "unstitched_tryon") {
+      selectedModel.forEach((key) => {
         const [leftIndex, rightIndex] = key.split("_").map(Number);
         if (modelList[leftIndex]) {
           const element = modelList[leftIndex];
           let imageUrl = "";
-          if (imageType === "model" || imageType === "product_listing_banner" || imageType === "product_listing") {
+          if (imageType === "model" || imageType === "product_listing_banner" || imageType === "product_listing" || imageType === "unstitched_tryon") {
              imageUrl = element.generatedImages?.image_urls?.[rightIndex];
           } else {
              imageUrl = element.generatedImages?.[rightIndex];
@@ -123,7 +123,7 @@ const ModelListPage: FC = () => {
         }
       });
     } else {
-      selectedModel.forEach((key, i1) => {
+      selectedModel.forEach((key) => {
         const [leftIndex, rightIndex] = key.split("_").map(Number);
         if (modelList[leftIndex]) {
           const element = modelList[leftIndex];
@@ -179,6 +179,7 @@ const ModelListPage: FC = () => {
         case "pose_variants": setImageType("pose_variants"); break;
         case "product_listing_banner": setImageType("product_listing_banner"); break;
         case "product_listing": setImageType("product_listing"); break;
+        case "unstitched_tryon": setImageType("unstitched_tryon"); break;
         case "ads": setImageType("ads"); break;
         default: setImageType("model");
     }
@@ -355,6 +356,7 @@ const ModelListPage: FC = () => {
                         { id: "pose_variants", label: "Pose Variants" },
                         { id: "product_listing_banner", label: "Banners" },
                         { id: "product_listing", label: "Lifestyle Listing" },
+                        { id: "unstitched_tryon", label: "Fabric Studio" },
                         { id: "ads", label: "Ads" },
                     ].map((tab) => (
                         <button
@@ -386,6 +388,7 @@ const ModelListPage: FC = () => {
                     {activeTab === "ads" ? "Ad Campaigns" 
                      : activeTab === "product_listing_banner" ? "Product Banners" 
                      : activeTab === "product_listing" ? "Lifestyle Listings" 
+                     : activeTab === "unstitched_tryon" ? "Fabric Studio" 
                      : "Model Gallery"}
                 </h2>
                 
@@ -430,7 +433,7 @@ const ModelListPage: FC = () => {
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
                              {/* Map Logic for Different Types */}
                              {/* Models, Banners, and Lifestyle Listings which store as { image_urls: [...] } */}
-                             {(imageType === "model" || imageType === "product_listing_banner" || imageType === "product_listing") && modelList.map((model, i) => 
+                             {(imageType === "model" || imageType === "product_listing_banner" || imageType === "product_listing" || imageType === "unstitched_tryon") && modelList.map((model, i) => 
                                  model.generatedImages?.image_urls?.map((url: string, index: number) => 
                                     renderImageCard(model, url, i, index)
                                  )
