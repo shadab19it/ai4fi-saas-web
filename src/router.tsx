@@ -26,6 +26,7 @@ import InviteAcceptPage from "./pages/InviteAccept";
 import TeamSettings from "./pages/TeamSettings";
 import SeedPage from "./pages/Seed/SeedPage";
 import ProductListingStudioPage from "./pages/ProductListingStudio/ProductListingStudioPage";
+import UnstitchedStudioPage from "./pages/UnstitchedStudio/UnstitchedStudioPage";
 import PricingPage from "./pages/Pricing/PricingPage";
 
 export const router = createBrowserRouter([
@@ -135,5 +136,9 @@ export const router = createBrowserRouter([
   {
     path: "/product-listing-studio",
     element: <ProtectedRoute component={ProductListingStudioPage} />,
+  },
+  {
+    path: "/unstitched-studio",
+    element: <ProtectedRoute component={UnstitchedStudioPage} />,
   },
 ]);

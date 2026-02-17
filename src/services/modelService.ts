@@ -120,6 +120,19 @@ class ModelService extends BaseService {
       throw new Error(errInfo.error);
     }
   }
+
+  async generateUnstitchedTryon(formData: FormData): Promise<{ urls: string[] }> {
+    try {
+      const response = await this.axiosInstance.post<{ urls: string[] }>(
+        `/generate/generate-unstitched-tryon`,
+        formData
+      );
+      return response.data;
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
 }
 
 export default new ModelService(appConstant.BACKEND_API_URL);

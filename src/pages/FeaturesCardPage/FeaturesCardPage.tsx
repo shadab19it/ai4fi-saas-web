@@ -4,7 +4,7 @@ import {
   Sparkles,
   ArrowRight,
   Wand2,
-  Shirt,
+  Scissors,
   Film,
   UserRound,
   LayoutGrid,
@@ -128,6 +128,21 @@ export default function FeaturesPage() {
       image: CardImageProduct,
       badge: "NEW",
       badgeColor: "bg-teal-600",
+    },
+    {
+      id: 7,
+      title: "Fabric Studio",
+      description:
+        "Transform unstitched fabric swatches into stitched garments on virtual models instantly.",
+      icon: <Scissors className="h-5 w-5" />,
+      accentColor: "text-orange-600",
+      accentBg: "bg-orange-50",
+      accentBorder: "border-orange-200",
+      accentShadow: "shadow-orange-500/12",
+      path: "/unstitched-studio",
+      image: CardImage7,
+      badge: "NEW",
+      badgeColor: "bg-orange-600",
     },
   ]
 
@@ -326,7 +341,7 @@ export default function FeaturesPage() {
                 <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F9F8F5] border border-[#E5E2DA]">
                   <Zap className="h-3.5 w-3.5 text-amber-500" />
                   <span className="text-[11.5px] font-bold text-stone-900">
-                    6
+                    7
                   </span>
                   <span className="text-[11.5px] text-[#9E9893]">
                     AI Tools
