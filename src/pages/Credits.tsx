@@ -510,7 +510,7 @@ const CreditsPage = () => {
                   <div className='flex items-center justify-between px-5 py-[11px]'>
                     <span className='text-[11.5px] font-semibold text-[#9E9893]'>Role</span>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border capitalize ${getRoleBadgeClasses(user?.teamRole || "member")}`}>
-                      {user?.teamRole || "member"}
+                      {user?.role || "member"}
                     </span>
                   </div>
                 </div>

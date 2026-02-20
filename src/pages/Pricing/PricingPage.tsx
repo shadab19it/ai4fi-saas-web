@@ -1,44 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../store/store";
-import { setUserRefresh } from "../../store/userReducer";
 import { planComparison } from "../../components/Pricing/pricingConfig";
 import { PlanCard } from "../../components/Pricing/PlanCard";
 import { CurrencySelector } from "../../components/Pricing/CurrencySelector";
-import { PaymentCheckoutModal } from "../../components/Pricing/PaymentCheckoutModal";
 import PlanFeatureList, { PlanFeatureRow } from "../../components/Pricing/PlanFeatureList";
-import subscriptionService, { SubscriptionPlan, CreateOrderResponse } from "../../services/subscriptionService";
+import subscriptionService, { SubscriptionPlan, PayUData } from "../../services/subscriptionService";
 import { detectCurrency, formatPrice } from "../../components/Pricing/currencyConfig";
 import { Loader2 } from "lucide-react";
 import authService from "../../services/authService";
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
-
 const getPlanPrice = (plan: SubscriptionPlan, currency: string): number =>
   currency === "INR" ? plan.priceINR : plan.price;
 
-interface CheckoutState {
-  plan: SubscriptionPlan;
-  orderData: CreateOrderResponse;
-  displayPrice: number;
-}
-
 const PricingPage = () => {
-  const user = useSelector((state: RootState) => state.user.user);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const payuFormRef = useRef<HTMLFormElement>(null);
 
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [selectedCurrency, setSelectedCurrency] = useState(detectCurrency);
   const [isLoading, setIsLoading] = useState(true);
   const [purchasingPlanId, setPurchasingPlanId] = useState<string | null>(null);
-  const [checkout, setCheckout] = useState<CheckoutState | null>(null);
+  const [payuData, setPayuData] = useState<PayUData | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,16 +37,12 @@ const PricingPage = () => {
     fetchData();
   }, []);
 
-  const loadRazorpayScript = (): Promise<boolean> => {
-    return new Promise((resolve) => {
-      if (window.Razorpay) return resolve(true);
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
+  // Auto-submit PayU form when data is ready
+  useEffect(() => {
+    if (payuData && payuFormRef.current) {
+      payuFormRef.current.submit();
+    }
+  }, [payuData]);
 
   const handlePurchase = async (plan: SubscriptionPlan) => {
     if (!authService.isAuthenticated()) {
@@ -80,74 +59,11 @@ const PricingPage = () => {
     setPurchasingPlanId(plan._id);
     try {
       const orderData = await subscriptionService.createOrder(plan._id, selectedCurrency);
-
-      if (orderData.order.mode === "manual") {
-        setCheckout({
-          plan,
-          orderData,
-          displayPrice: getPlanPrice(plan, selectedCurrency),
-        });
-        return;
-      }
-
-      // Razorpay flow
-      const loaded = await loadRazorpayScript();
-      if (!loaded) {
-        toast.error("Failed to load payment provider");
-        return;
-      }
-
-      const options = {
-        key: orderData.order.keyId,
-        amount: orderData.order.amount,
-        currency: orderData.order.currency,
-        name: "AI4FI",
-        description: `${plan.displayName} Plan - ${plan.creditsIncluded} credits`,
-        order_id: orderData.order.orderId,
-        prefill: {
-          email: user?.email || "",
-          name: user?.username || "",
-        },
-        theme: { color: "#7C3AED" },
-        handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
-          try {
-            const result = await subscriptionService.verifyPayment({
-              paymentId: orderData.paymentId,
-              providerPaymentId: response.razorpay_payment_id,
-              providerSignature: response.razorpay_signature,
-            });
-            toast.success(result.message);
-            dispatch(setUserRefresh());
-          } catch {
-            toast.error("Payment verification failed. Please contact support.");
-          }
-        },
-        modal: {
-          ondismiss: () => toast.info("Payment cancelled"),
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      setPayuData(orderData.payuData);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to initiate payment");
-    } finally {
       setPurchasingPlanId(null);
     }
-  };
-
-  const handleCheckoutConfirm = async () => {
-    if (!checkout) return;
-    const result = await subscriptionService.verifyPayment({
-      paymentId: checkout.orderData.paymentId,
-    });
-    toast.success(result.message);
-    dispatch(setUserRefresh());
-  };
-
-  const handleCheckoutClose = () => {
-    setCheckout(null);
-    setPurchasingPlanId(null);
   };
 
   const sortedPlans = [...plans].sort((a, b) => a.displayOrder - b.displayOrder);
@@ -229,16 +145,25 @@ const PricingPage = () => {
         )}
       </div>
 
-      {checkout && (
-        <PaymentCheckoutModal
-          isOpen={!!checkout}
-          onClose={handleCheckoutClose}
-          onConfirm={handleCheckoutConfirm}
-          planName={checkout.plan.displayName}
-          price={checkout.displayPrice}
-          currency={selectedCurrency}
-          creditsIncluded={checkout.plan.creditsIncluded}
-        />
+      {/* Hidden PayU form — auto-submits to redirect user to PayU checkout */}
+      {payuData && (
+        <form ref={payuFormRef} method="POST" action={payuData.action} style={{ display: "none" }}>
+          <input name="key" value={payuData.key} readOnly />
+          <input name="txnid" value={payuData.txnid} readOnly />
+          <input name="amount" value={payuData.amount} readOnly />
+          <input name="productinfo" value={payuData.productinfo} readOnly />
+          <input name="firstname" value={payuData.firstname} readOnly />
+          <input name="email" value={payuData.email} readOnly />
+          <input name="phone" value={payuData.phone} readOnly />
+          <input name="udf1" value={payuData.udf1} readOnly />
+          <input name="udf2" value={payuData.udf2} readOnly />
+          <input name="udf3" value={payuData.udf3} readOnly />
+          <input name="udf4" value={payuData.udf4} readOnly />
+          <input name="udf5" value={payuData.udf5} readOnly />
+          <input name="surl" value={payuData.surl} readOnly />
+          <input name="furl" value={payuData.furl} readOnly />
+          <input name="hash" value={payuData.hash} readOnly />
+        </form>
       )}
     </div>
   );

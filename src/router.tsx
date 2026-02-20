@@ -1,5 +1,4 @@
 import { createBrowserRouter } from "react-router-dom";
-import RootLayout from "./layouts/RootLayout";
 import LoginPage from "./pages/Login/Login";
 import SignUpForm from "./pages/Login/SignUp";
 import AboutUs from "./pages/About";
@@ -28,6 +27,7 @@ import SeedPage from "./pages/Seed/SeedPage";
 import ProductListingStudioPage from "./pages/ProductListingStudio/ProductListingStudioPage";
 import UnstitchedStudioPage from "./pages/UnstitchedStudio/UnstitchedStudioPage";
 import PricingPage from "./pages/Pricing/PricingPage";
+import BillingPage from "./pages/Billing/BillingPage";
 
 export const router = createBrowserRouter([
   {
@@ -47,14 +47,6 @@ export const router = createBrowserRouter([
         element: <PricingPage />,
       },
       {
-        path: "login",
-        element: <LoginPage />,
-      },
-      {
-        path: "signup",
-        element: <SignUpForm />,
-      },
-      {
         path: "about",
         element: <AboutUs />,
       },
@@ -65,10 +57,6 @@ export const router = createBrowserRouter([
       {
         path: "model-gallery",
         element: <HomePageGallery />,
-      },
-      {
-        path: "pricing",
-        element: <PricingPage />,
       },
       {
         path: "terms-of-service",
@@ -154,5 +142,9 @@ export const router = createBrowserRouter([
   {
     path: "/unstitched-studio",
     element: <ProtectedRoute component={UnstitchedStudioPage} />,
+  },
+  {
+    path: "/billing",
+    element: <ProtectedRoute component={BillingPage} />,
   },
 ]);

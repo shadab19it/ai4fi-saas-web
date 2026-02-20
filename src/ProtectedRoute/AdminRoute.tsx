@@ -21,7 +21,7 @@ const AdminRoute: FC<PropType> = ({ component: Component, props }) => {
   }
 
   if (user.role !== "admin") {
-    return <Navigate to='/dashboard' />;
+    return <Navigate to='/' />;
   }
 
   return <Component {...props} />;
