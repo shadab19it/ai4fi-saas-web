@@ -14,6 +14,7 @@ import {
   XCircle,
   AlertTriangle,
   ChevronRight,
+  ChevronLeft,
   RefreshCw,
 } from "lucide-react"
 import { setUserRefresh } from "../../store/userReducer"
@@ -28,6 +29,13 @@ export default function BillingPage() {
   const [data, setData] = useState<BillingOverview | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isCleaning, setIsCleaning] = useState(false)
+
+  const [creditPage, setCreditPage] = useState(1)
+  const [creditTotalPages, setCreditTotalPages] = useState(1)
+  const [creditTotalCount, setCreditTotalCount] = useState(0)
+  const [paginatedHistory, setPaginatedHistory] = useState<BillingOverview["creditHistory"]>([])
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const CREDIT_PAGE_SIZE = 10
 
   const paymentStatus = searchParams.get("status")
   const planName = searchParams.get("plan")
@@ -60,6 +68,25 @@ export default function BillingPage() {
       setIsLoading(false)
     }
   }
+
+  const fetchCreditHistory = async (page: number) => {
+    try {
+      setIsLoadingHistory(true)
+      const res = await subscriptionService.getCreditHistory(page, CREDIT_PAGE_SIZE)
+      setPaginatedHistory(res.creditHistory)
+      setCreditTotalPages(res.totalPages)
+      setCreditTotalCount(res.totalCount)
+      setCreditPage(res.currentPage)
+    } catch {
+      toast.error("Failed to load credit history")
+    } finally {
+      setIsLoadingHistory(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchCreditHistory(creditPage)
+  }, [])
 
   const handleCleanup = async (days: number) => {
     setIsCleaning(true)
@@ -95,7 +122,7 @@ export default function BillingPage() {
     )
   }
 
-  const { subscription, credits, storage, recentPayments, creditHistory } = data
+  const { subscription, credits, storage, recentPayments } = data
   const plan = subscription.plan
   const isActive = subscription.status === "active"
   const daysLeft = subscription.endDate
@@ -236,46 +263,113 @@ export default function BillingPage() {
         {/* Credit History */}
         <div className="bg-white rounded-2xl border border-[#E5E2DA] overflow-hidden">
           <div className="px-5 py-3 border-b border-[#E5E2DA] flex items-center justify-between">
-            <h3 className="text-sm font-bold text-stone-900">Credit Usage History</h3>
-            <button onClick={fetchBilling} className="p-1 hover:bg-stone-50 rounded">
-              <RefreshCw className="h-3.5 w-3.5 text-stone-400" />
+            <h3 className="text-sm font-bold text-stone-900">
+              Credit Usage History
+              {creditTotalCount > 0 && (
+                <span className="ml-2 text-[10px] font-normal text-stone-400">({creditTotalCount} total)</span>
+              )}
+            </h3>
+            <button
+              onClick={() => fetchCreditHistory(creditPage)}
+              disabled={isLoadingHistory}
+              className="p-1 hover:bg-stone-50 rounded"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 text-stone-400 ${isLoadingHistory ? "animate-spin" : ""}`} />
             </button>
           </div>
-          {creditHistory.length > 0 ? (
-            <div className="divide-y divide-[#F0EEEA]">
-              {creditHistory.map((entry, i) => (
-                <div key={i} className="px-5 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        entry.type === "grant"
-                          ? "bg-emerald-500"
-                          : entry.type === "usage"
-                          ? "bg-red-400"
-                          : "bg-blue-400"
-                      }`}
-                    />
-                    <div>
-                      <p className="text-xs font-medium text-stone-900">{entry.reason || entry.type}</p>
-                      <p className="text-[10px] text-stone-400">
-                        {entry.createdAt ? new Date(entry.createdAt).toLocaleString() : ""}
+
+          {isLoadingHistory && paginatedHistory.length === 0 ? (
+            <div className="px-5 py-10 flex justify-center">
+              <Loader2 className="h-5 w-5 animate-spin text-stone-400" />
+            </div>
+          ) : paginatedHistory.length > 0 ? (
+            <>
+              <div className={`divide-y divide-[#F0EEEA] ${isLoadingHistory ? "opacity-50" : ""}`}>
+                {paginatedHistory.map((entry, i) => (
+                  <div key={`${creditPage}-${i}`} className="px-5 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-2 h-2 rounded-full shrink-0 ${
+                          entry.type === "grant"
+                            ? "bg-emerald-500"
+                            : entry.type === "usage"
+                            ? "bg-red-400"
+                            : "bg-blue-400"
+                        }`}
+                      />
+                      <div>
+                        <p className="text-xs font-medium text-stone-900">{entry.reason || entry.type}</p>
+                        <p className="text-[10px] text-stone-400">
+                          {entry.createdAt ? new Date(entry.createdAt).toLocaleString() : ""}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p
+                        className={`text-sm font-bold ${
+                          entry.amount > 0 ? "text-emerald-600" : "text-red-500"
+                        }`}
+                      >
+                        {entry.amount > 0 ? "+" : ""}
+                        {entry.amount}
                       </p>
+                      <p className="text-[10px] text-stone-400">Balance: {entry.balance}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p
-                      className={`text-sm font-bold ${
-                        entry.amount > 0 ? "text-emerald-600" : "text-red-500"
-                      }`}
+                ))}
+              </div>
+
+              {creditTotalPages > 1 && (
+                <div className="px-5 py-3 border-t border-[#E5E2DA] flex items-center justify-between">
+                  <p className="text-[10px] text-stone-400">
+                    Page {creditPage} of {creditTotalPages}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => fetchCreditHistory(creditPage - 1)}
+                      disabled={creditPage <= 1 || isLoadingHistory}
+                      className="p-1.5 rounded-lg border border-[#E5E2DA] hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
                     >
-                      {entry.amount > 0 ? "+" : ""}
-                      {entry.amount}
-                    </p>
-                    <p className="text-[10px] text-stone-400">Balance: {entry.balance}</p>
+                      <ChevronLeft className="h-3.5 w-3.5 text-stone-600" />
+                    </button>
+                    {Array.from({ length: creditTotalPages }, (_, i) => i + 1)
+                      .filter((p) => p === 1 || p === creditTotalPages || Math.abs(p - creditPage) <= 1)
+                      .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                        if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("...")
+                        acc.push(p)
+                        return acc
+                      }, [])
+                      .map((item, idx) =>
+                        item === "..." ? (
+                          <span key={`ellipsis-${idx}`} className="px-1 text-[10px] text-stone-400">
+                            ...
+                          </span>
+                        ) : (
+                          <button
+                            key={item}
+                            onClick={() => fetchCreditHistory(item as number)}
+                            disabled={isLoadingHistory}
+                            className={`min-w-[28px] h-7 text-xs font-medium rounded-lg border transition ${
+                              item === creditPage
+                                ? "bg-stone-900 text-white border-stone-900"
+                                : "border-[#E5E2DA] text-stone-600 hover:bg-stone-50"
+                            } disabled:cursor-not-allowed`}
+                          >
+                            {item}
+                          </button>
+                        )
+                      )}
+                    <button
+                      onClick={() => fetchCreditHistory(creditPage + 1)}
+                      disabled={creditPage >= creditTotalPages || isLoadingHistory}
+                      className="p-1.5 rounded-lg border border-[#E5E2DA] hover:bg-stone-50 disabled:opacity-30 disabled:cursor-not-allowed transition"
+                    >
+                      <ChevronRight className="h-3.5 w-3.5 text-stone-600" />
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           ) : (
             <div className="px-5 py-10 text-center text-sm text-stone-400">No credit history yet.</div>
           )}

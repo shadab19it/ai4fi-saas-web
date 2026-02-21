@@ -39,6 +39,7 @@ const VirtualTryon: FC = () => {
   const [selectedResult, setSelectedResult] = useState<modelResult[]>([]);
   const [downloadLoading, setDownloadLoading] = useState<boolean>(false);
   const [uploading, setUploading] = useState<boolean>(false);
+  const [regenInfo, setRegenInfo] = useState<{ generationId: string; freeRegensRemaining: number } | null>(null);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
 
   const [showCamera, setShowCamera] = useState<boolean>(false);
@@ -88,7 +89,7 @@ const VirtualTryon: FC = () => {
   };
 
   // Handle generating try-on results
-  const tryOn = async () => {
+  const tryOn = async (parentId?: string) => {
     resetState();
     if (modelImages.length === 0) {
       toast.error("Please upload atleast 1 model image");
@@ -112,9 +113,17 @@ const VirtualTryon: FC = () => {
       formData.append("garment_photo_type", garmentPhotoType);
       formData.append("mode", mode);
 
+      if (parentId && typeof parentId === "string") {
+        formData.append("parentGenerationId", parentId);
+      }
+
       const response = await modelService.virtualTryon(formData);
       console.log("data", response.tryonResult);
-      setResultImage(response.tryonResult); // Update results
+      setResultImage(response.tryonResult);
+      if ((response as any).regeneration) {
+        const r = (response as any).regeneration;
+        setRegenInfo({ generationId: r.generationId, freeRegensRemaining: r.freeRegensRemaining });
+      }
       setIsGenerating(false);
       dispatch(setUserRefresh());
     } catch (error: any) {
@@ -472,7 +481,7 @@ const VirtualTryon: FC = () => {
                 </div>
               </div>
               <button
-                onClick={tryOn}
+                onClick={() => tryOn()}
                 className=' mt-6 w-full  cursor-pointer justify-center gap-2 items-center bg-gradient-to-r from-purple-600 to-indigo-600 hover:bg-gradient-to-r hover:from-purple-800 hover:to-indigo-800 text-white font-bold px-6 py-3 rounded-lg shadow-lg transition-transform'>
                 {isGenerating ? (
                   <div className='flex items-center gap-2 justify-center'>
@@ -483,6 +492,16 @@ const VirtualTryon: FC = () => {
                   "Try on Garments"
                 )}
               </button>
+              {regenInfo && !isGenerating && resultImage.length > 0 && (
+                <button
+                  onClick={() => tryOn(regenInfo.generationId)}
+                  className='mt-2 w-full cursor-pointer justify-center gap-2 items-center border border-green-400 text-green-400 hover:bg-green-900/20 font-semibold px-6 py-2.5 rounded-lg transition-all text-sm flex'>
+                  <RefreshCw className='h-4 w-4' />
+                  {regenInfo.freeRegensRemaining > 0
+                    ? `Regenerate Free (${regenInfo.freeRegensRemaining} left)`
+                    : "Regenerate (1 credit)"}
+                </button>
+              )}
             </div>
           </div>
 

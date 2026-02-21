@@ -1,6 +1,7 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Upload, ZoomIn, X, Image as ImageIcon, Info, Sparkles, Grid3x3, Link as LinkIcon, Unlink, ChevronDown } from "lucide-react"
+import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import { female_model_tryon_prompt, male_model_tryon_prompt } from "../../services/prompt"
 import modelGalleryList from "../../services/ModelGallery"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
@@ -24,6 +25,7 @@ interface DressUploadProps {
 }
 
 export default function DressUpload({ onUploadComplete }: DressUploadProps) {
+  const { isResolutionAllowed, maxUploadSizeBytes } = usePlanFeatures()
   const [dressImage, setDressImage] = useState<string | null>(null)
   const [gender, setGender] = useState("female")
   const [promptOverride, setPromptOverride] = useState("")
@@ -52,6 +54,11 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
 
   const handleImageUpload = (file: File) => {
     if (!file.type.startsWith("image/")) {
+      return
+    }
+
+    if (file.size > maxUploadSizeBytes) {
+      alert(`File too large. Maximum upload size is ${Math.round(maxUploadSizeBytes / (1024 * 1024))} MB.`)
       return
     }
     
@@ -530,8 +537,8 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                                 >
                                   <option value="">Default</option>
                                   <option value="1K">1K</option>
-                                  <option value="2K">2K</option>
-                                  <option value="4K">4K</option>
+                                  <option value="2K" disabled={!isResolutionAllowed("2K")}>2K{!isResolutionAllowed("2K") ? " (Upgrade)" : ""}</option>
+                                  <option value="4K" disabled={!isResolutionAllowed("4K")}>4K{!isResolutionAllowed("4K") ? " (Upgrade)" : ""}</option>
                                 </select>
                                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
                               </div>

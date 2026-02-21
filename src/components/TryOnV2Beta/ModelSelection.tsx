@@ -48,8 +48,9 @@ export default function ModelSelection({
   const [zoomedImage, setZoomedImage] = useState<string | null>(null)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isDownloadingModel, setIsDownloadingModel] = useState(false)
+  const [regenInfo, setRegenInfo] = useState<{ generationId: string; freeRegensRemaining: number } | null>(null)
 
-  const handleGenerateModel = async () => {
+  const handleGenerateModel = async (parentId?: string) => {
     if (!dressImage) {
       toast.info("Please upload a dress image first")
       return
@@ -89,6 +90,10 @@ export default function ModelSelection({
         if (garmentCategory) formData.append("garment_category", garmentCategory)
       }
 
+      if (parentId && typeof parentId === "string") {
+        formData.append("parentGenerationId", parentId)
+      }
+
       const token = localStorage.getItem(appConstant.JWT_AUTH_TOKEN)
       
       const response = await axios.post(
@@ -104,7 +109,12 @@ export default function ModelSelection({
 
       if (response.data && response.data.urls && response.data.urls.length > 0) {
         setGeneratedModel(response.data.urls[0])
-      } else {
+      }
+      if (response.data?.regeneration) {
+        const r = response.data.regeneration
+        setRegenInfo({ generationId: r.generationId, freeRegensRemaining: r.freeRegensRemaining })
+      }
+      if (!response.data?.urls?.length) {
         throw new Error("No image URL returned from API")
       }
     } catch (error: any) {
@@ -282,7 +292,7 @@ export default function ModelSelection({
                     <Button
                       variant="gradient"
                       size="lg"
-                      onClick={handleGenerateModel}
+                      onClick={() => handleGenerateModel()}
                       icon={<Sparkles className="w-4 h-4" />}
                     >
                       Generate Model
@@ -333,11 +343,13 @@ export default function ModelSelection({
                             onClick={(e) => {
                               e.stopPropagation()
                               setGeneratedModel(null)
-                              handleGenerateModel()
+                              handleGenerateModel(regenInfo?.generationId)
                             }}
-                            className="bg-white/90 backdrop-blur-sm hover:bg-white"
+                            className={`bg-white/90 backdrop-blur-sm hover:bg-white ${regenInfo && regenInfo.freeRegensRemaining > 0 ? "!border-green-400 !text-green-700" : ""}`}
                           >
-                            Generate Again
+                            {regenInfo && regenInfo.freeRegensRemaining > 0
+                              ? `Regenerate Free (${regenInfo.freeRegensRemaining} left)`
+                              : "Generate Again"}
                           </Button>
                           <Button
                             variant="outline"

@@ -9,6 +9,7 @@ import {
   Rocket,
   PanelLeftClose,
 } from "lucide-react";
+import { usePlanFeatures } from "../../../hooks/usePlanFeatures";
 import Button from "../../ui/Button";
 import {
   nationalityOptions,
@@ -105,7 +106,9 @@ const SelectField: FC<{
   onChange: (v: string) => void;
   options: IOption[];
   placeholder?: string;
-}> = ({ label, value, onChange, options, placeholder }) => (
+  disabledValues?: string[];
+  disabledSuffix?: string;
+}> = ({ label, value, onChange, options, placeholder, disabledValues = [], disabledSuffix = "" }) => (
   <div>
     <label className='block text-[11.5px] font-semibold text-[#9E9893] mb-1.5'>{label}</label>
     <select
@@ -114,11 +117,14 @@ const SelectField: FC<{
       className='w-full h-9 px-2.5 rounded-lg border border-[#E5E2DA] bg-[#F9F8F5] text-[13px] font-medium text-stone-900 outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/10 transition-all appearance-none cursor-pointer'
     >
       {placeholder && <option value=''>{placeholder}</option>}
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
+      {options.map((o) => {
+        const isDisabled = disabledValues.includes(o.value);
+        return (
+          <option key={o.value} value={o.value} disabled={isDisabled}>
+            {o.label}{isDisabled && disabledSuffix ? ` ${disabledSuffix}` : ""}
+          </option>
+        );
+      })}
     </select>
   </div>
 );
@@ -163,6 +169,16 @@ const ModelConfigForm: FC<any> = ({
   setIsSidebarOpen,
   isSidebarOpen,
 }) => {
+  const { isResolutionAllowed, isFeatureAllowed } = usePlanFeatures();
+  const disabledResolutions = resolutionOptions
+    .filter((o) => !isResolutionAllowed(o.value))
+    .map((o) => o.value);
+  const nationalityAllowed = isFeatureAllowed("nationalityDiversity");
+  const customModelAllowed = isFeatureAllowed("customModelCreation");
+  const specialCategoriesAllowed = isFeatureAllowed("specialCategoriesSupport");
+  const SPECIAL_BODY_TYPES = ["Plus Size"];
+  const disabledBodyTypes = specialCategoriesAllowed ? [] : SPECIAL_BODY_TYPES;
+
   return (
     <div className='w-full h-screen bg-white border-r border-[#E5E2DA] flex flex-col'>
       {/* Header */}
@@ -188,9 +204,27 @@ const ModelConfigForm: FC<any> = ({
           <div className='space-y-3'>
             <div>
               <label className='block text-[11.5px] font-semibold text-[#9E9893] mb-1.5'>Mode</label>
-              <SegmentedControl options={modeOptions} value={mode} onChange={setMode} />
+              <SegmentedControl
+                options={modeOptions.map((o) =>
+                  o.value === "face" && !customModelAllowed
+                    ? { ...o, label: `${o.label} (Upgrade)` }
+                    : o
+                )}
+                value={mode}
+                onChange={(v) => {
+                  if (v === "face" && !customModelAllowed) return;
+                  setMode(v);
+                }}
+              />
             </div>
-            <SelectField label='Nationality' value={nationality} onChange={setNationality} options={nationalityOptions} />
+            <SelectField
+              label='Nationality'
+              value={nationality}
+              onChange={setNationality}
+              options={nationalityOptions}
+              disabledValues={nationalityAllowed ? [] : nationalityOptions.filter((o) => o.value !== "Indian").map((o) => o.value)}
+              disabledSuffix='(Upgrade)'
+            />
             <div className='grid grid-cols-2 gap-3'>
               <SelectField label='Gender' value={gender} onChange={setGender} options={genderOptions} />
               <SelectField label='Age Range' value={ageRange} onChange={setAgeRange} options={ageRangeOptions} />
@@ -239,6 +273,8 @@ const ModelConfigForm: FC<any> = ({
                     value={bodyType}
                     onChange={setBodyType}
                     options={gender === "male" ? maleBodyTypeOptions : femaleBodyTypeOptions}
+                    disabledValues={disabledBodyTypes}
+                    disabledSuffix='(Upgrade)'
                   />
                 </div>
               </div>
@@ -300,6 +336,8 @@ const ModelConfigForm: FC<any> = ({
                   value={resolution}
                   onChange={setResolution}
                   options={resolutionOptions}
+                  disabledValues={disabledResolutions}
+                  disabledSuffix='(Upgrade)'
                 />
               </>
             )}
@@ -312,7 +350,7 @@ const ModelConfigForm: FC<any> = ({
         <Button
           variant='gradient'
           size='lg'
-          onClick={generateImage}
+          onClick={() => generateImage()}
           loading={loading}
           icon={!loading ? <Rocket className='h-4 w-4' /> : undefined}
           className='w-full font-bold'

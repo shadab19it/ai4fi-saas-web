@@ -26,6 +26,7 @@ import Button from "../../components/ui/Button"
 import ZoomImageModal from "../../components/ui/ZoomImageModal"
 import modelService from "../../services/modelService"
 import DarkLogo from "../../../public/dark-logo2.png"
+import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 
 // ──────────────────────────────────────────────
 // Types
@@ -88,6 +89,7 @@ const FIT_TYPES: FitType[] = [
 // ──────────────────────────────────────────────
 
 export default function UnstitchedStudioPage() {
+  const { isResolutionAllowed } = usePlanFeatures()
   // Fabric slots
   const [fabrics, setFabrics] = useState<FabricSlot[]>([
     {
@@ -154,6 +156,7 @@ export default function UnstitchedStudioPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [regenInfo, setRegenInfo] = useState<{ generationId: string; freeRegensRemaining: number } | null>(null)
 
   // Zoom modal
   const [zoomOpen, setZoomOpen] = useState(false)
@@ -233,7 +236,7 @@ export default function UnstitchedStudioPage() {
 
   const canGenerate = fabrics[0].image !== null && dressName.trim() !== ""
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (parentId?: string) => {
     if (!canGenerate) return
     setIsGenerating(true)
     setError(null)
@@ -292,12 +295,19 @@ export default function UnstitchedStudioPage() {
       formData.append("tier", tier)
       if (aspectRatio) formData.append("aspect_ratio", aspectRatio)
       if (resolution) formData.append("resolution", resolution)
+      if (parentId && typeof parentId === "string") formData.append("parentGenerationId", parentId)
 
       const result = await modelService.generateUnstitchedTryon(formData)
       if (result.urls && result.urls.length > 0) {
         setGeneratedImages(result.urls)
       } else {
         setError("No images were generated. Please try again.")
+      }
+      if (result.regeneration) {
+        setRegenInfo({
+          generationId: result.regeneration.generationId,
+          freeRegensRemaining: result.regeneration.freeRegensRemaining,
+        })
       }
     } catch (err: any) {
       setError(err.message || "Failed to generate. Please try again.")
@@ -534,7 +544,7 @@ export default function UnstitchedStudioPage() {
                 <Button
                   variant="gradient"
                   size="lg"
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate()}
                   disabled={!canGenerate || isGenerating}
                   loading={isGenerating}
                   className="w-full !h-12 text-[15px] !rounded-xl"
@@ -550,14 +560,30 @@ export default function UnstitchedStudioPage() {
                     <Check className="w-5 h-5 text-emerald-500" />
                     Generated Result
                   </h3>
-                  <Button
-                    variant="outline"
-                    size="md"
-                    onClick={handleReset}
-                    icon={<RotateCcw className="w-3.5 h-3.5" />}
-                  >
-                    Try Again
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {regenInfo && (
+                      <Button
+                        variant="outline"
+                        size="md"
+                        onClick={() => handleGenerate(regenInfo.generationId)}
+                        disabled={isGenerating}
+                        icon={<RotateCcw className="w-3.5 h-3.5" />}
+                        className={regenInfo.freeRegensRemaining > 0 ? "!border-green-300 !text-green-700 hover:!bg-green-50" : ""}
+                      >
+                        {regenInfo.freeRegensRemaining > 0
+                          ? `Regenerate Free (${regenInfo.freeRegensRemaining} left)`
+                          : "Regenerate (1 credit)"}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="md"
+                      onClick={handleReset}
+                      icon={<RotateCcw className="w-3.5 h-3.5" />}
+                    >
+                      Start New
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -852,8 +878,8 @@ export default function UnstitchedStudioPage() {
                         >
                           <option value="">Default</option>
                           <option value="1K">1K</option>
-                          <option value="2K">2K</option>
-                          <option value="4K">4K</option>
+                          <option value="2K" disabled={!isResolutionAllowed("2K")}>2K{!isResolutionAllowed("2K") ? " (Upgrade)" : ""}</option>
+                          <option value="4K" disabled={!isResolutionAllowed("4K")}>4K{!isResolutionAllowed("4K") ? " (Upgrade)" : ""}</option>
                         </select>
                         <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
                       </div>

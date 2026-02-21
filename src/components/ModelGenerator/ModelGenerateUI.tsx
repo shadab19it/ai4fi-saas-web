@@ -11,6 +11,7 @@ import {
   PanelLeftOpen,
   PanelLeftClose,
   ImageIcon,
+  RefreshCw,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import modelService from "../../services/modelService";
@@ -48,7 +49,15 @@ export interface ModelConfig {
   tier: string;
   aspect_ratio?: string;
   resolution?: string;
-  requiredCredits: number;
+  parentGenerationId?: string;
+}
+
+export interface RegenInfo {
+  generationId: string;
+  regenerationCount: number;
+  maxFreeRegenerations: number;
+  freeRegensRemaining: number;
+  wasFree: boolean;
 }
 
 export interface IFastGenModelGenerateConfig {
@@ -89,7 +98,7 @@ const ModelGeneratorUI: React.FC = () => {
 
   const [tier, setTier] = useState<string>("basic");
   const [aspectRatio, setAspectRatio] = useState<string>("1:1");
-  const [resolution, setResolution] = useState<string>("2K");
+  const [resolution, setResolution] = useState<string>("1K");
 
   const [loading, setLoading] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
@@ -100,6 +109,7 @@ const ModelGeneratorUI: React.FC = () => {
   const [endTime, setEndTime] = useState<{ [key: string]: number }>({});
   const [downloadLoading, setDownloadLoading] = useState<boolean>(false);
   const [isModelGenerated, setModelGenerated] = useState<boolean>(false);
+  const [regenInfo, setRegenInfo] = useState<RegenInfo | null>(null);
 
   const calculateSecondsDifference = (time1: number, time2: number): number =>
     (time2 - time1) / 1000;
@@ -144,7 +154,7 @@ const ModelGeneratorUI: React.FC = () => {
     }
   };
 
-  const generateImages = async (): Promise<void> => {
+  const generateImages = async (parentId?: string): Promise<void> => {
     resetState();
 
     if (mode === "fashion" && !dress) {
@@ -163,7 +173,6 @@ const ModelGeneratorUI: React.FC = () => {
       nationality,
       age_range: ageRange,
       tier,
-      requiredCredits: appConstant.MODEL_DEDUCT_POINT,
     };
 
     if (mode === "face") {
@@ -186,6 +195,10 @@ const ModelGeneratorUI: React.FC = () => {
       payload.resolution = resolution;
     }
 
+    if (parentId && typeof parentId === "string") {
+      payload.parentGenerationId = parentId;
+    }
+
     try {
       setStartTime((prev) => ({ ...prev, [`image_${0}`]: Date.now() }));
       const data = await modelService.generateModel(payload);
@@ -194,6 +207,9 @@ const ModelGeneratorUI: React.FC = () => {
         const updatedImages: ModifiedModelData[] = data.image_urls.map((url: string) => ({ url }));
         setGeneratedImages(updatedImages);
         dispatch(setGeneratedModelList(updatedImages));
+      }
+      if ((data as any).regeneration) {
+        setRegenInfo((data as any).regeneration);
       }
       setModelGenerated(true);
       dispatch(setUserRefresh());
@@ -350,12 +366,28 @@ const ModelGeneratorUI: React.FC = () => {
         {/* Gallery Toolbar */}
         {!loading && isModelGenerated && generatedImages.length > 0 && (
           <div className='shrink-0 px-5 py-3 border-b border-[#E5E2DA] bg-white flex items-center justify-between'>
-            <h2 className='text-[13px] font-bold text-stone-900'>
-              Generated Models
-              <span className='ml-2 text-[11px] font-medium text-[#9E9893]'>
-                {generatedImages.length} image{generatedImages.length !== 1 ? "s" : ""}
-              </span>
-            </h2>
+            <div className='flex items-center gap-3'>
+              <h2 className='text-[13px] font-bold text-stone-900'>
+                Generated Models
+                <span className='ml-2 text-[11px] font-medium text-[#9E9893]'>
+                  {generatedImages.length} image{generatedImages.length !== 1 ? "s" : ""}
+                </span>
+              </h2>
+              {regenInfo && (
+                <Button
+                  variant={regenInfo.freeRegensRemaining > 0 ? "outline" : "ghost"}
+                  size='sm'
+                  onClick={() => generateImages(regenInfo.generationId)}
+                  disabled={loading}
+                  icon={<RefreshCw className='w-3.5 h-3.5' />}
+                  className={regenInfo.freeRegensRemaining > 0 ? "!border-green-300 !text-green-700 hover:!bg-green-50" : ""}
+                >
+                  {regenInfo.freeRegensRemaining > 0
+                    ? `Regenerate Free (${regenInfo.freeRegensRemaining} left)`
+                    : "Regenerate (1 credit)"}
+                </Button>
+              )}
+            </div>
             <div className='flex items-center gap-3'>
               <Button
                 variant='ghost'

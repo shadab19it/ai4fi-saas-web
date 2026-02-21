@@ -291,6 +291,23 @@ class SubscriptionService extends BaseService {
       throw new Error(errInfo.error);
     }
   }
+  async getCreditHistory(page = 1, limit = 10): Promise<{
+    creditHistory: { amount: number; balance: number; reason: string; type: string; createdAt: string }[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+    credits: number;
+  }> {
+    try {
+      const response = await this.axiosInstance.get("/billing/credit-history", {
+        params: { page, limit },
+      });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
 }
 
 export default new SubscriptionService(appConstant.BACKEND_API_URL);

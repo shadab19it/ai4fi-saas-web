@@ -3,7 +3,8 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { ArrowLeft, Loader2, Upload } from "lucide-react"
+import { ArrowLeft, Loader2, Upload, Lock } from "lucide-react"
+import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 
 interface PoseSelectorProps {
   dressImage: string
@@ -24,6 +25,7 @@ const AVAILABLE_POSES = [
 ]
 
 export default function PoseSelector({ dressImage, modelWithDress, generatedModel, onBack }: PoseSelectorProps) {
+  const { poseLimit } = usePlanFeatures()
   const [selectedPoses, setSelectedPoses] = useState<string[]>(["standing"])
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPoses, setGeneratedPoses] = useState<{ pose: string; image: string }[]>([])
@@ -35,7 +37,7 @@ export default function PoseSelector({ dressImage, modelWithDress, generatedMode
     setSelectedPoses((prev) => {
       if (prev.includes(poseId)) {
         return prev.filter((p) => p !== poseId)
-      } else if (prev.length < 8) {
+      } else if (prev.length < poseLimit) {
         return [...prev, poseId]
       }
       return prev
@@ -180,7 +182,7 @@ export default function PoseSelector({ dressImage, modelWithDress, generatedMode
             <div className="bg-black border-gray-700 p-4">
               <h3 className="text-sm font-semibold text-white mb-3">Select Poses</h3>
               <p className="text-xs text-gray-500 mb-3">
-                Choose up to 8 poses ({selectedPoses.length} selected)
+                Choose up to {poseLimit} poses ({selectedPoses.length}/{poseLimit} selected)
               </p>
 
               <div className="space-y-2 max-h-64 overflow-y-auto">

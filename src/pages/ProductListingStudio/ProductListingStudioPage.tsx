@@ -19,7 +19,9 @@ import {
   Info,
   UserRound,
   Ratio,
+  Lock,
 } from "lucide-react"
+import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import AppHeader from "../../components/Layout/AppHeader"
 import Button from "../../components/ui/Button"
 import commonService from "../../services/commonService"
@@ -71,6 +73,7 @@ const MARKETPLACES: { value: Marketplace; label: string }[] = [
 
 export default function ProductListingStudioPage() {
   const navigate = useNavigate()
+  const { isResolutionAllowed } = usePlanFeatures()
 
   // ─── State ──────────────────────────────────────
   const [mode, setMode] = useState<GenerationMode>("lifestyle")
@@ -595,19 +598,27 @@ export default function ProductListingStudioPage() {
                       Resolution
                     </label>
                     <div className="flex gap-1">
-                      {RESOLUTIONS.map((r) => (
-                        <button
-                          key={r}
-                          onClick={() => setResolution(r)}
-                          className={`flex-1 px-1.5 py-0.5 rounded-md text-[10.5px] font-semibold border transition-all ${
-                            resolution === r
-                              ? "bg-amber-50 border-amber-200 text-amber-700"
-                              : "bg-[#FAFAF8] border-[#E5E2DA] text-[#6B6560] hover:bg-[#F5F3F0]"
-                          }`}
-                        >
-                          {r}
-                        </button>
-                      ))}
+                      {RESOLUTIONS.map((r) => {
+                        const allowed = isResolutionAllowed(r)
+                        return (
+                          <button
+                            key={r}
+                            onClick={() => allowed && setResolution(r)}
+                            disabled={!allowed}
+                            title={!allowed ? "Upgrade your plan to unlock" : undefined}
+                            className={`flex-1 px-1.5 py-0.5 rounded-md text-[10.5px] font-semibold border transition-all ${
+                              !allowed
+                                ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-60"
+                                : resolution === r
+                                  ? "bg-amber-50 border-amber-200 text-amber-700"
+                                  : "bg-[#FAFAF8] border-[#E5E2DA] text-[#6B6560] hover:bg-[#F5F3F0]"
+                            }`}
+                          >
+                            {!allowed && <Lock className="inline w-2.5 h-2.5 mr-0.5" />}
+                            {r}
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
                 </div>

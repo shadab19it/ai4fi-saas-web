@@ -121,9 +121,9 @@ class ModelService extends BaseService {
     }
   }
 
-  async generateUnstitchedTryon(formData: FormData): Promise<{ urls: string[] }> {
+  async generateUnstitchedTryon(formData: FormData): Promise<{ urls: string[]; regeneration?: any }> {
     try {
-      const response = await this.axiosInstance.post<{ urls: string[] }>(
+      const response = await this.axiosInstance.post<{ urls: string[]; regeneration?: any }>(
         `/generate/generate-unstitched-tryon`,
         formData
       );

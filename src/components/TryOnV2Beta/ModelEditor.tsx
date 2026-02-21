@@ -1,8 +1,9 @@
 "use client"
 import { useState, useRef, useMemo } from "react"
-import { Plus, X, Download, Upload, ZoomIn, Sparkles, ChevronDown, Info } from "lucide-react"
+import { Plus, X, Download, Upload, ZoomIn, Sparkles, ChevronDown, Info, Lock, RefreshCw } from "lucide-react"
 import axios from "axios"
 import appConstant from "../../services/appConstant"
+import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import { dataURLtoFile } from "../../services/utils"
 import commonService from "../../services/commonService"
 import MultiSelect from "../common/MultiSelect"
@@ -156,6 +157,11 @@ export default function ModelEditor({
   segment: propSegment,
   garmentCategory: propGarmentCategory
 }: ModelEditorProps) {
+  const { poseLimit, isFeatureAllowed } = usePlanFeatures()
+  const bgAllowed = isFeatureAllowed("backgroundLibrary")
+  const accAllowed = isFeatureAllowed("accessoriesSupport")
+  const jewAllowed = isFeatureAllowed("jewellerySupport")
+
   const [poses, setPoses] = useState<string[]>([])
   const [footwear, setFootwear] = useState<string>("")
   const [background, setBackground] = useState<string>("")
@@ -169,6 +175,7 @@ export default function ModelEditor({
   const [newPose, setNewPose] = useState<string>("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<string[]>([])
+  const [regenInfo, setRegenInfo] = useState<{ generationId: string; freeRegensRemaining: number } | null>(null)
 
   const [downloadWidth, setDownloadWidth] = useState<string>("1024")
   const [downloadHeight, setDownloadHeight] = useState<string>("1280")
@@ -186,8 +193,8 @@ export default function ModelEditor({
 
 
   const handleAddPose = () => {
-    if (poses.length >= 8) {
-      toast.info("Maximum 8 poses reached")
+    if (poses.length >= poseLimit) {
+      toast.info(`Maximum ${poseLimit} poses reached on your plan`)
       return
     }
     if (newPose.trim()) {
@@ -256,7 +263,7 @@ export default function ModelEditor({
     }
   }
 
-  const handleGeneratePoses = async () => {
+  const handleGeneratePoses = async (parentId?: string) => {
     if (!currentModel) {
       toast.info("No model selected")
       return
@@ -298,6 +305,10 @@ export default function ModelEditor({
         if (propGarmentCategory) formData.append("garment_category", propGarmentCategory)
       }
 
+      if (parentId && typeof parentId === "string") {
+        formData.append("parentGenerationId", parentId)
+      }
+
       const token = localStorage.getItem(appConstant.JWT_AUTH_TOKEN)
 
       const response = await axios.post(
@@ -313,7 +324,12 @@ export default function ModelEditor({
 
       if (response.data && response.data.urls && response.data.urls.length > 0) {
         setGeneratedImages(response.data.urls)
-      } else {
+      }
+      if (response.data?.regeneration) {
+        const r = response.data.regeneration
+        setRegenInfo({ generationId: r.generationId, freeRegensRemaining: r.freeRegensRemaining })
+      }
+      if (!response.data?.urls?.length) {
         throw new Error("No image URLs returned from API")
       }
     } catch (error: any) {
@@ -501,7 +517,7 @@ export default function ModelEditor({
                 </div>
                 <div className="flex-1">
                   <h3 className="text-[14px] font-bold text-stone-900">Poses Configuration</h3>
-                  <p className="text-[11.5px] text-[#9E9893] mt-0.5 font-medium">Select up to 8 poses ({poses.length}/8 selected)</p>
+                  <p className="text-[11.5px] text-[#9E9893] mt-0.5 font-medium">Select up to {poseLimit} poses ({poses.length}/{poseLimit} selected)</p>
                 </div>
               </div>
 
@@ -516,7 +532,7 @@ export default function ModelEditor({
                       value: pose.label.toLowerCase(),
                       label: `${pose.label}`
                     }))]}
-                    noOfposes={8 - poses.filter((pose) =>
+                    noOfposes={poseLimit - poses.filter((pose) =>
                       !getPoses().some((p) => p.label.toLowerCase() === pose)
                     ).length}
                     onChange={(selectedOptions: IOption[]) => {
@@ -524,7 +540,7 @@ export default function ModelEditor({
                       const customPoses = poses.filter((pose) =>
                         !getPoses().some((p) => p.label.toLowerCase() === pose)
                       )
-                      setPoses([...customPoses, ...selectedPredefinedPoses].slice(0, 8))
+                      setPoses([...customPoses, ...selectedPredefinedPoses].slice(0, poseLimit))
                     }}
                     selectedPoses={poses}
                   />
@@ -546,7 +562,7 @@ export default function ModelEditor({
                       variant="gradient"
                       size="md"
                       onClick={handleAddPose}
-                      disabled={!newPose.trim() || poses.length >= 8}
+                      disabled={!newPose.trim() || poses.length >= poseLimit}
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
@@ -594,26 +610,30 @@ export default function ModelEditor({
               </div>
 
               {/* Background */}
-              <div>
+              <div className="relative">
                 <label className={labelClass}>
                   Background
-                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
+                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">
+                    {bgAllowed ? "(Optional)" : ""}
+                  </span>
+                  {!bgAllowed && <Lock className="w-3 h-3 text-amber-500" />}
                   <div className="group relative">
                     <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
-                      Choose background setting for the image
+                      {bgAllowed ? "Choose background setting for the image" : "Upgrade to Gold or Platinum to unlock backgrounds"}
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
                     </div>
                   </div>
                 </label>
                 <div className="relative">
                   <select
-                    value={background}
-                    onChange={(e) => setBackground(e.target.value)}
-                    className={selectClass}
+                    value={bgAllowed ? background : ""}
+                    onChange={(e) => bgAllowed && setBackground(e.target.value)}
+                    disabled={!bgAllowed}
+                    className={`${selectClass} ${!bgAllowed ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    <option value="">Select background...</option>
-                    {backgroundOptionsList.map((option) => (
+                    <option value="">{bgAllowed ? "Select background..." : "Upgrade to unlock"}</option>
+                    {bgAllowed && backgroundOptionsList.map((option) => (
                       <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
@@ -622,26 +642,30 @@ export default function ModelEditor({
               </div>
 
               {/* Accessory */}
-              <div>
+              <div className="relative">
                 <label className={labelClass}>
                   Accessory
-                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
+                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">
+                    {accAllowed ? "(Optional)" : ""}
+                  </span>
+                  {!accAllowed && <Lock className="w-3 h-3 text-amber-500" />}
                   <div className="group relative">
                     <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
-                      Select accessories to add to the model
+                      {accAllowed ? "Select accessories to add to the model" : "Upgrade to Gold or Platinum to unlock accessories"}
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
                     </div>
                   </div>
                 </label>
                 <div className="relative">
                   <select
-                    value={accessory}
-                    onChange={(e) => setAccessory(e.target.value)}
-                    className={selectClass}
+                    value={accAllowed ? accessory : ""}
+                    onChange={(e) => accAllowed && setAccessory(e.target.value)}
+                    disabled={!accAllowed}
+                    className={`${selectClass} ${!accAllowed ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    <option value="">Select accessory...</option>
-                    {accessoryOptionsList.map((option) => (
+                    <option value="">{accAllowed ? "Select accessory..." : "Upgrade to unlock"}</option>
+                    {accAllowed && accessoryOptionsList.map((option) => (
                       <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
@@ -650,26 +674,30 @@ export default function ModelEditor({
               </div>
 
               {/* Jewelry */}
-              <div>
+              <div className="relative">
                 <label className={labelClass}>
                   Jewelry
-                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
+                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">
+                    {jewAllowed ? "(Optional)" : ""}
+                  </span>
+                  {!jewAllowed && <Lock className="w-3 h-3 text-amber-500" />}
                   <div className="group relative">
                     <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
-                      Choose jewelry pieces for the model
+                      {jewAllowed ? "Choose jewelry pieces for the model" : "Upgrade to Gold or Platinum to unlock jewelry"}
                       <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
                     </div>
                   </div>
                 </label>
                 <div className="relative">
                   <select
-                    value={jewelry}
-                    onChange={(e) => setJewelry(e.target.value)}
-                    className={selectClass}
+                    value={jewAllowed ? jewelry : ""}
+                    onChange={(e) => jewAllowed && setJewelry(e.target.value)}
+                    disabled={!jewAllowed}
+                    className={`${selectClass} ${!jewAllowed ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    <option value="">Select jewelry...</option>
-                    {jewelryOptionsList.map((option) => (
+                    <option value="">{jewAllowed ? "Select jewelry..." : "Upgrade to unlock"}</option>
+                    {jewAllowed && jewelryOptionsList.map((option) => (
                       <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
@@ -956,21 +984,37 @@ export default function ModelEditor({
         )}
 
         {/* Action Buttons */}
-        <div className="mt-6 flex gap-3">
-          <Button variant="outline" size="lg" onClick={onBack} className="flex-1">
-            Back
-          </Button>
-          <Button
-            variant="gradient"
-            size="lg"
-            onClick={handleGeneratePoses}
-            disabled={isGenerating || poses.length === 0}
-            loading={isGenerating}
-            icon={!isGenerating ? <Sparkles className="w-4 h-4" /> : undefined}
-            className="flex-1"
-          >
-            {isGenerating ? "Generating..." : "Generate Poses"}
-          </Button>
+        <div className="mt-6 flex flex-col gap-2">
+          <div className="flex gap-3">
+            <Button variant="outline" size="lg" onClick={onBack} className="flex-1">
+              Back
+            </Button>
+            <Button
+              variant="gradient"
+              size="lg"
+              onClick={() => handleGeneratePoses()}
+              disabled={isGenerating || poses.length === 0}
+              loading={isGenerating}
+              icon={!isGenerating ? <Sparkles className="w-4 h-4" /> : undefined}
+              className="flex-1"
+            >
+              {isGenerating ? "Generating..." : "Generate Poses"}
+            </Button>
+          </div>
+          {regenInfo && !isGenerating && generatedImages.length > 0 && (
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => handleGeneratePoses(regenInfo.generationId)}
+              disabled={isGenerating}
+              icon={<RefreshCw className="w-3.5 h-3.5" />}
+              className={regenInfo.freeRegensRemaining > 0 ? "!border-green-300 !text-green-700 hover:!bg-green-50 w-full" : "w-full"}
+            >
+              {regenInfo.freeRegensRemaining > 0
+                ? `Regenerate Free (${regenInfo.freeRegensRemaining} left)`
+                : "Regenerate (1 credit)"}
+            </Button>
+          )}
         </div>
       </div>
 
