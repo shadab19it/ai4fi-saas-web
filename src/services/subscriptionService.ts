@@ -87,6 +87,7 @@ export interface PayUData {
   udf5: string;
   surl: string;
   furl: string;
+  notify_url: string;
   hash: string;
   action: string;
 }

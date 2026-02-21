@@ -162,6 +162,7 @@ const PricingPage = () => {
           <input name="udf5" value={payuData.udf5} readOnly />
           <input name="surl" value={payuData.surl} readOnly />
           <input name="furl" value={payuData.furl} readOnly />
+          <input name="notify_url" value={payuData.notify_url} readOnly />
           <input name="hash" value={payuData.hash} readOnly />
         </form>
       )}
