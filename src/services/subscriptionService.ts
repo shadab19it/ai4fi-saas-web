@@ -211,9 +211,9 @@ class SubscriptionService extends BaseService {
     }
   }
 
-  async createOrder(planId: string, currency?: string): Promise<CreateOrderResponse> {
+  async createOrder(planId: string, currency?: string, creditCount?: number): Promise<CreateOrderResponse> {
     try {
-      const response = await this.axiosInstance.post("/subscriptions/create-order", { planId, currency });
+      const response = await this.axiosInstance.post("/subscriptions/create-order", { planId, currency, creditCount });
       return this.handleResponse(response);
     } catch (error) {
       const errInfo = this.handleCommonError(error as any);

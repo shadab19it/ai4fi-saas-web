@@ -7,11 +7,12 @@ interface PlanCardProps {
   plan: SubscriptionPlan;
   displayPrice: number;
   displayCurrency: string;
+  creditCount: number;
   onPurchase: (plan: SubscriptionPlan) => void;
   isPurchasing?: boolean;
 }
 
-export const PlanCard = ({ plan, displayPrice, displayCurrency, onPurchase, isPurchasing }: PlanCardProps) => {
+export const PlanCard = ({ plan, displayPrice, displayCurrency, creditCount, onPurchase, isPurchasing }: PlanCardProps) => {
   const isDisabled = plan.isComingSoon || isPurchasing;
 
   const handlePurchase = () => {
@@ -43,7 +44,7 @@ export const PlanCard = ({ plan, displayPrice, displayCurrency, onPurchase, isPu
         <span className={cn("text-lg text-gray-600", plan.highlighted && "text-[#eee]")}>/ month</span>
       </div>
 
-      <p className="text-xs mt-1 opacity-80">{plan.creditsIncluded} credits included</p>
+      <p className="text-xs mt-1 opacity-80">{creditCount} credits included</p>
 
       <button
         onClick={handlePurchase}

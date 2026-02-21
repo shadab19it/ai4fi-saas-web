@@ -25,7 +25,6 @@ export const CurrencySelector = ({ selectedCurrency, onSelect }: CurrencySelecto
             : "text-gray-600 hover:bg-gray-50",
         )}
       >
-        <span>{usd.flag}</span>
         <span>{usd.symbol} {usd.code}</span>
       </button>
       <button
@@ -41,7 +40,6 @@ export const CurrencySelector = ({ selectedCurrency, onSelect }: CurrencySelecto
             : "text-gray-600 hover:bg-gray-50",
         )}
       >
-        <span>{inr.flag}</span>
         <span>{inr.symbol} {inr.code}</span>
       </button>
     </div>

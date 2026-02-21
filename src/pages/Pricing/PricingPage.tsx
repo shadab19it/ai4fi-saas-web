@@ -4,14 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { planComparison } from "../../components/Pricing/pricingConfig";
 import { PlanCard } from "../../components/Pricing/PlanCard";
 import { CurrencySelector } from "../../components/Pricing/CurrencySelector";
+import { CreditSlider, CREDIT_STEPS } from "../../components/Pricing/CreditSlider";
 import PlanFeatureList, { PlanFeatureRow } from "../../components/Pricing/PlanFeatureList";
 import subscriptionService, { SubscriptionPlan, PayUData } from "../../services/subscriptionService";
 import { detectCurrency, formatPrice } from "../../components/Pricing/currencyConfig";
 import { Loader2 } from "lucide-react";
 import authService from "../../services/authService";
 
-const getPlanPrice = (plan: SubscriptionPlan, currency: string): number =>
-  currency === "INR" ? plan.priceINR : plan.price;
+const getScaledPrice = (plan: SubscriptionPlan, currency: string, creditCount: number): number => {
+  const basePrice = currency === "INR" ? plan.priceINR : plan.price;
+  const baseCredits = plan.creditsIncluded || 10;
+  return Math.round(basePrice * (creditCount / baseCredits) * 100) / 100;
+};
 
 const PricingPage = () => {
   const navigate = useNavigate();
@@ -19,6 +23,7 @@ const PricingPage = () => {
 
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [selectedCurrency, setSelectedCurrency] = useState(detectCurrency);
+  const [selectedCredits, setSelectedCredits] = useState(CREDIT_STEPS[0]);
   const [isLoading, setIsLoading] = useState(true);
   const [purchasingPlanId, setPurchasingPlanId] = useState<string | null>(null);
   const [payuData, setPayuData] = useState<PayUData | null>(null);
@@ -37,7 +42,6 @@ const PricingPage = () => {
     fetchData();
   }, []);
 
-  // Auto-submit PayU form when data is ready
   useEffect(() => {
     if (payuData && payuFormRef.current) {
       payuFormRef.current.submit();
@@ -58,7 +62,7 @@ const PricingPage = () => {
 
     setPurchasingPlanId(plan._id);
     try {
-      const orderData = await subscriptionService.createOrder(plan._id, selectedCurrency);
+      const orderData = await subscriptionService.createOrder(plan._id, selectedCurrency, selectedCredits);
       setPayuData(orderData.payuData);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to initiate payment");
@@ -94,14 +98,19 @@ const PricingPage = () => {
         <CurrencySelector selectedCurrency={selectedCurrency} onSelect={setSelectedCurrency} />
       </div>
 
+      <div className="px-4">
+        <CreditSlider value={selectedCredits} onChange={setSelectedCredits} />
+      </div>
+
       <div className="flex flex-col items-center gap-16">
         <div className="flex justify-center gap-6 flex-wrap">
           {sortedPlans.map((plan) => (
             <PlanCard
               key={plan._id}
               plan={plan}
-              displayPrice={getPlanPrice(plan, selectedCurrency)}
+              displayPrice={getScaledPrice(plan, selectedCurrency, selectedCredits)}
               displayCurrency={selectedCurrency}
+              creditCount={selectedCredits}
               onPurchase={handlePurchase}
               isPurchasing={purchasingPlanId === plan._id}
             />
@@ -123,15 +132,15 @@ const PricingPage = () => {
               />
               <PlanFeatureRow
                 label="Credits Included"
-                text1={`${silverPlan.creditsIncluded} credits`}
-                text2={`${goldPlan.creditsIncluded} credits`}
-                text3={`${platinumPlan.creditsIncluded} credits`}
+                text1={`${selectedCredits} credits`}
+                text2={`${selectedCredits} credits`}
+                text3={`${selectedCredits} credits`}
               />
               <PlanFeatureRow
                 label="Price"
-                text1={formatPrice(getPlanPrice(silverPlan, selectedCurrency), selectedCurrency)}
-                text2={formatPrice(getPlanPrice(goldPlan, selectedCurrency), selectedCurrency)}
-                text3={formatPrice(getPlanPrice(platinumPlan, selectedCurrency), selectedCurrency)}
+                text1={formatPrice(getScaledPrice(silverPlan, selectedCurrency, selectedCredits), selectedCurrency)}
+                text2={formatPrice(getScaledPrice(goldPlan, selectedCurrency, selectedCredits), selectedCurrency)}
+                text3={formatPrice(getScaledPrice(platinumPlan, selectedCurrency, selectedCredits), selectedCurrency)}
               />
               {planComparison.map((section, i) => (
                 <PlanFeatureList
@@ -145,7 +154,6 @@ const PricingPage = () => {
         )}
       </div>
 
-      {/* Hidden PayU form — auto-submits to redirect user to PayU checkout */}
       {payuData && (
         <form ref={payuFormRef} method="POST" action={payuData.action} style={{ display: "none" }}>
           <input name="key" value={payuData.key} readOnly />
