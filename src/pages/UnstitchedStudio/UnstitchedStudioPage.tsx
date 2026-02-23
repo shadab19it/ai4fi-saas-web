@@ -131,8 +131,9 @@ export default function UnstitchedStudioPage() {
   // Config
   const [gender, setGender] = useState("female")
   const [dressName, setDressName] = useState("salwar_kameez")
+  const [customDressName, setCustomDressName] = useState("")
   const [fitType, setFitType] = useState("regular")
-  const [tier, setTier] = useState<"basic" | "professional">("professional")
+  const [tier, setTier] = useState<"basic" | "professional">("basic")
   const [aspectRatio, setAspectRatio] = useState("")
   const [resolution, setResolution] = useState("")
   const [ecommercePlatform, setEcommercePlatform] = useState<EcommercePlatformKey | "">("")
@@ -141,6 +142,7 @@ export default function UnstitchedStudioPage() {
 
   const handleGenderChange = (newGender: string) => {
     setGender(newGender)
+    setCustomDressName("")
     // Update default dress style based on gender
     if (newGender === "male") {
       setDressName("kurta_pajama")
@@ -247,8 +249,8 @@ export default function UnstitchedStudioPage() {
   }, [])
 
   // ─── Generate ───
-
-  const canGenerate = fabrics[0].image !== null && dressName.trim() !== ""
+  const resolvedDressName = dressName === "other" ? customDressName.trim() : dressName
+  const canGenerate = fabrics[0].image !== null && resolvedDressName !== ""
 
   const handleGenerate = async (parentId?: string) => {
     if (!canGenerate) return
@@ -301,7 +303,7 @@ export default function UnstitchedStudioPage() {
       }
 
       formData.append("gender", gender)
-      formData.append("dress_name", dressName)
+      formData.append("dress_name", resolvedDressName)
       formData.append("fit_type", fitType)
       formData.append("tier", tier)
       if (aspectRatio) formData.append("aspect_ratio", aspectRatio)
@@ -718,7 +720,10 @@ export default function UnstitchedStudioPage() {
                   {dressTypes.map((d) => (
                     <button
                       key={d.value}
-                      onClick={() => setDressName(d.value)}
+                      onClick={() => {
+                        setDressName(d.value)
+                        if (d.value !== "other") setCustomDressName("")
+                      }}
                       className={`px-3 py-2.5 rounded-xl border-2 text-left transition-all ${
                         dressName === d.value
                           ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
@@ -737,6 +742,17 @@ export default function UnstitchedStudioPage() {
                     </button>
                   ))}
                 </div>
+                {dressName === "other" && (
+                  <div className="mt-2.5">
+                    <input
+                      type="text"
+                      value={customDressName}
+                      onChange={(e) => setCustomDressName(e.target.value)}
+                      placeholder="Enter custom dress style (e.g. Indo-western co-ord set)"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[12px] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Fit Type */}

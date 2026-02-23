@@ -44,7 +44,7 @@ interface ListingData {
   title?: string
   bullets?: string[]
   description?: string
-  specifications?: Record<string, string>
+  specifications?: Record<string, string> | Array<{ Attribute?: string; Value?: string }>
   keywords?: string
   raw_text?: string
 }
@@ -393,6 +393,16 @@ export default function ProductListingStudioPage() {
   )
 
   const hasResults = resultImages.length > 0
+  const specificationRows =
+    listingData?.specifications &&
+    (Array.isArray(listingData.specifications)
+      ? listingData.specifications
+          .map((item) => ({
+            key: item.Attribute ?? "",
+            val: item.Value ?? "",
+          }))
+          .filter((item) => item.key || item.val)
+      : Object.entries(listingData.specifications).map(([key, val]) => ({ key, val })))
 
   return (
     <div className="min-h-screen bg-[#F4F2EE] flex flex-col">
@@ -946,30 +956,27 @@ export default function ProductListingStudioPage() {
                 )}
 
                 {/* Specifications */}
-                {listingData.specifications &&
-                  Object.keys(listingData.specifications).length > 0 && (
+                {specificationRows && specificationRows.length > 0 && (
                     <div>
                       <label className="text-[10px] font-semibold text-[#9E9893] uppercase tracking-wide mb-1 block">
                         Specifications
                       </label>
                       <div className="rounded-lg border border-[#E5E2DA] overflow-hidden">
-                        {Object.entries(listingData.specifications).map(
-                          ([key, val], i) => (
-                            <div
-                              key={key}
-                              className={`flex items-center text-[11.5px] ${
-                                i % 2 === 0 ? "bg-[#FAFAF8]" : "bg-white"
-                              }`}
-                            >
-                              <span className="w-2/5 px-3 py-1.5 font-semibold text-[#6B6560] border-r border-[#E5E2DA]">
-                                {key}
-                              </span>
-                              <span className="flex-1 px-3 py-1.5 text-stone-800">
-                                {val}
-                              </span>
-                            </div>
-                          )
-                        )}
+                        {specificationRows.map(({ key, val }, i) => (
+                          <div
+                            key={`${key}-${i}`}
+                            className={`flex items-center text-[11.5px] ${
+                              i % 2 === 0 ? "bg-[#FAFAF8]" : "bg-white"
+                            }`}
+                          >
+                            <span className="w-2/5 px-3 py-1.5 font-semibold text-[#6B6560] border-r border-[#E5E2DA]">
+                              {key}
+                            </span>
+                            <span className="flex-1 px-3 py-1.5 text-stone-800">
+                              {val}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
