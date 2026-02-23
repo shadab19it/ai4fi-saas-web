@@ -25,6 +25,9 @@ interface PlanData {
   isPopular: boolean;
   highlighted: boolean;
   ctaText: string;
+  features: {
+    includedUsers: number;
+  };
 }
 
 const CREDIT_COST_KEYS = [
@@ -44,6 +47,8 @@ const CREDIT_COST_KEYS = [
 
 const WATERMARK_KEYS = ["watermarkEnabled", "watermarkText"];
 const SPECIAL_KEYS = ["supportedCurrencies", ...WATERMARK_KEYS];
+const GLOBAL_TEAM_LIMIT_KEY = "teamMemberLimit";
+const PLAN_LIMIT_CARD_ORDER: Array<PlanData["name"]> = ["silver", "gold", "platinum"];
 
 const formatSettingLabel = (key: string): string => {
   return key
@@ -158,6 +163,27 @@ const SettingsPanel: FC = () => {
     }));
   };
 
+  const handlePlanIncludedUsersChange = (plan: PlanData, value: number) => {
+    setPlanEdits((prev) => ({
+      ...prev,
+      [plan._id]: {
+        ...prev[plan._id],
+        features: {
+          ...(plan.features || {}),
+          ...(prev[plan._id]?.features || {}),
+          includedUsers: value,
+        },
+      },
+    }));
+  };
+
+  const getPlanIncludedUsers = (plan: PlanData): number => {
+    const edits = planEdits[plan._id];
+    const editedValue = edits?.features?.includedUsers;
+    if (typeof editedValue === "number") return editedValue;
+    return Number(plan.features?.includedUsers || 1);
+  };
+
   const handleSavePlan = async (plan: PlanData) => {
     const edits = planEdits[plan._id];
     if (!edits || Object.keys(edits).length === 0) {
@@ -167,7 +193,7 @@ const SettingsPanel: FC = () => {
     setSavingPlanId(plan._id);
     try {
       await adminService.updateSubscriptionPlan(plan._id, edits);
-      toast.success(`Plan "${plan.displayName}" updated`);
+      toast.success(`Credit plan "${plan.displayName}" updated`);
       setPlanEdits((prev) => {
         const copy = { ...prev };
         delete copy[plan._id];
@@ -198,15 +224,81 @@ const SettingsPanel: FC = () => {
   }
 
   const generalSettings = settings
-    ? Object.entries(settings).filter(([key]) => !CREDIT_COST_KEYS.includes(key) && !SPECIAL_KEYS.includes(key))
+    ? Object.entries(settings).filter(
+        ([key]) =>
+          !CREDIT_COST_KEYS.includes(key) &&
+          !SPECIAL_KEYS.includes(key) &&
+          key !== GLOBAL_TEAM_LIMIT_KEY
+      )
     : [];
 
   const creditSettings = settings
     ? Object.entries(settings).filter(([key]) => CREDIT_COST_KEYS.includes(key))
     : [];
 
+  const planLimitCards = PLAN_LIMIT_CARD_ORDER.map((planName) =>
+    plans.find((plan) => plan.name === planName)
+  ).filter(Boolean) as PlanData[];
+
   return (
     <div className="space-y-6">
+      {/* Team member limits by plan */}
+      <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden">
+        <div className="px-6 py-[18px] border-b border-[#E5E2DA] flex items-center gap-3">
+          <div className="w-9 h-9 rounded-[10px] bg-[#EEF3FF] flex items-center justify-center">
+            <Settings className="h-[18px] w-[18px] text-[#0F62FE]" />
+          </div>
+          <div>
+            <h2 className="text-[15px] font-bold text-stone-900">Team Member Limits By Plan</h2>
+            <p className="text-xs text-[#9E9893] mt-0.5">
+              Configure allowed team members for Silver, Gold, and Platinum.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          {planLimitCards.map((plan) => (
+            <div
+              key={plan._id}
+              className="rounded-xl border border-[#E5E2DA] bg-[#F9F8F5] p-4"
+            >
+              <p className="text-[11px] text-[#9E9893] uppercase tracking-wide font-semibold">
+                {plan.displayName}
+              </p>
+              <p className="text-[12px] text-stone-700 mt-1">Included users limit</p>
+              <div className="mt-3 flex items-center gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  value={getPlanIncludedUsers(plan)}
+                  onChange={(e) =>
+                    handlePlanIncludedUsersChange(
+                      plan,
+                      Math.max(1, Number(e.target.value) || 1)
+                    )
+                  }
+                  className="w-[92px] h-9 px-3 rounded-lg border border-[#E5E2DA] bg-white text-[13px] text-stone-900 outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all"
+                  aria-label={`Included users for ${plan.displayName}`}
+                />
+                <button
+                  onClick={() => handleSavePlan(plan)}
+                  disabled={savingPlanId === plan._id}
+                  className="h-9 px-4 rounded-lg bg-[#0F62FE] text-white text-[13px] font-semibold hover:bg-[#0047B3] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
+                  aria-label={`Save team member limit for ${plan.displayName}`}
+                >
+                  {savingPlanId === plan._id ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5" />
+                  )}
+                  Save
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* General Settings */}
       <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden">
         <div className="px-6 py-[18px] border-b border-[#E5E2DA] flex items-center gap-3">
@@ -355,14 +447,14 @@ const SettingsPanel: FC = () => {
         </div>
       </div>
 
-      {/* Subscription Plans */}
+      {/* Credit Plans */}
       <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden">
         <div className="px-6 py-[18px] border-b border-[#E5E2DA] flex items-center gap-3">
           <div className="w-9 h-9 rounded-[10px] bg-[#E8F5E9] flex items-center justify-center">
             <CreditCard className="h-[18px] w-[18px] text-green-600" />
           </div>
           <div>
-            <h2 className="text-[15px] font-bold text-stone-900">Subscription Plans</h2>
+            <h2 className="text-[15px] font-bold text-stone-900">Credit Plans</h2>
             <p className="text-xs text-[#9E9893] mt-0.5">Manage pricing (USD & INR), credits, and plan visibility</p>
           </div>
         </div>
@@ -414,14 +506,14 @@ const SettingsPanel: FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-medium text-[#6B6560] uppercase tracking-wide">Duration (days)</label>
+                  <label className="text-[11px] font-medium text-[#6B6560] uppercase tracking-wide">Included Users</label>
                   <input
                     type="number"
                     min="1"
-                    value={getPlanValue(plan, "durationInDays") as number}
-                    onChange={(e) => handlePlanFieldChange(plan._id, "durationInDays", Number(e.target.value))}
+                    value={getPlanIncludedUsers(plan)}
+                    onChange={(e) => handlePlanIncludedUsersChange(plan, Math.max(1, Number(e.target.value) || 1))}
                     className="mt-1 w-full h-8 px-2.5 rounded-lg border border-[#E5E2DA] bg-[#F9F8F5] text-[13px] text-stone-900 outline-none focus:border-[#0F62FE] transition-all"
-                    aria-label={`Duration for ${plan.displayName}`}
+                    aria-label={`Included users for ${plan.displayName}`}
                   />
                 </div>
                 <div>
@@ -478,7 +570,7 @@ const SettingsPanel: FC = () => {
                   onClick={() => handleSavePlan(plan)}
                   disabled={savingPlanId === plan._id || !planEdits[plan._id]}
                   className="ml-auto h-8 px-4 rounded-lg bg-green-600 text-white text-[12px] font-semibold hover:bg-green-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
-                  aria-label={`Save ${plan.displayName} plan changes`}
+                  aria-label={`Save ${plan.displayName} credit plan changes`}
                 >
                   {savingPlanId === plan._id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                   Save Plan

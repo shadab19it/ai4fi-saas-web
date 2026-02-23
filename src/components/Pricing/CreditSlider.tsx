@@ -82,7 +82,7 @@ export const CreditSlider = ({ value, onChange }: CreditSliderProps) => {
               : "text-gray-400 hover:text-gray-600"
           }`}
         >
-          Custom Plan
+          Contact Us
         </button>
       </div>
 

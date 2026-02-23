@@ -176,6 +176,8 @@ export default function ModelEditor({
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<string[]>([])
   const [regenInfo, setRegenInfo] = useState<{ generationId: string; freeRegensRemaining: number } | null>(null)
+  const is4kResolution = (resolution || "").toUpperCase() === "4K"
+  const canShowFreeRegen = !!regenInfo && !is4kResolution && regenInfo.freeRegensRemaining > 0
 
   const [downloadWidth, setDownloadWidth] = useState<string>("1024")
   const [downloadHeight, setDownloadHeight] = useState<string>("1280")
@@ -1008,9 +1010,9 @@ export default function ModelEditor({
               onClick={() => handleGeneratePoses(regenInfo.generationId)}
               disabled={isGenerating}
               icon={<RefreshCw className="w-3.5 h-3.5" />}
-              className={regenInfo.freeRegensRemaining > 0 ? "!border-green-300 !text-green-700 hover:!bg-green-50 w-full" : "w-full"}
+              className={canShowFreeRegen ? "!border-green-300 !text-green-700 hover:!bg-green-50 w-full" : "w-full"}
             >
-              {regenInfo.freeRegensRemaining > 0
+              {canShowFreeRegen
                 ? `Regenerate Free (${regenInfo.freeRegensRemaining} left)`
                 : "Regenerate (1 credit)"}
             </Button>

@@ -44,6 +44,13 @@ const AnalyticsTab: FC = () => {
     );
   }
 
+  const currencySymbol = subscriptionData?.currencySymbol || "₹";
+  const formatMoney = (value: number) =>
+    `${currencySymbol}${Number(value || 0).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+
   return (
     <div className='space-y-6'>
       {/* ─── Subscription Analytics ────────────────────────── */}
@@ -73,16 +80,16 @@ const AnalyticsTab: FC = () => {
             />
             <StatsCard
               title='Total Earnings'
-              value={`$${subscriptionData?.totalEarnings?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`}
-              description='All-time revenue'
+              value={formatMoney(subscriptionData?.totalEarnings || 0)}
+              description='All-time revenue (INR)'
               icon={Coins}
               iconBgClass='bg-amber-50'
               iconColorClass='text-amber-600'
             />
             <StatsCard
               title='Monthly Recurring'
-              value={`$${subscriptionData?.monthlyRevenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`}
-              description='Current month'
+              value={formatMoney(subscriptionData?.monthlyRevenue || 0)}
+              description='Current month (INR)'
               icon={Activity}
               iconBgClass='bg-cyan-50'
               iconColorClass='text-cyan-600'
@@ -101,8 +108,8 @@ const AnalyticsTab: FC = () => {
             />
             <StatsCard
               title='Avg Subscription Value'
-              value={`$${subscriptionData?.averageSubscriptionValue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}`}
-              description='Per subscription'
+              value={formatMoney(subscriptionData?.averageSubscriptionValue || 0)}
+              description='Per payment (INR)'
               icon={Coins}
               iconBgClass='bg-violet-50'
               iconColorClass='text-violet-600'
@@ -173,10 +180,10 @@ const AnalyticsTab: FC = () => {
                         <td className='px-4 py-3.5 text-[13.5px] text-stone-900 capitalize font-medium'>{plan.planName || 'Unknown'}</td>
                         <td className='px-4 py-3.5 text-[13.5px] text-[#6B6560] font-mono'>{plan.count || 0}</td>
                         <td className='px-4 py-3.5 text-[13.5px] text-[#0F62FE] font-mono font-semibold'>
-                          ${plan.totalRevenue?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                          {formatMoney(plan.totalRevenue || 0)}
                         </td>
                         <td className='px-4 py-3.5 text-[13.5px] text-[#6B6560] font-mono'>
-                          ${plan.averagePrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                          {formatMoney(plan.averagePrice || 0)}
                         </td>
                       </tr>
                     ))}

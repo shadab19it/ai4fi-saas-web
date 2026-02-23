@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import {
@@ -17,7 +17,7 @@ import {
   LayoutGrid,
   Loader2,
   Info,
-  UserRound,
+  Grid3x3,
   Ratio,
   Lock,
 } from "lucide-react"
@@ -29,10 +29,15 @@ import productListingService, {
   type BannerResponse,
   type LifestyleListingResponse,
 } from "../../services/productListingService"
+import modelGalleryList from "../../services/ModelGallery"
+import { MODEL_FACE_RETURN_URL_KEY } from "../../constants/modelFace"
+import {
+  PRODUCT_LISTING_MARKETPLACES,
+  type ProductListingMarketplace,
+} from "../../constants/ecommercePlatforms"
 
 // ─── Types ──────────────────────────────────────────
 type GenerationMode = "banner" | "lifestyle"
-type Marketplace = "amazon" | "flipkart" | "myntra"
 type Tier = "basic" | "professional"
 
 interface ListingData {
@@ -65,12 +70,6 @@ const CATEGORIES = [
 
 const ASPECT_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16"]
 const RESOLUTIONS = ["1K", "2K", "4K"]
-const MARKETPLACES: { value: Marketplace; label: string }[] = [
-  { value: "amazon", label: "Amazon" },
-  { value: "flipkart", label: "Flipkart" },
-  { value: "myntra", label: "Myntra" },
-]
-
 export default function ProductListingStudioPage() {
   const navigate = useNavigate()
   const { isResolutionAllowed } = usePlanFeatures()
@@ -84,6 +83,10 @@ export default function ProductListingStudioPage() {
   const [productImagePreview, setProductImagePreview] = useState<string | null>(null)
   const [modelImage, setModelImage] = useState<File | null>(null)
   const [modelImagePreview, setModelImagePreview] = useState<string | null>(null)
+  const [modelImageUrl, setModelImageUrl] = useState<string | null>(null)
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false)
+  const [activeCategory, setActiveCategory] = useState("formal")
+  const [galleryGender, setGalleryGender] = useState<"female" | "male">("female")
   const [productName, setProductName] = useState("")
   const [category, setCategory] = useState("Fashion")
   const [shortDescription, setShortDescription] = useState("")
@@ -97,7 +100,7 @@ export default function ProductListingStudioPage() {
   const [count, setCount] = useState(4)
   const [modelImageCount, setModelImageCount] = useState(0)
   const [tier, setTier] = useState<Tier>("basic")
-  const [marketplace, setMarketplace] = useState<Marketplace>("amazon")
+  const [marketplace, setMarketplace] = useState<ProductListingMarketplace>("amazon")
 
   // Results
   const [resultImages, setResultImages] = useState<string[]>([])
@@ -123,6 +126,7 @@ export default function ProductListingStudioPage() {
         } else {
           setModelImage(file)
           setModelImagePreview(url)
+          setModelImageUrl(null)
           setModelImageCount((prev) => (prev === 0 ? Math.min(2, count - 1) : prev))
         }
       }
@@ -138,9 +142,35 @@ export default function ProductListingStudioPage() {
     } else {
       setModelImage(null)
       setModelImagePreview(null)
+      setModelImageUrl(null)
       setModelImageCount(0)
     }
   }
+
+  const handleGalleryModelSelect = (imageUrl: string) => {
+    setModelImage(null)
+    setModelImageUrl(imageUrl)
+    setModelImagePreview(imageUrl)
+    setModelImageCount((prev) => (prev === 0 ? Math.min(2, count - 1) : prev))
+    setIsGalleryOpen(false)
+  }
+
+  const getGalleryImages = () => {
+    const categoryData = modelGalleryList.find((c) => c.category === activeCategory)
+    if (!categoryData) return []
+    return galleryGender === "male" ? categoryData.male : categoryData.female
+  }
+
+  useEffect(() => {
+    const returnedModelFaceUrl = localStorage.getItem(MODEL_FACE_RETURN_URL_KEY)
+    if (returnedModelFaceUrl) {
+      setModelImage(null)
+      setModelImageUrl(returnedModelFaceUrl)
+      setModelImagePreview(returnedModelFaceUrl)
+      setModelImageCount((prev) => (prev === 0 ? Math.min(2, count - 1) : prev))
+      localStorage.removeItem(MODEL_FACE_RETURN_URL_KEY)
+    }
+  }, [count])
 
   const handleDrop = useCallback(
     (e: React.DragEvent, type: "product" | "model") => {
@@ -179,10 +209,17 @@ export default function ProductListingStudioPage() {
     setResultTagline("")
 
     try {
+      let resolvedModelImage: File | undefined = modelImage || undefined
+      if (!resolvedModelImage && modelImageUrl) {
+        const blob = await commonService.downloadSingleFile(modelImageUrl)
+        const filename = modelImageUrl.split("/").pop()?.split("?")[0] || `model-face-${Date.now()}.jpg`
+        resolvedModelImage = new File([blob], filename, { type: blob.type || "image/jpeg" })
+      }
+
       if (mode === "banner") {
         const res: BannerResponse = await productListingService.generateBanner({
           product_image: productImage,
-          model_image: modelImage || undefined,
+          model_image: resolvedModelImage,
           product_name: productName,
           category,
           short_description: shortDescription,
@@ -198,13 +235,13 @@ export default function ProductListingStudioPage() {
         const res: LifestyleListingResponse =
           await productListingService.generateLifestyleListing({
             product_image: productImage,
-            model_image: modelImage || undefined,
+            model_image: resolvedModelImage,
             product_name: productName,
             category,
             short_description: shortDescription,
             tagline: tagline || undefined,
             count,
-            model_image_count: modelImage ? modelImageCount : 0,
+            model_image_count: modelImagePreview ? modelImageCount : 0,
             tier,
             target_marketplace: marketplace,
             aspect_ratio: tier === "professional" ? aspectRatio : undefined,
@@ -279,20 +316,22 @@ export default function ProductListingStudioPage() {
     <div
       className={`relative rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer group
         ${image ? "border-[#E5E2DA] bg-white" : "border-[#D5D2CC] bg-[#FAFAF8] hover:border-violet-400 hover:bg-violet-50/30"}`}
-      onClick={() => !image && inputRef.current?.click()}
+      onClick={() => !image && type === "product" && inputRef.current?.click()}
       onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => handleDrop(e, type)}
+      onDrop={(e) => type === "product" && handleDrop(e, type)}
     >
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) handleImageUpload(file, type)
-        }}
-      />
+      {type === "product" && (
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) handleImageUpload(file, type)
+          }}
+        />
+      )}
       {image ? (
         <div className="relative aspect-[4/3]">
           <img
@@ -311,19 +350,44 @@ export default function ProductListingStudioPage() {
           </button>
         </div>
       ) : (
-        <div className="aspect-[4/3] flex flex-col items-center justify-center gap-1.5 p-3">
-          {type === "product" ? (
+        type === "product" ? (
+          <div className="aspect-[4/3] flex flex-col items-center justify-center gap-1.5 p-3">
             <Package className="h-6 w-6 text-[#B5B0AA] group-hover:text-violet-400 transition-colors" />
-          ) : (
-            <UserRound className="h-6 w-6 text-[#B5B0AA] group-hover:text-violet-400 transition-colors" />
-          )}
-          <span className="text-[11px] font-medium text-[#9E9893] text-center leading-tight">
-            {type === "product" ? "Upload Product" : "Model Face"}
-          </span>
-          <span className="text-[9px] text-[#C5C0BA]">
-            {type === "product" ? "Required" : "Optional"}
-          </span>
-        </div>
+            <span className="text-[11px] font-medium text-[#9E9893] text-center leading-tight">
+              Upload Product
+            </span>
+            <span className="text-[9px] text-[#C5C0BA]">Required</span>
+          </div>
+        ) : (
+          <div className="aspect-[4/3] p-2.5 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsGalleryOpen(true)
+              }}
+              className="border border-dashed border-[#D5D2CC] rounded-lg hover:border-violet-400 hover:bg-violet-50/40 transition-all flex flex-col items-center justify-center gap-1.5"
+            >
+              <Grid3x3 className="h-4.5 w-4.5 text-[#9E9893]" />
+              <span className="text-[10.5px] font-semibold text-[#7C7671] text-center">
+                Choose from Gallery
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate("/model?mode=face")
+              }}
+              className="border border-dashed border-[#D5D2CC] rounded-lg hover:border-violet-400 hover:bg-violet-50/40 transition-all flex flex-col items-center justify-center gap-1.5"
+            >
+              <Sparkles className="h-4.5 w-4.5 text-[#9E9893]" />
+              <span className="text-[10.5px] font-semibold text-[#7C7671] text-center">
+                Generate Face
+              </span>
+            </button>
+          </div>
+        )
       )}
     </div>
   )
@@ -487,7 +551,7 @@ export default function ProductListingStudioPage() {
                         Marketplace
                       </label>
                       <div className="flex gap-1">
-                        {MARKETPLACES.map((mp) => (
+                        {PRODUCT_LISTING_MARKETPLACES.map((mp) => (
                           <button
                             key={mp.value}
                             onClick={() => setMarketplace(mp.value)}
@@ -928,6 +992,86 @@ export default function ProductListingStudioPage() {
           </div>
         )}
       </div>
+
+      {/* Model Gallery Modal */}
+      {isGalleryOpen && (
+        <div
+          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setIsGalleryOpen(false)}
+        >
+          <div
+            className="rounded-2xl border border-[#E5E2DA] bg-white shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 pt-5 pb-4 border-b border-[#E5E2DA] flex items-center justify-between">
+              <div>
+                <h2 className="text-[15px] font-bold text-stone-900 mb-1">Choose Model from Gallery</h2>
+                <p className="text-[13px] text-[#9E9893]">
+                  Select a model face image ({galleryGender})
+                </p>
+              </div>
+              <Button variant="outline" size="icon" onClick={() => setIsGalleryOpen(false)} aria-label="Close">
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2">
+              {(["female", "male"] as const).map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setGalleryGender(g)}
+                  className={`px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
+                    galleryGender === g
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
+                      : "bg-[#F9F8F5] text-[#6B6560] hover:bg-[#E5E2DA]"
+                  }`}
+                >
+                  {g.charAt(0).toUpperCase() + g.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2">
+              {["formal", "casual", "lingerie", "PlusSize"].map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
+                    activeCategory === category
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
+                      : "bg-[#F9F8F5] text-[#6B6560] hover:bg-[#E5E2DA]"
+                  }`}
+                >
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {getGalleryImages().map((imageUrl, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleGalleryModelSelect(imageUrl)}
+                    className="relative aspect-square rounded-xl overflow-hidden border-2 border-[#E5E2DA] hover:border-violet-400 cursor-pointer transition-all group shadow-[0_1px_3px_rgba(28,25,23,0.06)]"
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`Model ${index + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-[13px] shadow-lg">
+                        Select
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -23,6 +23,11 @@ export interface AdminUser {
   creditHistory?: CreditHistoryEntry[];
   isActive?: boolean;
   isVerified?: boolean;
+  teamMemberLimit?: number;
+  teamMemberLimitSource?: "override" | "plan" | "global";
+  effectiveCredits?: number;
+  effectiveCreditHistory?: CreditHistoryEntry[];
+  walletType?: "user" | "team";
 }
 
 export interface AdminUserListResponse {
@@ -141,6 +146,25 @@ class AdminService extends BaseService {
   async toggleUserStatus(userId: string, isActive: boolean): Promise<{ success: boolean; message: string; user: AdminUser }> {
     try {
       const response = await this.axiosInstance.patch<{ success: boolean; message: string; user: AdminUser }>(`/admin/users/${userId}/status`, { isActive });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async updateUserTeamMemberLimit(
+    userId: string,
+    limit: number | null
+  ): Promise<{
+    success: boolean;
+    message: string;
+    teamMemberLimit: number;
+    teamMemberLimitSource: "override" | "plan" | "global";
+    overrideValue: number | null;
+  }> {
+    try {
+      const response = await this.axiosInstance.patch(`/admin/users/${userId}/team-member-limit`, { limit });
       return this.handleResponse(response);
     } catch (error) {
       const errInfo = this.handleCommonError(error as any);

@@ -51,6 +51,8 @@ const AdminDashboard = () => {
   const [creditHistory, setCreditHistory] = useState<CreditHistoryEntry[]>([]);
   const [amountInput, setAmountInput] = useState("");
   const [reasonInput, setReasonInput] = useState("");
+  const [teamLimitInput, setTeamLimitInput] = useState("");
+  const [savingTeamLimit, setSavingTeamLimit] = useState(false);
 
   const [teams, setTeams] = useState<AdminTeam[]>([]);
   const [teamsLoading, setTeamsLoading] = useState(false);
@@ -100,9 +102,44 @@ const AdminDashboard = () => {
     try {
       const result = await adminService.getUser(userId);
       setSelectedUser(result.user);
-      setCreditHistory(result.user.creditHistory || []);
+      setCreditHistory(result.user.effectiveCreditHistory || result.user.creditHistory || []);
+      setTeamLimitInput(
+        result.user.teamMemberLimit != null ? String(result.user.teamMemberLimit) : ""
+      );
     } catch (error: any) {
       toast.error(error.message || "Failed to load user");
+    }
+  };
+
+  const handleSaveTeamMemberLimit = async (reset = false) => {
+    if (!selectedUser) {
+      toast.error("Select a user first");
+      return;
+    }
+    if (selectedUser.teamRole !== "owner" || !selectedUser.teamId) {
+      toast.error("Only team owners can have individual team limits");
+      return;
+    }
+
+    if (!reset) {
+      const parsed = Number(teamLimitInput);
+      if (!Number.isFinite(parsed) || parsed < 1) {
+        toast.error("Team member limit must be at least 1");
+        return;
+      }
+    }
+
+    setSavingTeamLimit(true);
+    try {
+      const payload = reset ? null : Number(teamLimitInput);
+      const res = await adminService.updateUserTeamMemberLimit(selectedUser._id, payload);
+      toast.success(res.message || "Team member limit updated");
+      await fetchUserDetail(selectedUser._id);
+      fetchUsers();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update team member limit");
+    } finally {
+      setSavingTeamLimit(false);
     }
   };
 
@@ -134,7 +171,7 @@ const AdminDashboard = () => {
       const result = await adminService.adjustCredits(selectedUser._id, signedAmount, reasonInput || "Admin adjustment");
       toast.success(result.message || "Credits updated");
       setSelectedUser(result.user);
-      setCreditHistory(result.user.creditHistory || []);
+      setCreditHistory(result.user.effectiveCreditHistory || result.user.creditHistory || []);
       setAmountInput("");
       setReasonInput("");
       fetchUsers();
@@ -310,7 +347,7 @@ const AdminDashboard = () => {
                     </div>
                     <p className='text-[10.5px] font-bold tracking-[0.9px] uppercase text-[#9E9893] mb-1'>User Credits</p>
                     <p className='text-[30px] font-bold tracking-tight text-stone-900 leading-none mb-1'>
-                      {selectedUser ? (selectedUser.teamId ? "—" : selectedUser.credits ?? 0) : "—"}
+                      {selectedUser ? (selectedUser.effectiveCredits ?? selectedUser.credits ?? 0) : "—"}
                     </p>
                     <p className='text-xs text-[#9E9893]'>Current balance</p>
                   </div>
@@ -352,6 +389,7 @@ const AdminDashboard = () => {
                             <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Role</th>
                             <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Status</th>
                             <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Credits</th>
+                            <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Team Limit</th>
                             <th className='text-left text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Created</th>
                             <th className='text-right text-[10.5px] font-bold tracking-[0.8px] uppercase text-[#9E9893] px-4 py-2.5 border-b border-[#E5E2DA] whitespace-nowrap'>Actions</th>
                           </tr>
@@ -359,7 +397,7 @@ const AdminDashboard = () => {
                         <tbody>
                           {users.length === 0 && !loading && (
                             <tr>
-                              <td className='px-4 py-6 text-[13px] text-[#9E9893]' colSpan={7}>
+                              <td className='px-4 py-6 text-[13px] text-[#9E9893]' colSpan={8}>
                                 No users found.
                               </td>
                             </tr>
@@ -393,7 +431,12 @@ const AdminDashboard = () => {
                                 </span>
                               </td>
                               <td className='px-4 py-3.5 text-[13.5px] font-mono font-semibold text-stone-900'>
-                                {u.teamId ? <span className='text-[#9E9893] text-xs font-normal'>Team wallet</span> : u.credits ?? 0}
+                                {u.teamId ? (u.effectiveCredits ?? 0) : (u.credits ?? 0)}
+                              </td>
+                              <td className='px-4 py-3.5 text-[13px] text-stone-900 font-mono'>
+                                {u.teamRole === "owner"
+                                  ? (u.teamMemberLimit ?? "-")
+                                  : <span className='text-[#9E9893] text-xs'>-</span>}
                               </td>
                               <td className='px-4 py-3.5 text-[13.5px] text-stone-900 font-mono'>{new Date(u.createdAt).toLocaleDateString()}</td>
                               <td className='px-4 py-3.5 text-right'>
@@ -488,6 +531,34 @@ const AdminDashboard = () => {
                               {selectedUser.isVerified ? "Yes" : "No"}
                             </span>
                           </div>
+                          {selectedUser.teamRole === "owner" && selectedUser.teamId && (
+                            <div className='border border-[#E5E2DA] rounded-xl p-3 bg-[#F9F8F5]'>
+                              <p className='text-[11.5px] font-semibold text-stone-900 mb-1'>Team Member Limit</p>
+                              <p className='text-[11px] text-[#9E9893] mb-2'>
+                                Manage limit for this owner&apos;s team (individual override).
+                              </p>
+                              <div className='flex items-center gap-2'>
+                                <input
+                                  type='number'
+                                  min={1}
+                                  value={teamLimitInput}
+                                  onChange={(e) => setTeamLimitInput(e.target.value)}
+                                  className='w-[200px] h-8 px-2.5 rounded-lg border border-[#E5E2DA] bg-white text-[13px] text-stone-900 outline-none focus:border-[#0F62FE] transition-all'
+                                />
+                                <Button
+                                  size='sm'
+                                  loading={savingTeamLimit}
+                                  onClick={() => handleSaveTeamMemberLimit(false)}
+                                  className='h-8'
+                                >
+                                  Save
+                                </Button>
+                              </div>
+                              <p className='text-[10px] text-[#9E9893] mt-2'>
+                                Source: {selectedUser.teamMemberLimitSource || "plan/global fallback"}
+                              </p>
+                            </div>
+                          )}
                           <div className='border-t border-[#E5E2DA] pt-3 flex flex-col gap-2'>
                             <Button
                               variant='outline'
@@ -525,7 +596,9 @@ const AdminDashboard = () => {
                       entitySubLabel='Selected User'
                       creditsDisplay={
                         selectedUser?.teamId ? (
-                          <em className='text-[#9E9893]'>Team wallet</em>
+                          <span className='text-stone-900 font-mono'>
+                            {selectedUser?.effectiveCredits ?? 0} <em className='text-[#9E9893] text-xs'>team wallet</em>
+                          </span>
                         ) : (
                           <strong className='text-stone-900 font-mono'>{selectedUser?.credits ?? 0}</strong>
                         )
@@ -539,6 +612,11 @@ const AdminDashboard = () => {
                       disabled={!!selectedUser?.teamId}
                       warning={selectedUser?.teamId ? "This user uses a team wallet — individual credits cannot be adjusted." : undefined}
                       emptyMessage='Select a user to manage credits.'
+                    />
+                    <CreditHistoryList
+                      title={selectedUser?.teamId ? "Wallet Credit History (Team)" : "Credit History"}
+                      entries={creditHistory}
+                      variant='compact'
                     />
                   </div>
                 </div>

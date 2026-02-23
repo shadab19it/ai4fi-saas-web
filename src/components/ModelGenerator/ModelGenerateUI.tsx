@@ -13,19 +13,19 @@ import {
   ImageIcon,
   RefreshCw,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import modelService from "../../services/modelService";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { clearSelectedModel, setGeneratedModelList, setSelectedModel } from "../../store/modelSlice";
 import clsx from "clsx";
-import appConstant from "../../services/appConstant";
 import { setUserRefresh } from "../../store/userReducer";
 import commonService from "../../services/commonService";
 import { useMediaQuery } from "../useMediaQuery";
 import Button from "../ui/Button";
 import ZoomImageModal from "../ui/ZoomImageModal";
+import { MODEL_FACE_RETURN_URL_KEY } from "../../constants/modelFace";
 
 export interface ModifiedModelData {
   url: string;
@@ -77,7 +77,7 @@ const ModelGeneratorUI: React.FC = () => {
   const { selectedModel } = useSelector((state: RootState) => state.modelList);
   const isMobile = useMediaQuery("(max-width: 440px)");
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const location = useLocation();
 
   const [mode, setMode] = useState<string>("fashion");
   const [gender, setGender] = useState<string>("male");
@@ -110,6 +110,8 @@ const ModelGeneratorUI: React.FC = () => {
   const [downloadLoading, setDownloadLoading] = useState<boolean>(false);
   const [isModelGenerated, setModelGenerated] = useState<boolean>(false);
   const [regenInfo, setRegenInfo] = useState<RegenInfo | null>(null);
+  const is4kResolution = (resolution || "").toUpperCase() === "4K";
+  const canShowFreeRegen = !!regenInfo && !is4kResolution && regenInfo.freeRegensRemaining > 0;
 
   const calculateSecondsDifference = (time1: number, time2: number): number =>
     (time2 - time1) / 1000;
@@ -207,6 +209,8 @@ const ModelGeneratorUI: React.FC = () => {
         const updatedImages: ModifiedModelData[] = data.image_urls.map((url: string) => ({ url }));
         setGeneratedImages(updatedImages);
         dispatch(setGeneratedModelList(updatedImages));
+        // Save latest generated face/model URL so tool pages can auto-prefill Model Face on return.
+        localStorage.setItem(MODEL_FACE_RETURN_URL_KEY, data.image_urls[0]);
       }
       if ((data as any).regeneration) {
         setRegenInfo((data as any).regeneration);
@@ -239,13 +243,13 @@ const ModelGeneratorUI: React.FC = () => {
     }
   }, [gender]);
 
-  const handleVirtualTryOn = () => {
-    if (selectedModel.length === 0) {
-      toast.info("Please select at least one model to proceed");
-      return;
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const requestedMode = (searchParams.get("mode") || "").toLowerCase();
+    if (requestedMode === "face" || requestedMode === "fashion") {
+      setMode(requestedMode);
     }
-    navigate("/virtualtryon", { state: "model" });
-  };
+  }, [location.search]);
 
   const handleSelectAll = () => {
     if (selectedModel.length > 0 && selectedModel.length === generatedImages.length) {
@@ -375,14 +379,14 @@ const ModelGeneratorUI: React.FC = () => {
               </h2>
               {regenInfo && (
                 <Button
-                  variant={regenInfo.freeRegensRemaining > 0 ? "outline" : "ghost"}
+                  variant={canShowFreeRegen ? "outline" : "ghost"}
                   size='sm'
                   onClick={() => generateImages(regenInfo.generationId)}
                   disabled={loading}
                   icon={<RefreshCw className='w-3.5 h-3.5' />}
-                  className={regenInfo.freeRegensRemaining > 0 ? "!border-green-300 !text-green-700 hover:!bg-green-50" : ""}
+                  className={canShowFreeRegen ? "!border-green-300 !text-green-700 hover:!bg-green-50" : ""}
                 >
-                  {regenInfo.freeRegensRemaining > 0
+                  {canShowFreeRegen
                     ? `Regenerate Free (${regenInfo.freeRegensRemaining} left)`
                     : "Regenerate (1 credit)"}
                 </Button>

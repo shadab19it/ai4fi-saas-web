@@ -1,9 +1,16 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { Upload, ZoomIn, X, Image as ImageIcon, Info, Sparkles, Grid3x3, Link as LinkIcon, Unlink, ChevronDown } from "lucide-react"
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import { female_model_tryon_prompt, male_model_tryon_prompt } from "../../services/prompt"
 import modelGalleryList from "../../services/ModelGallery"
+import { MODEL_FACE_RETURN_URL_KEY } from "../../constants/modelFace"
+import {
+  ECOMMERCE_PLATFORM_OPTIONS,
+  ECOMMERCE_PLATFORM_PRESETS,
+  type EcommercePlatformKey,
+} from "../../constants/ecommercePlatforms"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
 import ZoomImageModal from "../ui/ZoomImageModal"
@@ -47,9 +54,8 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [segment] = useState<string>("Women")
   const [garmentCategory] = useState<string>("Top wear")
-  const [ecommercePlatform, setEcommercePlatform] = useState<string>("")
+  const [ecommercePlatform, setEcommercePlatform] = useState<EcommercePlatformKey | "">("")
   const dressInputRef = useRef<HTMLInputElement>(null)
-  const modelImageInputRef = useRef<HTMLInputElement>(null)
   const dropZoneRef = useRef<HTMLDivElement>(null)
 
   const handleImageUpload = (file: File) => {
@@ -103,24 +109,6 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
     }
   }
 
-  const handleModelImageUpload = (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      setModelImage(event.target?.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const handleModelFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      handleModelImageUpload(file)
-    }
-  }
-
   const handleGalleryModelSelect = (imageUrl: string) => {
     setModelImage(imageUrl)
     setIsGalleryOpen(false)
@@ -147,18 +135,11 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
     setHeight(calculatedHeight.toString())
   }
 
-  const platformPresets: Record<string, { label: string; ratio: string; width: number; height: number; description: string }> = {
-    amazon:   { label: "Amazon",   ratio: "1:1", width: 2000, height: 2000, description: "2000×2000 (1:1)" },
-    flipkart: { label: "Flipkart", ratio: "3:4", width: 1500, height: 2000, description: "1500×2000 (3:4)" },
-    myntra:   { label: "Myntra",   ratio: "3:4", width: 1500, height: 2000, description: "1500×2000 (3:4)" },
-    meesho:   { label: "Meesho",   ratio: "1:1", width: 1200, height: 1200, description: "1200×1200 (1:1)" },
-  }
-
-  const handlePlatformSelect = (platform: string) => {
-    const preset = platformPresets[platform]
-    if (!preset) return
+  const handlePlatformSelect = (platform: EcommercePlatformKey) => {
+    const preset = ECOMMERCE_PLATFORM_PRESETS[platform]
     setEcommercePlatform(platform)
     setAspectRatio(preset.ratio)
+    setResolution(preset.resolution)
     setWidth(preset.width.toString())
     setHeight(preset.height.toString())
   }
@@ -206,6 +187,14 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
       setPromptOverride(male_model_tryon_prompt)
     }
   }, [gender])
+
+  useEffect(() => {
+    const returnedModelFaceUrl = localStorage.getItem(MODEL_FACE_RETURN_URL_KEY)
+    if (returnedModelFaceUrl) {
+      setModelImage(returnedModelFaceUrl)
+      localStorage.removeItem(MODEL_FACE_RETURN_URL_KEY)
+    }
+  }, [])
 
   return (
     <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6">
@@ -363,7 +352,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                         <div className="group relative">
                           <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
                           <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
-                            Upload a face image or choose from gallery to preserve model identity
+                            Choose from gallery or generate a new face model
                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
                           </div>
                         </div>
@@ -380,9 +369,6 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                         <button
                           onClick={() => {
                             setModelImage(null)
-                            if (modelImageInputRef.current) {
-                              modelImageInputRef.current.value = ""
-                            }
                           }}
                           className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
                         >
@@ -392,28 +378,21 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                     ) : (
                       <div className="grid grid-cols-2 gap-3">
                         <button
-                          onClick={() => modelImageInputRef.current?.click()}
-                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
-                        >
-                          <Upload className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
-                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Upload Image</span>
-                        </button>
-                        <button
                           onClick={() => setIsGalleryOpen(true)}
                           className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
                         >
                           <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
                           <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Choose from Gallery</span>
                         </button>
+                        <Link
+                          to="/model?mode=face"
+                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
+                        >
+                          <Sparkles className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
+                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Generate Face</span>
+                        </Link>
                       </div>
                     )}
-                    <input
-                      ref={modelImageInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleModelFileInput}
-                      className="hidden"
-                    />
                   </div>
 
 
@@ -549,20 +528,22 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                               <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Ecommerce Platform</label>
                               <p className="text-[10.5px] text-[#9E9893] mb-3">Auto-sets optimal aspect ratio & dimensions for the selected marketplace</p>
                               <div className="grid grid-cols-2 gap-2">
-                                {Object.entries(platformPresets).map(([key, preset]) => (
+                                {ECOMMERCE_PLATFORM_OPTIONS.map(({ value, label }) => {
+                                  const preset = ECOMMERCE_PLATFORM_PRESETS[value]
+                                  return (
                                   <button
-                                    key={key}
-                                    onClick={() => handlePlatformSelect(key)}
+                                    key={value}
+                                    onClick={() => handlePlatformSelect(value)}
                                     className={`px-3 py-2.5 rounded-xl text-left transition-all ${
-                                      ecommercePlatform === key
+                                      ecommercePlatform === value
                                         ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border border-violet-400 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
                                         : "bg-white border border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                                     }`}
                                   >
-                                    <div className="text-[12px] font-bold">{preset.label}</div>
-                                    <div className={`text-[10px] mt-0.5 ${ecommercePlatform === key ? "text-white/75" : "text-[#9E9893]"}`}>{preset.description}</div>
+                                    <div className="text-[12px] font-bold">{label}</div>
+                                    <div className={`text-[10px] mt-0.5 ${ecommercePlatform === value ? "text-white/75" : "text-[#9E9893]"}`}>{preset.description}</div>
                                   </button>
-                                ))}
+                                )})}
                               </div>
                             </div>
 

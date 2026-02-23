@@ -45,7 +45,7 @@ export default function BillingPage() {
   useEffect(() => {
     if (paymentStatus === "success") {
       toast.success(
-        `${planName || "Plan"} activated! ${creditsGranted || ""} credits added.`
+        `${planName || "Credit package"} purchased! ${creditsGranted || ""} credits added.`
       )
       dispatch(setUserRefresh())
     } else if (paymentStatus === "failed") {
@@ -125,13 +125,10 @@ export default function BillingPage() {
   const { subscription, credits, storage, recentPayments } = data
   const plan = subscription.plan
   const isActive = subscription.status === "active"
-  const daysLeft = subscription.endDate
-    ? Math.max(0, Math.ceil((new Date(subscription.endDate).getTime() - Date.now()) / 86400000))
-    : 0
 
   return (
     <div className="min-h-screen bg-[#F4F2EE] flex flex-col">
-      <AppHeader title="Billing & Subscription" onLogout={handleLogout} />
+      <AppHeader title="Billing & Credits" onLogout={handleLogout} />
 
       <div className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Payment status banner */}
@@ -141,7 +138,7 @@ export default function BillingPage() {
             <div>
               <p className="text-sm font-semibold text-emerald-900">Payment Successful</p>
               <p className="text-xs text-emerald-700">
-                {planName} plan activated with {creditsGranted} credits.
+                {planName} credits purchased with {creditsGranted} credits.
               </p>
             </div>
           </div>
@@ -158,12 +155,12 @@ export default function BillingPage() {
 
         {/* Top cards row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Subscription card */}
+          {/* Credit package card */}
           <div className="bg-white rounded-2xl border border-[#E5E2DA] p-5 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-stone-900 flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-violet-500" />
-                Subscription
+                Credit Package
               </h3>
               {isActive ? (
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
@@ -178,22 +175,17 @@ export default function BillingPage() {
             {plan ? (
               <>
                 <div className="text-2xl font-bold text-stone-900">{plan.displayName}</div>
-                <p className="text-xs text-stone-500">
-                  {isActive ? `${daysLeft} days remaining` : "Expired"}
-                </p>
-                <p className="text-[10px] text-stone-400">
-                  {subscription.startDate && new Date(subscription.startDate).toLocaleDateString()} —{" "}
-                  {subscription.endDate && new Date(subscription.endDate).toLocaleDateString()}
-                </p>
+                <p className="text-xs text-stone-500">Lifetime credits access</p>
+                <p className="text-[10px] text-stone-400">One-time credit purchase model</p>
               </>
             ) : (
               <div>
-                <p className="text-sm text-stone-500">No active plan</p>
+                <p className="text-sm text-stone-500">No credit package purchased</p>
                 <button
                   onClick={() => navigate("/pricing")}
                   className="mt-2 text-xs font-semibold text-violet-600 hover:text-violet-700 flex items-center gap-1"
                 >
-                  View Plans <ArrowUpRight className="h-3 w-3" />
+                  Buy Credits <ArrowUpRight className="h-3 w-3" />
                 </button>
               </div>
             )}
@@ -202,7 +194,7 @@ export default function BillingPage() {
                 onClick={() => navigate("/pricing")}
                 className="w-full mt-1 text-xs font-semibold text-center py-2 rounded-lg border border-violet-200 text-violet-600 hover:bg-violet-50 transition"
               >
-                {isActive ? "Upgrade Plan" : "Renew"}
+                Buy More Credits
               </button>
             )}
           </div>

@@ -41,7 +41,6 @@ export const PlanCard = ({ plan, displayPrice, displayCurrency, creditCount, onP
 
       <div className="flex items-baseline gap-1 mt-3">
         <p className="text-4xl font-bold">{formatPrice(displayPrice, displayCurrency)}</p>
-        <span className={cn("text-lg text-gray-600", plan.highlighted && "text-[#eee]")}>/ month</span>
       </div>
 
       <p className="text-xs mt-1 opacity-80">{creditCount} credits included</p>

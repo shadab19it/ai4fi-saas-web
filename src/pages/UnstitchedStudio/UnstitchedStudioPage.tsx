@@ -1,5 +1,5 @@
 import type React from "react"
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { Link } from "react-router-dom"
 import {
   Upload,
@@ -25,8 +25,15 @@ import modelGalleryList from "../../services/ModelGallery"
 import Button from "../../components/ui/Button"
 import ZoomImageModal from "../../components/ui/ZoomImageModal"
 import modelService from "../../services/modelService"
+import commonService from "../../services/commonService"
 import DarkLogo from "../../../public/dark-logo2.png"
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
+import {
+  ECOMMERCE_PLATFORM_OPTIONS,
+  ECOMMERCE_PLATFORM_PRESETS,
+  type EcommercePlatformKey,
+} from "../../constants/ecommercePlatforms"
+import { MODEL_FACE_RETURN_URL_KEY } from "../../constants/modelFace"
 
 // ──────────────────────────────────────────────
 // Types
@@ -128,6 +135,7 @@ export default function UnstitchedStudioPage() {
   const [tier, setTier] = useState<"basic" | "professional">("professional")
   const [aspectRatio, setAspectRatio] = useState("")
   const [resolution, setResolution] = useState("")
+  const [ecommercePlatform, setEcommercePlatform] = useState<EcommercePlatformKey | "">("")
 
   const dressTypes = gender === "male" ? MALE_DRESS_TYPES : FEMALE_DRESS_TYPES
 
@@ -143,9 +151,15 @@ export default function UnstitchedStudioPage() {
     }
   }
 
+  const handlePlatformSelect = (platform: EcommercePlatformKey) => {
+    const preset = ECOMMERCE_PLATFORM_PRESETS[platform]
+    setEcommercePlatform(platform)
+    setAspectRatio(preset.ratio)
+    setResolution(preset.resolution)
+  }
+
   // Model face
   const [modelFace, setModelFace] = useState<string | null>(null)
-  const modelFaceRef = useRef<HTMLInputElement>(null)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState("formal")
 
@@ -157,6 +171,8 @@ export default function UnstitchedStudioPage() {
   const [generatedImages, setGeneratedImages] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
   const [regenInfo, setRegenInfo] = useState<{ generationId: string; freeRegensRemaining: number } | null>(null)
+  const is4kResolution = (resolution || "").toUpperCase() === "4K"
+  const canShowFreeRegen = !!regenInfo && !is4kResolution && regenInfo.freeRegensRemaining > 0
 
   // Zoom modal
   const [zoomOpen, setZoomOpen] = useState(false)
@@ -169,7 +185,6 @@ export default function UnstitchedStudioPage() {
     bottom_fabric: null,
     dupatta_fabric: null,
   })
-  const [modelFaceFile, setModelFaceFile] = useState<File | null>(null)
 
   // ─── Handlers ───
 
@@ -212,17 +227,8 @@ export default function UnstitchedStudioPage() {
     if (file) handleFabricUpload(slotId, file)
   }
 
-  const handleModelFaceUpload = (file: File) => {
-    if (!file.type.startsWith("image/")) return
-    const reader = new FileReader()
-    reader.onload = (e) => setModelFace(e.target?.result as string)
-    reader.readAsDataURL(file)
-    setModelFaceFile(file)
-  }
-
   const handleGallerySelect = (url: string) => {
     setModelFace(url)
-    setModelFaceFile(null) // gallery images are URLs, not files
     setIsGalleryOpen(false)
   }
 
@@ -231,6 +237,14 @@ export default function UnstitchedStudioPage() {
     if (!cat) return []
     return gender === "male" ? cat.male : cat.female
   }
+
+  useEffect(() => {
+    const returnedModelFaceUrl = localStorage.getItem(MODEL_FACE_RETURN_URL_KEY)
+    if (returnedModelFaceUrl) {
+      setModelFace(returnedModelFaceUrl)
+      localStorage.removeItem(MODEL_FACE_RETURN_URL_KEY)
+    }
+  }, [])
 
   // ─── Generate ───
 
@@ -272,13 +286,10 @@ export default function UnstitchedStudioPage() {
         formData.append("dupatta_fabric", blob, "dupatta_fabric.jpg")
       }
 
-      // Optional model face
-      if (modelFaceFile) {
-        formData.append("model_face", modelFaceFile)
-      } else if (modelFace && modelFace.startsWith("http")) {
+      // Optional model face (always convert URL to binary for API)
+      if (modelFace && modelFace.startsWith("http")) {
         try {
-          const resp = await fetch(modelFace)
-          const blob = await resp.blob()
+          const blob = await commonService.downloadSingleFile(modelFace)
           formData.append("model_face", blob, "model_face.jpg")
         } catch {
           // Skip if cannot fetch
@@ -320,15 +331,13 @@ export default function UnstitchedStudioPage() {
     setFabrics((prev) => prev.map((f) => ({ ...f, image: null })))
     setFabricFiles({ top_fabric: null, bottom_fabric: null, dupatta_fabric: null })
     setModelFace(null)
-    setModelFaceFile(null)
     setGeneratedImages([])
     setError(null)
   }
 
   const handleDownload = async (url: string) => {
     try {
-      const response = await fetch(url)
-      const blob = await response.blob()
+      const blob = await commonService.downloadSingleFile(url)
       const downloadUrl = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = downloadUrl
@@ -338,7 +347,7 @@ export default function UnstitchedStudioPage() {
       a.remove()
       URL.revokeObjectURL(downloadUrl)
     } catch {
-      window.open(url, "_blank")
+      setError("Failed to download image")
     }
   }
 
@@ -568,9 +577,9 @@ export default function UnstitchedStudioPage() {
                         onClick={() => handleGenerate(regenInfo.generationId)}
                         disabled={isGenerating}
                         icon={<RotateCcw className="w-3.5 h-3.5" />}
-                        className={regenInfo.freeRegensRemaining > 0 ? "!border-green-300 !text-green-700 hover:!bg-green-50" : ""}
+                        className={canShowFreeRegen ? "!border-green-300 !text-green-700 hover:!bg-green-50" : ""}
                       >
-                        {regenInfo.freeRegensRemaining > 0
+                        {canShowFreeRegen
                           ? `Regenerate Free (${regenInfo.freeRegensRemaining} left)`
                           : "Regenerate (1 credit)"}
                       </Button>
@@ -769,8 +778,6 @@ export default function UnstitchedStudioPage() {
                   <button
                     onClick={() => {
                       setModelFace(null)
-                      setModelFaceFile(null)
-                      if (modelFaceRef.current) modelFaceRef.current.value = ""
                     }}
                     className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
                   >
@@ -780,15 +787,6 @@ export default function UnstitchedStudioPage() {
               ) : (
                 <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={() => modelFaceRef.current?.click()}
-                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
-                  >
-                    <Upload className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
-                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
-                      Upload Image
-                    </span>
-                  </button>
-                  <button
                     onClick={() => setIsGalleryOpen(true)}
                     className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
                   >
@@ -797,18 +795,17 @@ export default function UnstitchedStudioPage() {
                       From Gallery
                     </span>
                   </button>
+                  <Link
+                    to="/model?mode=face"
+                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
+                  >
+                    <Sparkles className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
+                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
+                      Generate Face
+                    </span>
+                  </Link>
                 </div>
               )}
-              <input
-                ref={modelFaceRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) handleModelFaceUpload(file)
-                }}
-              />
             </div>
 
             {/* ── Professional Options ── */}
@@ -854,7 +851,10 @@ export default function UnstitchedStudioPage() {
                         {["", "1:1", "3:4", "4:3", "2:3", "3:2", "4:5", "9:16"].map((r) => (
                           <button
                             key={r}
-                            onClick={() => setAspectRatio(r)}
+                            onClick={() => {
+                              setAspectRatio(r)
+                              setEcommercePlatform("")
+                            }}
                             className={`px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
                               aspectRatio === r
                                 ? "bg-[#2563EB] text-white border border-[#2563EB]"
@@ -873,7 +873,10 @@ export default function UnstitchedStudioPage() {
                       <div className="relative">
                         <select
                           value={resolution}
-                          onChange={(e) => setResolution(e.target.value)}
+                          onChange={(e) => {
+                            setResolution(e.target.value)
+                            setEcommercePlatform("")
+                          }}
                           className="w-full px-3 py-2.5 pr-10 rounded-xl bg-[#F9F8F5] border border-[#E5E2DA] text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] transition-all appearance-none cursor-pointer"
                         >
                           <option value="">Default</option>
@@ -882,6 +885,35 @@ export default function UnstitchedStudioPage() {
                           <option value="4K" disabled={!isResolutionAllowed("4K")}>4K{!isResolutionAllowed("4K") ? " (Upgrade)" : ""}</option>
                         </select>
                         <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Ecommerce Platform Presets */}
+                    <div>
+                      <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Ecommerce Platform</label>
+                      <p className="text-[10.5px] text-[#9E9893] mb-3">
+                        Auto-sets marketplace-friendly aspect ratio and resolution
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {ECOMMERCE_PLATFORM_OPTIONS.map(({ value, label }) => {
+                          const preset = ECOMMERCE_PLATFORM_PRESETS[value]
+                          return (
+                            <button
+                              key={value}
+                              onClick={() => handlePlatformSelect(value)}
+                              className={`px-3 py-2.5 rounded-xl text-left transition-all ${
+                                ecommercePlatform === value
+                                  ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
+                                  : "bg-white border border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
+                              }`}
+                            >
+                              <div className="text-[12px] font-bold">{label}</div>
+                              <div className={`text-[10px] mt-0.5 ${ecommercePlatform === value ? "text-white/75" : "text-[#9E9893]"}`}>
+                                {preset.description}
+                              </div>
+                            </button>
+                          )
+                        })}
                       </div>
                     </div>
                   </div>

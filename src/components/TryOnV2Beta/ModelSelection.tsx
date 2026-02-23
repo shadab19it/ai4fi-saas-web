@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { ZoomIn, Sparkles, Download, RefreshCw } from "lucide-react"
 import axios from "axios"
 import appConstant from "../../services/appConstant"
+import commonService from "../../services/commonService"
 import { dataURLtoFile } from "../../services/utils"
 import { toast } from "sonner"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
@@ -49,6 +50,8 @@ export default function ModelSelection({
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isDownloadingModel, setIsDownloadingModel] = useState(false)
   const [regenInfo, setRegenInfo] = useState<{ generationId: string; freeRegensRemaining: number } | null>(null)
+  const is4kResolution = (resolution || "").toUpperCase() === "4K"
+  const canShowFreeRegen = !!regenInfo && !is4kResolution && regenInfo.freeRegensRemaining > 0
 
   const handleGenerateModel = async (parentId?: string) => {
     if (!dressImage) {
@@ -144,9 +147,7 @@ export default function ModelSelection({
         anchor.click()
         document.body.removeChild(anchor)
       } else {
-        const response = await fetch(generatedModel)
-        if (!response.ok) throw new Error("Unable to download generated model")
-        const blob = await response.blob()
+        const blob = await commonService.downloadSingleFile(generatedModel)
         const blobUrl = URL.createObjectURL(blob)
         const ext = blob.type.includes("png") ? "png" : "jpg"
         const anchor = document.createElement("a")
@@ -345,9 +346,9 @@ export default function ModelSelection({
                               setGeneratedModel(null)
                               handleGenerateModel(regenInfo?.generationId)
                             }}
-                            className={`bg-white/90 backdrop-blur-sm hover:bg-white ${regenInfo && regenInfo.freeRegensRemaining > 0 ? "!border-green-400 !text-green-700" : ""}`}
+                            className={`bg-white/90 backdrop-blur-sm hover:bg-white ${canShowFreeRegen ? "!border-green-400 !text-green-700" : ""}`}
                           >
-                            {regenInfo && regenInfo.freeRegensRemaining > 0
+                            {canShowFreeRegen
                               ? `Regenerate Free (${regenInfo.freeRegensRemaining} left)`
                               : "Generate Again"}
                           </Button>
