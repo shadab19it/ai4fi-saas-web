@@ -455,7 +455,9 @@ const SettingsPanel: FC = () => {
           </div>
           <div>
             <h2 className="text-[15px] font-bold text-stone-900">Credit Plans</h2>
-            <p className="text-xs text-[#9E9893] mt-0.5">Manage pricing (USD & INR), credits, and plan visibility</p>
+            <p className="text-xs text-[#9E9893] mt-0.5">
+              Manage pricing (₹ INR active &mdash; $ USD coming soon), credits, and plan visibility
+            </p>
           </div>
         </div>
 
@@ -473,14 +475,17 @@ const SettingsPanel: FC = () => {
 
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 <div>
-                  <label className="text-[11px] font-medium text-[#6B6560] uppercase tracking-wide">Price ($ USD)</label>
+                  <label className="text-[11px] font-medium text-[#6B6560] uppercase tracking-wide flex items-center gap-1.5">
+                    Price ($ USD)
+                    <span className="text-[9px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded-full normal-case tracking-normal font-semibold">Coming Soon</span>
+                  </label>
                   <input
                     type="number"
                     min="0"
                     value={getPlanValue(plan, "price") as number}
                     onChange={(e) => handlePlanFieldChange(plan._id, "price", Number(e.target.value))}
-                    className="mt-1 w-full h-8 px-2.5 rounded-lg border border-[#E5E2DA] bg-[#F9F8F5] text-[13px] text-stone-900 outline-none focus:border-[#0F62FE] transition-all"
-                    aria-label={`USD Price for ${plan.displayName}`}
+                    className="mt-1 w-full h-8 px-2.5 rounded-lg border border-[#E5E2DA] bg-[#F9F8F5] text-[13px] text-stone-900 outline-none focus:border-[#0F62FE] transition-all opacity-60"
+                    aria-label={`USD Price for ${plan.displayName} (coming soon)`}
                   />
                 </div>
                 <div>

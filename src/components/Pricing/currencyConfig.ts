@@ -15,10 +15,13 @@ export const CURRENCIES: Record<string, CurrencyInfo> = {
 
 export const SUPPORTED_CURRENCIES: CurrencyInfo[] = Object.values(CURRENCIES);
 
-export const DEFAULT_CURRENCY = "USD";
+export const DEFAULT_CURRENCY = "INR";
+
+// Currencies not yet available for payment — shown as "Coming Soon" in the UI
+export const COMING_SOON_CURRENCIES: string[] = ["USD"];
 
 export const getCurrencyInfo = (code: string): CurrencyInfo =>
-  CURRENCIES[code] || CURRENCIES.USD;
+  CURRENCIES[code] || CURRENCIES.INR;
 
 export const formatPrice = (amount: number, currencyCode: string): string => {
   const info = getCurrencyInfo(currencyCode);
@@ -31,14 +34,15 @@ export const formatPrice = (amount: number, currencyCode: string): string => {
 };
 
 export const detectCurrency = (): string => {
-  try {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
-    const tzLower = tz.toLowerCase();
-    if (tzLower.startsWith("asia/kolkata") || tzLower.startsWith("asia/calcutta") || tzLower.startsWith("asia/mumbai")) {
-      return "INR";
-    }
-  } catch {
-    // fallback
-  }
-  return "USD";
+  // Only INR is active for payments. USD support is coming soon.
+  // Re-enable timezone detection below when USD goes live:
+  // try {
+  //   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+  //   const tzLower = tz.toLowerCase();
+  //   if (tzLower.startsWith("asia/kolkata") || tzLower.startsWith("asia/calcutta") || tzLower.startsWith("asia/mumbai")) {
+  //     return "INR";
+  //   }
+  // } catch {}
+  // return "USD";
+  return "INR";
 };

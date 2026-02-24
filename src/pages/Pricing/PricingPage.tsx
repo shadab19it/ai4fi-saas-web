@@ -60,6 +60,11 @@ const PricingPage = () => {
       return;
     }
 
+    if (selectedCurrency === "USD") {
+      toast.info("USD payments are coming soon. Please use INR to complete your purchase.");
+      return;
+    }
+
     setPurchasingPlanId(plan._id);
     try {
       const orderData = await subscriptionService.createOrder(plan._id, selectedCurrency, selectedCredits);
