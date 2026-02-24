@@ -1,0 +1,107 @@
+.hero {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    align-items: center;
+    padding: 90px 100px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+/* LEFT CONTENT */
+.hero-left {
+    z-index: 2;
+}
+
+.hero-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #eef3f8;
+    border-radius: 999px;
+    font-size: 12px;
+    color: #2563eb;
+    margin-bottom: 20px;
+}
+
+.hero-left h1 {
+    font-size: 52px;
+    line-height: 1.15;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.hero-left h1 span {
+    background: linear-gradient(90deg, #2563eb, #9333ea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-left p {
+    margin-top: 18px;
+    font-size: 18px;
+    color: #475569;
+    max-width: 520px;
+}
+
+.hero-actions {
+    margin-top: 32px;
+    display: flex;
+    gap: 16px;
+}
+
+.btn-primary {
+    padding: 14px 28px;
+    border-radius: 12px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    padding: 14px 28px;
+    border-radius: 12px;
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+/* RIGHT COLLAGE */
+.hero-right {
+    position: relative;
+    height: 520px;
+}
+
+.collage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.collage-img {
+    position: absolute;
+    width: 170px;
+    border-radius: 22px;
+    background: #fff;
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.08),
+        0 40px 80px rgba(0, 0, 0, 0.05);
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+    .hero {
+        grid-template-columns: 1fr;
+        padding: 60px 24px;
+    }
+
+    .hero-right {
+        display: none;
+    }
+
+    .hero-left h1 {
+        font-size: 40px;
+    }
+}

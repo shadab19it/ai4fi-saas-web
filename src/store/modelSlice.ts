@@ -8,9 +8,35 @@ export interface IModelImage {
   message: string;
 }
 
+export interface ProductListingSpecificationItem {
+  Attribute?: string;
+  Value?: string;
+}
+
+export interface ProductListingData {
+  title?: string;
+  bullets?: string[];
+  description?: string;
+  specifications?: Record<string, string> | ProductListingSpecificationItem[];
+  keywords?: string;
+  raw_text?: string;
+}
+
+export interface ProductListingConfigData {
+  product_name?: string;
+  target_marketplace?: "amazon" | "flipkart" | "myntra";
+  listing_data?: ProductListingData;
+  generated_tagline?: string;
+  generation_time_seconds?: number;
+  [key: string]: unknown;
+}
+
 export interface GeneratedModel {
   userId: string;
-  generatedImages: any;
+  type?: string;
+  generatedImages: { image_urls?: string[] } | any;
+  configData?: ProductListingConfigData | Record<string, unknown>;
+  createdAt?: string;
   _id: string;
 }
 

@@ -5,7 +5,7 @@ import { Upload, ZoomIn, X, Image as ImageIcon, Info, Sparkles, Grid3x3, Link as
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import { female_model_tryon_prompt, male_model_tryon_prompt } from "../../services/prompt"
 import modelGalleryList from "../../services/ModelGallery"
-import { MODEL_FACE_RETURN_URL_KEY } from "../../constants/modelFace"
+import { MODEL_FACE_RETURN_URL_KEY, DRESS_IMAGE_PERSIST_KEY } from "../../constants/modelFace"
 import {
   ECOMMERCE_PLATFORM_OPTIONS,
   ECOMMERCE_PLATFORM_PRESETS,
@@ -75,6 +75,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
     reader.onload = (event) => {
       const result = event.target?.result as string
       setDressImage(result)
+      localStorage.setItem(DRESS_IMAGE_PERSIST_KEY, result)
     }
     reader.readAsDataURL(file)
   }
@@ -164,6 +165,8 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
 
   const handleContinue = () => {
     if (dressImage) {
+      // Clear the persisted dress image once user proceeds to generation
+      localStorage.removeItem(DRESS_IMAGE_PERSIST_KEY)
       onUploadComplete(
         dressImage,
         gender,
@@ -189,6 +192,13 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   }, [gender])
 
   useEffect(() => {
+    // Restore previously uploaded dress image if user navigated away (e.g. to Model Generator)
+    const persistedDress = localStorage.getItem(DRESS_IMAGE_PERSIST_KEY)
+    if (persistedDress) {
+      setDressImage(persistedDress)
+    }
+
+    // Restore generated face model URL if user came back from Model Generator
     const returnedModelFaceUrl = localStorage.getItem(MODEL_FACE_RETURN_URL_KEY)
     if (returnedModelFaceUrl) {
       setModelImage(returnedModelFaceUrl)
@@ -342,61 +352,8 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                     </select>
                   </div>
 
-                  {/* Model Face Image Section */}
-                  <div className="border-t border-[#E5E2DA] pt-5">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Sparkles className="w-4 h-4 text-violet-500" />
-                      <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
-                        Model Face Image
-                        <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
-                        <div className="group relative">
-                          <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
-                            Choose from gallery or generate a new face model
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
-                          </div>
-                        </div>
-                      </label>
-                    </div>
 
-                    {modelImage ? (
-                      <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
-                        <img
-                          src={modelImage}
-                          alt="Model face"
-                          className="w-full h-32 object-cover"
-                        />
-                        <button
-                          onClick={() => {
-                            setModelImage(null)
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          onClick={() => setIsGalleryOpen(true)}
-                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
-                        >
-                          <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
-                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Choose from Gallery</span>
-                        </button>
-                        <Link
-                          to="/model?mode=face"
-                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
-                        >
-                          <Sparkles className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
-                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Generate Face</span>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-
-
-                       {/* Quality Tier Selection */}
+                         {/* Quality Tier Selection */}
                   <div>
                     <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
                       Quality Tier
@@ -461,6 +418,63 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
 
                         {showProfessionalOptions && (
                           <div className="space-y-4 px-4 pb-4">
+
+                            
+                            {/* Ecommerce Platform Presets */}
+                            <div>
+                              <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Ecommerce Platform</label>
+                              <p className="text-[10.5px] text-[#9E9893] mb-3">Auto-sets optimal aspect ratio & dimensions for the selected marketplace</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                {ECOMMERCE_PLATFORM_OPTIONS.map(({ value, label }) => {
+                                  const preset = ECOMMERCE_PLATFORM_PRESETS[value]
+                                  return (
+                                  <button
+                                    key={value}
+                                    onClick={() => handlePlatformSelect(value)}
+                                    className={`px-3 py-2.5 rounded-xl text-left transition-all ${
+                                      ecommercePlatform === value
+                                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border border-violet-400 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
+                                        : "bg-white border border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
+                                    }`}
+                                  >
+                                    <div className="text-[12px] font-bold">{label}</div>
+                                    <div className={`text-[10px] mt-0.5 ${ecommercePlatform === value ? "text-white/75" : "text-[#9E9893]"}`}>{preset.description}</div>
+                                  </button>
+                                )})}
+                              </div>
+                            </div>
+
+                            {/* Resolution Dropdown */}
+                            <div>
+                              <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Resolution</label>
+                              <div className="relative">
+                                <select
+                                  value={resolution}
+                                  onChange={(e) => {
+                                    setResolution(e.target.value)
+                                    setEcommercePlatform("")
+                                    if (e.target.value === "1K") {
+                                      setWidth("1024")
+                                      setHeight("1024")
+                                    } else if (e.target.value === "2K") {
+                                      setWidth("2048")
+                                      setHeight("2048")
+                                    } else if (e.target.value === "4K") {
+                                      setWidth("4096")
+                                      setHeight("4096")
+                                    }
+                                  }}
+                                  className="w-full px-3 py-2.5 pr-10 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
+                                >
+                                  <option value="">Default</option>
+                                  <option value="1K">1K</option>
+                                  <option value="2K" disabled={!isResolutionAllowed("2K")}>2K{!isResolutionAllowed("2K") ? " (Upgrade)" : ""}</option>
+                                  <option value="4K" disabled={!isResolutionAllowed("4K")}>4K{!isResolutionAllowed("4K") ? " (Upgrade)" : ""}</option>
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
+                              </div>
+                            </div>
+
                             {/* Aspect Ratio Selection */}
                             <div>
                               <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Select Aspect Ratio</label>
@@ -493,59 +507,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                               </div>
                             </div>
 
-                            {/* Resolution Dropdown */}
-                            <div>
-                              <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Resolution</label>
-                              <div className="relative">
-                                <select
-                                  value={resolution}
-                                  onChange={(e) => {
-                                    setResolution(e.target.value)
-                                    if (e.target.value === "1K") {
-                                      setWidth("1024")
-                                      setHeight("1024")
-                                    } else if (e.target.value === "2K") {
-                                      setWidth("2048")
-                                      setHeight("2048")
-                                    } else if (e.target.value === "4K") {
-                                      setWidth("4096")
-                                      setHeight("4096")
-                                    }
-                                  }}
-                                  className="w-full px-3 py-2.5 pr-10 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
-                                >
-                                  <option value="">Default</option>
-                                  <option value="1K">1K</option>
-                                  <option value="2K" disabled={!isResolutionAllowed("2K")}>2K{!isResolutionAllowed("2K") ? " (Upgrade)" : ""}</option>
-                                  <option value="4K" disabled={!isResolutionAllowed("4K")}>4K{!isResolutionAllowed("4K") ? " (Upgrade)" : ""}</option>
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
-                              </div>
-                            </div>
-
-                            {/* Ecommerce Platform Presets */}
-                            <div>
-                              <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Ecommerce Platform</label>
-                              <p className="text-[10.5px] text-[#9E9893] mb-3">Auto-sets optimal aspect ratio & dimensions for the selected marketplace</p>
-                              <div className="grid grid-cols-2 gap-2">
-                                {ECOMMERCE_PLATFORM_OPTIONS.map(({ value, label }) => {
-                                  const preset = ECOMMERCE_PLATFORM_PRESETS[value]
-                                  return (
-                                  <button
-                                    key={value}
-                                    onClick={() => handlePlatformSelect(value)}
-                                    className={`px-3 py-2.5 rounded-xl text-left transition-all ${
-                                      ecommercePlatform === value
-                                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border border-violet-400 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
-                                        : "bg-white border border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
-                                    }`}
-                                  >
-                                    <div className="text-[12px] font-bold">{label}</div>
-                                    <div className={`text-[10px] mt-0.5 ${ecommercePlatform === value ? "text-white/75" : "text-[#9E9893]"}`}>{preset.description}</div>
-                                  </button>
-                                )})}
-                              </div>
-                            </div>
+                       
 
                             {/* Custom Dimensions */}
                             <div>
@@ -596,6 +558,61 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                     )}
                   </div>
 
+
+
+
+                  {/* Model Face Image Section */}
+                  <div className="border-t border-[#E5E2DA] pt-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Sparkles className="w-4 h-4 text-violet-500" />
+                      <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
+                        Model Face Image
+                        <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
+                        <div className="group relative">
+                          <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                            Choose from gallery or generate a new face model
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+
+                    {modelImage ? (
+                      <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
+                        <img
+                          src={modelImage}
+                          alt="Model face"
+                          className="w-full h-32 object-cover"
+                        />
+                        <button
+                          onClick={() => {
+                            setModelImage(null)
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => setIsGalleryOpen(true)}
+                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
+                        >
+                          <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
+                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Select Model</span>
+                        </button>
+                        <Link
+                          to={`/model?mode=face&gender=${gender}`}
+                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
+                        >
+                          <Sparkles className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
+                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Create Model</span>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Prompt Settings */}
                   <div>

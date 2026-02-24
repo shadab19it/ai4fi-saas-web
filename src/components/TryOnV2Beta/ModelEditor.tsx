@@ -7,15 +7,16 @@ import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import { dataURLtoFile } from "../../services/utils"
 import commonService from "../../services/commonService"
 import MultiSelect from "../common/MultiSelect"
+import GroupedSelect from "../common/GroupedSelect"
 import { IOption } from "../ModelGenerator/ModelConfigForm/ModelConfigForm"
 import { toast } from "sonner"
 import { defaultExt, downloadBlob, resizeImage, ResizeOptions } from "./resizeImage"
 import JSZip from "jszip"
 import {
-  getAllFootwearOptions,
-  getAllBackgroundOptions,
-  getAllAccessoryOptions,
-  getAllJewelryOptions
+  getGroupedFootwearOptions,
+  getGroupedBackgroundOptions,
+  getGroupedAccessoryOptions,
+  getGroupedJewelryOptions
 } from "./optionInputs"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
@@ -409,10 +410,10 @@ export default function ModelEditor({
     return gender === "female" ? FEMALE_POSES : MALE_POSES
   }
 
-  const footwearOptionsList = useMemo(() => getAllFootwearOptions(gender), [gender])
-  const backgroundOptionsList = useMemo(() => getAllBackgroundOptions(), [])
-  const accessoryOptionsList = useMemo(() => getAllAccessoryOptions(gender), [gender])
-  const jewelryOptionsList = useMemo(() => getAllJewelryOptions(gender), [gender])
+  const footwearOptionsList = useMemo(() => getGroupedFootwearOptions(gender), [gender])
+  const backgroundOptionsList = useMemo(() => getGroupedBackgroundOptions(), [])
+  const accessoryOptionsList = useMemo(() => getGroupedAccessoryOptions(gender), [gender])
+  const jewelryOptionsList = useMemo(() => getGroupedJewelryOptions(gender), [gender])
 
   // Helper for select styling
   const selectClass = "w-full px-3 py-2.5 pr-10 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
@@ -508,7 +509,7 @@ export default function ModelEditor({
           <CollapsibleSidebar
             collapsed={isSidebarCollapsed}
             onToggle={() => setIsSidebarCollapsed((prev) => !prev)}
-            expandedWidthClass="xl:w-[380px]"
+            expandedWidthClass="xl:w-[420px]"
           >
           <div className="flex flex-col gap-4">
             {/* Poses Configuration Card */}
@@ -596,19 +597,12 @@ export default function ModelEditor({
                     </div>
                   </div>
                 </label>
-                <div className="relative">
-                  <select
-                    value={footwear}
-                    onChange={(e) => setFootwear(e.target.value)}
-                    className={selectClass}
-                  >
-                    <option value="">Select footwear...</option>
-                    {footwearOptionsList.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
-                </div>
+                <GroupedSelect
+                  groupedOptions={footwearOptionsList}
+                  value={footwear}
+                  onChange={setFootwear}
+                  placeholder="Select footwear..."
+                />
               </div>
 
               {/* Background */}
@@ -627,20 +621,13 @@ export default function ModelEditor({
                     </div>
                   </div>
                 </label>
-                <div className="relative">
-                  <select
-                    value={bgAllowed ? background : ""}
-                    onChange={(e) => bgAllowed && setBackground(e.target.value)}
-                    disabled={!bgAllowed}
-                    className={`${selectClass} ${!bgAllowed ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <option value="">{bgAllowed ? "Select background..." : "Upgrade to unlock"}</option>
-                    {bgAllowed && backgroundOptionsList.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
-                </div>
+                <GroupedSelect
+                  groupedOptions={backgroundOptionsList}
+                  value={bgAllowed ? background : ""}
+                  onChange={(val) => bgAllowed && setBackground(val)}
+                  disabled={!bgAllowed}
+                  placeholder={bgAllowed ? "Select background..." : "Upgrade to unlock"}
+                />
               </div>
 
               {/* Accessory */}
@@ -659,20 +646,13 @@ export default function ModelEditor({
                     </div>
                   </div>
                 </label>
-                <div className="relative">
-                  <select
-                    value={accAllowed ? accessory : ""}
-                    onChange={(e) => accAllowed && setAccessory(e.target.value)}
-                    disabled={!accAllowed}
-                    className={`${selectClass} ${!accAllowed ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <option value="">{accAllowed ? "Select accessory..." : "Upgrade to unlock"}</option>
-                    {accAllowed && accessoryOptionsList.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
-                </div>
+                <GroupedSelect
+                  groupedOptions={accessoryOptionsList}
+                  value={accAllowed ? accessory : ""}
+                  onChange={(val) => accAllowed && setAccessory(val)}
+                  disabled={!accAllowed}
+                  placeholder={accAllowed ? "Select accessory..." : "Upgrade to unlock"}
+                />
               </div>
 
               {/* Jewelry */}
@@ -691,20 +671,13 @@ export default function ModelEditor({
                     </div>
                   </div>
                 </label>
-                <div className="relative">
-                  <select
-                    value={jewAllowed ? jewelry : ""}
-                    onChange={(e) => jewAllowed && setJewelry(e.target.value)}
-                    disabled={!jewAllowed}
-                    className={`${selectClass} ${!jewAllowed ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    <option value="">{jewAllowed ? "Select jewelry..." : "Upgrade to unlock"}</option>
-                    {jewAllowed && jewelryOptionsList.map((option) => (
-                      <option key={option} value={option}>{option}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
-                </div>
+                <GroupedSelect
+                  groupedOptions={jewelryOptionsList}
+                  value={jewAllowed ? jewelry : ""}
+                  onChange={(val) => jewAllowed && setJewelry(val)}
+                  disabled={!jewAllowed}
+                  placeholder={jewAllowed ? "Select jewelry..." : "Upgrade to unlock"}
+                />
               </div>
               </div>
             </div>

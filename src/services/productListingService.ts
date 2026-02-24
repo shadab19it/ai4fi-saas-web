@@ -23,7 +23,7 @@ export interface LifestyleListingRequest {
   count?: number;
   model_image_count?: number;
   tier?: "basic" | "professional";
-  target_marketplace?: "amazon" | "flipkart" | "myntra";
+  target_marketplace?: "amazon" | "flipkart" | "myntra" | "other";
   aspect_ratio?: string;
   resolution?: string;
   requiredCredits?: number;
@@ -41,7 +41,7 @@ export interface LifestyleListingResponse {
     title?: string;
     bullets?: string[];
     description?: string;
-    specifications?: Record<string, string>;
+    specifications?: Record<string, string> | Array<{ Attribute?: string; Value?: string }>;
     keywords?: string;
     raw_text?: string;
   };

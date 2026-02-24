@@ -33,7 +33,7 @@ import {
   ECOMMERCE_PLATFORM_PRESETS,
   type EcommercePlatformKey,
 } from "../../constants/ecommercePlatforms"
-import { MODEL_FACE_RETURN_URL_KEY } from "../../constants/modelFace"
+import { MODEL_FACE_RETURN_URL_KEY, FABRIC_STUDIO_PERSIST_KEY } from "../../constants/modelFace"
 
 // ──────────────────────────────────────────────
 // Types
@@ -147,6 +147,7 @@ export default function UnstitchedStudioPage() {
     if (newGender === "male") {
       setDressName("kurta_pajama")
       // Clear dupatta for male
+      setCustomDressName("")
       handleFabricRemove("dupatta_fabric")
     } else {
       setDressName("salwar_kameez")
@@ -241,6 +242,35 @@ export default function UnstitchedStudioPage() {
   }
 
   useEffect(() => {
+    // Restore state from localStorage
+    const savedData = localStorage.getItem(FABRIC_STUDIO_PERSIST_KEY)
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData)
+        setGender(data.gender || "female")
+        setDressName(data.dressName || "salwar_kameez")
+        setCustomDressName(data.customDressName || "")
+        setFitType(data.fitType || "regular")
+        setTier(data.tier || "basic")
+        setAspectRatio(data.aspectRatio || "")
+        setResolution(data.resolution || "")
+        setEcommercePlatform(data.ecommercePlatform || "")
+        if (data.fabrics && Array.isArray(data.fabrics)) {
+            setFabrics((prev) =>
+              prev.map((slot) => {
+                const savedSlot = data.fabrics.find((s: any) => s.id === slot.id)
+                return savedSlot ? { ...slot, image: savedSlot.image } : slot
+              })
+            )
+        }
+        if (data.modelFace) setModelFace(data.modelFace)
+        if (data.generatedImages) setGeneratedImages(data.generatedImages)
+      } catch (err) {
+        console.error("Failed to restore Fabric Studio state", err)
+      }
+    }
+
+    // Check for returned model face
     const returnedModelFaceUrl = localStorage.getItem(MODEL_FACE_RETURN_URL_KEY)
     if (returnedModelFaceUrl) {
       setModelFace(returnedModelFaceUrl)
@@ -248,8 +278,42 @@ export default function UnstitchedStudioPage() {
     }
   }, [])
 
+  useEffect(() => {
+    // Save state to localStorage
+    const dataToSave = {
+      gender,
+      dressName,
+      customDressName,
+      fitType,
+      tier,
+      aspectRatio,
+      resolution,
+      ecommercePlatform,
+      // Only save the ID and image to avoid circular references from React icons
+      fabrics: fabrics.map(f => ({ id: f.id, image: f.image })),
+      modelFace,
+      generatedImages
+    }
+    localStorage.setItem(FABRIC_STUDIO_PERSIST_KEY, JSON.stringify(dataToSave))
+  }, [
+    gender,
+    dressName,
+    customDressName,
+    fitType,
+    tier,
+    aspectRatio,
+    resolution,
+    ecommercePlatform,
+    fabrics,
+    modelFace,
+    generatedImages
+  ])
+
   // ─── Generate ───
-  const resolvedDressName = dressName === "other" ? customDressName.trim() : dressName
+  const resolvedDressName =
+    dressName === "other"
+      ? customDressName.trim().toLowerCase().replace(/\s+/g, "_")
+      : dressName
   const canGenerate = fabrics[0].image !== null && resolvedDressName !== ""
 
   const handleGenerate = async (parentId?: string) => {
@@ -778,53 +842,8 @@ export default function UnstitchedStudioPage() {
               </div>
             </div>
 
-            {/* ── Model Face Card ── */}
-            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 space-y-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#2563EB]" />
-                <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
-                  Model Face
-                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
-                </label>
-              </div>
 
-              {modelFace ? (
-                <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
-                  <img src={modelFace} alt="Model face" className="w-full h-32 object-cover" />
-                  <button
-                    onClick={() => {
-                      setModelFace(null)
-                    }}
-                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setIsGalleryOpen(true)}
-                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
-                  >
-                    <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
-                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
-                      From Gallery
-                    </span>
-                  </button>
-                  <Link
-                    to="/model?mode=face"
-                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
-                  >
-                    <Sparkles className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
-                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
-                      Generate Face
-                    </span>
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* ── Professional Options ── */}
+                    {/* ── Professional Options ── */}
             <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden">
               <div className="p-5 space-y-4">
                 <div className="flex items-center gap-2">
@@ -860,6 +879,39 @@ export default function UnstitchedStudioPage() {
 
                 {tier === "professional" && (
                   <div className="space-y-3 pt-2 border-t border-[#E5E2DA]">
+
+
+                    {/* Ecommerce Platform Presets */}
+                    <div>
+                      <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Ecommerce Platform</label>
+                      <p className="text-[10.5px] text-[#9E9893] mb-3">
+                        Auto-sets marketplace-friendly aspect ratio and resolution
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {ECOMMERCE_PLATFORM_OPTIONS.map(({ value, label }) => {
+                          const preset = ECOMMERCE_PLATFORM_PRESETS[value]
+                          return (
+                            <button
+                              key={value}
+                              onClick={() => handlePlatformSelect(value)}
+                              className={`px-3 py-2.5 rounded-xl text-left transition-all ${
+                                ecommercePlatform === value
+                                  ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
+                                  : "bg-white border border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
+                              }`}
+                            >
+                              <div className="text-[12px] font-bold">{label}</div>
+                              <div className={`text-[10px] mt-0.5 ${ecommercePlatform === value ? "text-white/75" : "text-[#9E9893]"}`}>
+                                {preset.description}
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+
+
                     {/* Aspect Ratio */}
                     <div>
                       <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Aspect Ratio</label>
@@ -904,38 +956,59 @@ export default function UnstitchedStudioPage() {
                       </div>
                     </div>
 
-                    {/* Ecommerce Platform Presets */}
-                    <div>
-                      <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Ecommerce Platform</label>
-                      <p className="text-[10.5px] text-[#9E9893] mb-3">
-                        Auto-sets marketplace-friendly aspect ratio and resolution
-                      </p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {ECOMMERCE_PLATFORM_OPTIONS.map(({ value, label }) => {
-                          const preset = ECOMMERCE_PLATFORM_PRESETS[value]
-                          return (
-                            <button
-                              key={value}
-                              onClick={() => handlePlatformSelect(value)}
-                              className={`px-3 py-2.5 rounded-xl text-left transition-all ${
-                                ecommercePlatform === value
-                                  ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
-                                  : "bg-white border border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
-                              }`}
-                            >
-                              <div className="text-[12px] font-bold">{label}</div>
-                              <div className={`text-[10px] mt-0.5 ${ecommercePlatform === value ? "text-white/75" : "text-[#9E9893]"}`}>
-                                {preset.description}
-                              </div>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
+        
                   </div>
                 )}
               </div>
             </div>
+
+            {/* ── Model Face Card ── */}
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#2563EB]" />
+                <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
+                  Model Face
+                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
+                </label>
+              </div>
+
+              {modelFace ? (
+                <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
+                  <img src={modelFace} alt="Model face" className="w-full h-32 object-cover" />
+                  <button
+                    onClick={() => {
+                      setModelFace(null)
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setIsGalleryOpen(true)}
+                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
+                  >
+                    <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
+                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
+                      From Gallery
+                    </span>
+                  </button>
+                  <Link
+                    to={`/model?mode=face&source=fabric-studio&gender=${gender}`}
+                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
+                  >
+                    <Sparkles className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
+                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
+                      Generate Face
+                    </span>
+                  </Link>
+                </div>
+              )}
+            </div>
+
+    
           </div>
         </div>
       </div>

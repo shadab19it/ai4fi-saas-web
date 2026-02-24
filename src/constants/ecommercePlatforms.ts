@@ -5,6 +5,7 @@ export type EcommercePlatformKey =
   | "nykaa"
   | "meesho"
   | "ebay"
+  | "other"
 
 export interface EcommercePlatformPreset {
   label: string
@@ -64,6 +65,14 @@ export const ECOMMERCE_PLATFORM_PRESETS: Record<EcommercePlatformKey, EcommerceP
     height: 1024,
     description: "1024×1024 (1:1) · 1K",
   },
+  other: {
+    label: "Other",
+    ratio: "1:1",
+    resolution: "1K",
+    width: 1080,
+    height: 1080,
+    description: "1080×1080 (1:1) · 1K",
+  },
 }
 
 export const ECOMMERCE_PLATFORM_OPTIONS: { value: EcommercePlatformKey; label: string }[] =
@@ -72,7 +81,7 @@ export const ECOMMERCE_PLATFORM_OPTIONS: { value: EcommercePlatformKey; label: s
     label: preset.label,
   }))
 
-export const PRODUCT_LISTING_MARKETPLACE_KEYS = ["amazon", "flipkart", "myntra"] as const
+export const PRODUCT_LISTING_MARKETPLACE_KEYS = ["amazon", "flipkart", "myntra", "other"] as const
 export type ProductListingMarketplace = (typeof PRODUCT_LISTING_MARKETPLACE_KEYS)[number]
 
 export const PRODUCT_LISTING_MARKETPLACES: { value: ProductListingMarketplace; label: string }[] =

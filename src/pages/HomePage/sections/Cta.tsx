@@ -34,7 +34,7 @@ const CTASection = () => {
                   navigate("/login");
                 }
               }}
-              className='bg-cyan-500 hover:bg-cyan-600 text-white px-8 py-4 rounded-lg transition duration-200 text-lg'>
+              className='bg-brand-color hover:bg-brand-color/80 text-white px-8 py-4 rounded-lg transition duration-200 text-lg'>
               Virtual Try Room
             </button>
           </motion.div>

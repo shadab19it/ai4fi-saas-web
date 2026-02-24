@@ -5,7 +5,7 @@ import { cn } from "../../../services/utils";
 import { useTheme } from "../../../context/ThemeContext";
 
 const Footer = () => {
-  const {theme} = useTheme()
+  const { theme } = useTheme()
   const footerSections = {
     company: [
       { name: "About", link: "/about" },
@@ -24,8 +24,8 @@ const Footer = () => {
   };
 
   return (
-    <footer className={cn("relative bg-secondary text-gray-400 pt-20 pb-8 px-6 z-[99999]",theme == 'dark' && "bg-gradient-to-tr to-black from-cyan-950")}>
-      
+    <footer className={cn("relative bg-secondary text-gray-400 pt-20 pb-8 px-6 z-[10]", theme == 'dark' && "bg-gradient-to-tr to-black from-cyan-950")}>
+
       <div className='max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12'>
         <div>
           <h3 className=' text-sky-400 mb-4'>
@@ -86,10 +86,14 @@ const Footer = () => {
 
       <div className='mt-12 border-t border-border text-foreground pt-6 flex flex-col md:flex-row justify-between items-center'>
         <p className='text-sm'>© {new Date().getFullYear()} AI4FI. All rights reserved.</p>
+        <div>
+          Powered bY SECTAL
+        </div>
         <div className='flex space-x-6 mt-4 md:mt-0'>
           <Link to='/terms-of-service' className='text-sm hover:text-primary text-foreground transition-colors duration-200'>
             Terms of Service
           </Link>
+
           <Link to='/privacy-policy' className='text-sm hover:text-primary text-foreground transition-colors duration-200'>
             Privacy Policy
           </Link>

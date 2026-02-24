@@ -35,6 +35,7 @@ import {
   PRODUCT_LISTING_MARKETPLACES,
   type ProductListingMarketplace,
 } from "../../constants/ecommercePlatforms"
+import { PRODUCT_LISTING_PERSIST_KEY } from "../../constants/modelFace"
 
 // ─── Types ──────────────────────────────────────────
 type GenerationMode = "banner" | "lifestyle"
@@ -113,6 +114,93 @@ export default function ProductListingStudioPage() {
   // Refs
   const productInputRef = useRef<HTMLInputElement>(null)
   const modelInputRef = useRef<HTMLInputElement>(null)
+
+  // ─── Persistence ──────────────────────────────────
+  useEffect(() => {
+    // Restore state from localStorage
+    const savedData = localStorage.getItem(PRODUCT_LISTING_PERSIST_KEY)
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData)
+        setMode(data.mode || "lifestyle")
+        setProductName(data.productName || "")
+        setCategory(data.category || "Fashion")
+        setShortDescription(data.shortDescription || "")
+        setTagline(data.tagline || "")
+        setAspectRatio(data.aspectRatio || "1:1")
+        setResolution(data.resolution || "2K")
+        setCount(data.count || 4)
+        setModelImageCount(data.modelImageCount || 0)
+        setTier(data.tier || "basic")
+        setMarketplace(data.marketplace || "amazon")
+        if (data.resultImages) setResultImages(data.resultImages)
+        if (data.resultTagline) setResultTagline(data.resultTagline)
+        if (data.listingData) setListingData(data.listingData)
+        if (data.productImagePreview) setProductImagePreview(data.productImagePreview)
+        if (data.modelImagePreview) {
+          setModelImagePreview(data.modelImagePreview)
+          setModelImageUrl(null)
+        }
+        if (data.modelImageUrl) {
+          setModelImageUrl(data.modelImageUrl)
+          setModelImagePreview(null)
+        }
+      } catch (err) {
+        console.error("Failed to restore Product Listing state", err)
+      }
+    }
+
+    // Check for returned model face
+    const returnedModelFaceUrl = localStorage.getItem(MODEL_FACE_RETURN_URL_KEY)
+    if (returnedModelFaceUrl) {
+      setModelImageUrl(returnedModelFaceUrl)
+      setModelImage(null)
+      setModelImagePreview(null)
+      localStorage.removeItem(MODEL_FACE_RETURN_URL_KEY)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Save state to localStorage
+    const dataToSave = {
+      mode,
+      productName,
+      category,
+      shortDescription,
+      tagline,
+      aspectRatio,
+      resolution,
+      count,
+      modelImageCount,
+      tier,
+      marketplace,
+      productImagePreview,
+      modelImagePreview,
+      modelImageUrl,
+      resultImages,
+      resultTagline,
+      listingData,
+    }
+    localStorage.setItem(PRODUCT_LISTING_PERSIST_KEY, JSON.stringify(dataToSave))
+  }, [
+    mode,
+    productName,
+    category,
+    shortDescription,
+    tagline,
+    aspectRatio,
+    resolution,
+    count,
+    modelImageCount,
+    tier,
+    marketplace,
+    productImagePreview,
+    modelImagePreview,
+    modelImageUrl,
+    resultImages,
+    resultTagline,
+    listingData,
+  ])
 
   // ─── Handlers ─────────────────────────────────────
   const handleImageUpload = useCallback(
@@ -243,7 +331,7 @@ export default function ProductListingStudioPage() {
             count,
             model_image_count: modelImagePreview ? modelImageCount : 0,
             tier,
-            target_marketplace: marketplace,
+            target_marketplace: marketplace === "other" ? "amazon" : marketplace,
             aspect_ratio: tier === "professional" ? aspectRatio : undefined,
             resolution: tier === "professional" ? resolution : undefined,
           })
@@ -314,7 +402,7 @@ export default function ProductListingStudioPage() {
     inputRef: React.RefObject<HTMLInputElement>
   }) => (
     <div
-      className={`relative rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer group
+      className={`relative h-[120px] rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer group
         ${image ? "border-[#E5E2DA] bg-white" : "border-[#D5D2CC] bg-[#FAFAF8] hover:border-violet-400 hover:bg-violet-50/30"}`}
       onClick={() => !image && type === "product" && inputRef.current?.click()}
       onDragOver={(e) => e.preventDefault()}
@@ -333,7 +421,7 @@ export default function ProductListingStudioPage() {
         />
       )}
       {image ? (
-        <div className="relative aspect-[4/3]">
+        <div className="relative h-full">
           <img
             src={image}
             alt={type}
@@ -351,7 +439,7 @@ export default function ProductListingStudioPage() {
         </div>
       ) : (
         type === "product" ? (
-          <div className="aspect-[4/3] flex flex-col items-center justify-center gap-1.5 p-3">
+          <div className="h-full flex flex-col items-center justify-center gap-1 p-2">
             <Package className="h-6 w-6 text-[#B5B0AA] group-hover:text-violet-400 transition-colors" />
             <span className="text-[11px] font-medium text-[#9E9893] text-center leading-tight">
               Upload Product
@@ -359,7 +447,7 @@ export default function ProductListingStudioPage() {
             <span className="text-[9px] text-[#C5C0BA]">Required</span>
           </div>
         ) : (
-          <div className="aspect-[4/3] p-2.5 grid grid-cols-2 gap-2">
+          <div className="h-full p-2 grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={(e) => {
@@ -370,20 +458,20 @@ export default function ProductListingStudioPage() {
             >
               <Grid3x3 className="h-4.5 w-4.5 text-[#9E9893]" />
               <span className="text-[10.5px] font-semibold text-[#7C7671] text-center">
-                Choose from Gallery
+                Select Model
               </span>
             </button>
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                navigate("/model?mode=face")
+                navigate("/model?mode=face&source=product-listing")
               }}
               className="border border-dashed border-[#D5D2CC] rounded-lg hover:border-violet-400 hover:bg-violet-50/40 transition-all flex flex-col items-center justify-center gap-1.5"
             >
               <Sparkles className="h-4.5 w-4.5 text-[#9E9893]" />
               <span className="text-[10.5px] font-semibold text-[#7C7671] text-center">
-                Generate Face
+                Create Model
               </span>
             </button>
           </div>
@@ -464,7 +552,7 @@ export default function ProductListingStudioPage() {
                 <Upload className="h-3.5 w-3.5 text-violet-500" />
                 Images
               </h3>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 <ImageUploadBox
                   type="product"
                   image={productImagePreview}

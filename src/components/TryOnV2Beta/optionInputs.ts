@@ -735,25 +735,23 @@ export const jewelryOptions = {
   }
 }
 
-// Helper function to get all options flattened
-export const getAllFootwearOptions = (gender: string) => {
+
+// Grouped options getters for categorization
+export const getGroupedFootwearOptions = (gender: string) => {
   const genderKey = gender === "male" ? "male" : "female"
-  const options = footwearOptions[genderKey as keyof typeof footwearOptions]
-  return Object.values(options).flat()
+  return footwearOptions[genderKey as keyof typeof footwearOptions]
 }
 
-export const getAllBackgroundOptions = () => {
-  return Object.values(backgroundOptions).flat()
+export const getGroupedBackgroundOptions = () => {
+  return backgroundOptions
 }
 
-export const getAllAccessoryOptions = (gender: string) => {
+export const getGroupedAccessoryOptions = (gender: string) => {
   const genderKey = gender === "male" ? "male" : "female"
-  const options = accessoryOptions[genderKey as keyof typeof accessoryOptions]
-  return Object.values(options).flat()
+  return accessoryOptions[genderKey as keyof typeof accessoryOptions]
 }
 
-export const getAllJewelryOptions = (gender: string) => {
+export const getGroupedJewelryOptions = (gender: string) => {
   const genderKey = gender === "male" ? "male" : "female"
-  const options = jewelryOptions[genderKey as keyof typeof jewelryOptions]
-  return Object.values(options).flat()
+  return jewelryOptions[genderKey as keyof typeof jewelryOptions]
 }

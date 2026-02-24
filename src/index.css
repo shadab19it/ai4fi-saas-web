@@ -6,7 +6,7 @@
 	--background: #fff;
 	--foreground: #1c1d1f;
 	/* slate-950 */
-
+	--content-width: 80vw;
 	--card: #e8eaeb;
 	/* --card: #e1ecf0; */
 	--card-foreground: #020817;
@@ -49,6 +49,8 @@
 	--foreground: #f8fafc;
 	/* slate-50 */
 	--brand: #0891b2;
+	--content-width: 80vw;
+
 	--card: #052c54;
 	--card-foreground: #f8fafc;
 
@@ -83,6 +85,37 @@
 	--scrollbar-thumb-hover: #62d5ff;
 }
 
+@media (max-width: 540px) {
+	h1 {
+		font-size: 2.5rem;
+	}
+
+	h2 {
+		font-size: 2rem;
+	}
+
+	h3 {
+		font-size: 1.5rem;
+	}
+
+	h4 {
+		font-size: 1.2rem;
+	}
+
+	h5 {
+		font-size: 1rem;
+	}
+
+	h6 {
+		font-size: 1rem;
+	}
+
+	p {
+		font-size: 1.1rem;
+		font-weight: 500;
+	}
+}
+
 @layer base {
 	* {
 		border-color: var(--border);
@@ -108,7 +141,7 @@
 	}
 
 	h1 {
-		font-size: 4rem;
+		font-size: 3.5rem;
 		font-weight: 800;
 		color: var(--foreground);
 	}
@@ -369,12 +402,29 @@ select option:checked {
 		color: #2563eb;
 	}
 
+	@keyframes gradient-move {
+		0% {
+			background-position: 0% 50%;
+		}
+
+		100% {
+			background-position: 200% 50%;
+		}
+	}
+
 	.text-brand-gradient {
-		background: linear-gradient(135deg, #22d3ee, #c084fc, #f472b6);
+		background: linear-gradient(90deg,
+				#2563eb,
+				#7c3aed,
+				#db2777,
+				#06b6d4,
+				#2563eb);
+		background-size: 200% auto;
 		-webkit-background-clip: text;
 		background-clip: text;
 		-webkit-text-fill-color: transparent;
 		color: transparent;
+		animation: gradient-move 12s linear infinite;
 	}
 
 	.text-brand-icon-gradient {
@@ -440,7 +490,7 @@ select option:checked {
 		}
 
 		50% {
-			border-color: #f472b6;
+			border-color: #c42e7b;
 			box-shadow: 0 0 15px color-mix(in srgb, #f472b6, transparent 30%);
 		}
 
@@ -452,5 +502,21 @@ select option:checked {
 
 	.animate-border-glow {
 		animation: border-glow-pulse 3s infinite ease-in-out;
+	}
+
+	.scrollbar-hide::-webkit-scrollbar {
+		display: none;
+	}
+
+	.scrollbar-hide {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+
+	.glass-card-heavy {
+		background: color-mix(in srgb, var(--background), transparent 20%);
+		backdrop-filter: blur(20px) saturate(180%);
+		-webkit-backdrop-filter: blur(20px) saturate(180%);
+		border: 1px solid color-mix(in srgb, var(--border), transparent 80%);
 	}
 }

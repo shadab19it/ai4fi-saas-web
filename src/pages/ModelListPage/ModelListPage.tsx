@@ -6,6 +6,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Copy,
   Download,
   DownloadIcon,
   ImageIcon,
@@ -16,7 +17,13 @@ import { toast } from "sonner";
 import modelService from "../../services/modelService";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { clearSelectedModel, setModelList, setSelectedModel } from "../../store/modelSlice";
+import {
+  clearSelectedModel,
+  setModelList,
+  setSelectedModel,
+  type GeneratedModel,
+  type ProductListingData,
+} from "../../store/modelSlice";
 
 import commonService from "../../services/commonService";
 import Button from "../../components/ui/Button";
@@ -45,6 +52,8 @@ const ModelListPage: FC = () => {
   const [flowsList, setFlowsList] = useState<any[]>([]);
   const [selectedFlow, setSelectedFlow] = useState<any | null>(null);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState<boolean>(false);
+  const [selectedListingGeneration, setSelectedListingGeneration] = useState<GeneratedModel | null>(null);
+  const [isListingModalOpen, setIsListingModalOpen] = useState<boolean>(false);
   
   const navigate = useNavigate();
 
@@ -170,6 +179,8 @@ const ModelListPage: FC = () => {
     setActiveTab(tab);
     dispatch(clearSelectedModel());
     setSelectedResult([]);
+    setIsListingModalOpen(false);
+    setSelectedListingGeneration(null);
     // Update imageType based on tab
     switch(tab) {
         case "existingModels": setImageType("model"); break;
@@ -219,6 +230,68 @@ const ModelListPage: FC = () => {
             onClick: () => {}
         }
     });
+  };
+
+  const isSelectionEnabled = activeTab !== "ads" && imageType !== "product_listing";
+
+  const mapMarketplaceLabel = (marketplace?: string) => {
+    if (!marketplace) return "Marketplace";
+    if (marketplace === "amazon") return "Amazon";
+    if (marketplace === "flipkart") return "Flipkart";
+    if (marketplace === "myntra") return "Myntra";
+    return marketplace;
+  };
+
+  const getSpecificationRows = (listingData?: ProductListingData) => {
+    if (!listingData?.specifications) return [];
+    if (Array.isArray(listingData.specifications)) {
+      return listingData.specifications
+        .map((item) => ({
+          key: item.Attribute ?? "",
+          val: item.Value ?? "",
+        }))
+        .filter((item) => item.key || item.val);
+    }
+    return Object.entries(listingData.specifications).map(([key, val]) => ({ key, val }));
+  };
+
+  const handleOpenListingDetails = (model: GeneratedModel) => {
+    setSelectedListingGeneration(model);
+    setIsListingModalOpen(true);
+  };
+
+  const handleCopyListingField = async (value: string, label: string) => {
+    if (!value.trim()) {
+      toast.info(`No ${label} available to copy`);
+      return;
+    }
+    await navigator.clipboard.writeText(value);
+    toast.success(`${label} copied`);
+  };
+
+  const handleCopyListingAll = async (listingData?: ProductListingData) => {
+    if (!listingData) {
+      toast.info("Listing copy is not available for this generation");
+      return;
+    }
+    await navigator.clipboard.writeText(JSON.stringify(listingData, null, 2));
+    toast.success("Listing data copied");
+  };
+
+  const handleDownloadListingImage = async (url: string, index: number) => {
+    try {
+      const result = await commonService.downloadSingleFile(url);
+      const blobUrl = URL.createObjectURL(result);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = `lifestyle-listing-${index + 1}-${Date.now()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      toast.error("Failed to download image");
+    }
   };
 
   // Helper to render image cards
@@ -283,6 +356,10 @@ const ModelListPage: FC = () => {
       );
   };
 
+  const selectedListingData = selectedListingGeneration?.configData?.listing_data as ProductListingData | undefined;
+  const selectedListingImages = selectedListingGeneration?.generatedImages?.image_urls || [];
+  const selectedListingSpecs = getSpecificationRows(selectedListingData);
+
   return (
     <div className="min-h-screen bg-[#F4F3EF] flex flex-col">
         {/* Sticky Header */}
@@ -306,7 +383,7 @@ const ModelListPage: FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                     {selectedModel.length > 0 && (
+                     {isSelectionEnabled && selectedModel.length > 0 && (
                          <div className="hidden sm:flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-300 mr-2">
                              <span className="text-xs font-medium text-[#9E9893] bg-[#F9F8F5] px-2 py-1 rounded-md border border-[#E5E2DA]">
                                  {selectedModel.length} Selected
@@ -430,29 +507,81 @@ const ModelListPage: FC = () => {
                 <>
                     {/* Models Grid */}
                     {activeTab !== "ads" && modelList.length > 0 && (
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-                             {/* Map Logic for Different Types */}
-                             {/* Models, Banners, and Lifestyle Listings which store as { image_urls: [...] } */}
-                             {(imageType === "model" || imageType === "product_listing_banner" || imageType === "product_listing" || imageType === "unstitched_tryon") && modelList.map((model, i) => 
-                                 model.generatedImages?.image_urls?.map((url: string, index: number) => 
-                                    renderImageCard(model, url, i, index)
-                                 )
-                             )}
+                        <>
+                            {imageType === "product_listing" ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                                    {modelList.map((model) => {
+                                        const images = model.generatedImages?.image_urls || [];
+                                        const cover = images[0];
+                                        const listingData = model.configData?.listing_data as ProductListingData | undefined;
+                                        const marketplace = mapMarketplaceLabel(model.configData?.target_marketplace as string | undefined);
+                                        const productName = (model.configData?.product_name as string | undefined) || "Lifestyle Listing";
 
-                             {/* Unified Mapping for TryOn / Variants which have flat array structure in backend response usually */}
-                             {(imageType === "tryon" || imageType === "tryon_beta" || imageType === "pose_variants") && modelList.map((model, i) => {
-                                 const images = Array.isArray(model?.generatedImages) 
-                                    ? model.generatedImages 
-                                    : (model?.generatedImages ? [model.generatedImages] : []);
-                                 
-                                 return images.map((urlOrArray: any, index: number) => {
-                                     // Handle inconsistencies in backend response
-                                     const url = Array.isArray(urlOrArray) ? urlOrArray[0] : urlOrArray;
-                                     if (!url) return null;
-                                     return renderImageCard(model, url, i, index);
-                                 })
-                             })}
-                        </div>
+                                        return (
+                                            <div
+                                                key={model._id}
+                                                onClick={() => handleOpenListingDetails(model)}
+                                                className="group bg-white rounded-2xl border border-[#E5E2DA] overflow-hidden hover:shadow-lg transition-all cursor-pointer"
+                                            >
+                                                <div className="aspect-[4/3] bg-gray-50 overflow-hidden relative">
+                                                    {cover ? (
+                                                        <img
+                                                            src={cover}
+                                                            alt={productName}
+                                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex items-center justify-center h-full text-[#D0CBBF]">
+                                                            <ImageIcon className="w-10 h-10 opacity-50" />
+                                                        </div>
+                                                    )}
+                                                    <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-white/90 text-[10px] font-bold text-stone-700 border border-[#E5E2DA]">
+                                                        {images.length} image{images.length !== 1 ? "s" : ""}
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-4 space-y-1.5">
+                                                    <h3 className="font-bold text-stone-900 truncate">{productName}</h3>
+                                                    <p className="text-[12px] text-[#6B6560]">{marketplace}</p>
+                                                    <p className="text-[12px] text-[#9E9893]">
+                                                        {model.createdAt ? new Date(model.createdAt).toLocaleDateString() : "Unknown date"}
+                                                    </p>
+                                                    <p className="text-[11px] text-[#9E9893] line-clamp-2">
+                                                        {listingData?.title || "Open to view and copy listing details."}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                                    {/* Models, banners, and fabric studio which store as { image_urls: [...] } */}
+                                    {(imageType === "model" || imageType === "product_listing_banner" || imageType === "unstitched_tryon") &&
+                                        modelList.map((model, i) =>
+                                            model.generatedImages?.image_urls?.map((url: string, index: number) =>
+                                                renderImageCard(model, url, i, index)
+                                            )
+                                        )}
+
+                                    {/* Unified mapping for try-on / variants which can be flat array */}
+                                    {(imageType === "tryon" || imageType === "tryon_beta" || imageType === "pose_variants") &&
+                                        modelList.map((model, i) => {
+                                            const images = Array.isArray(model?.generatedImages)
+                                                ? model.generatedImages
+                                                : model?.generatedImages
+                                                  ? [model.generatedImages]
+                                                  : [];
+
+                                            return images.map((urlOrArray: any, index: number) => {
+                                                const url = Array.isArray(urlOrArray) ? urlOrArray[0] : urlOrArray;
+                                                if (!url) return null;
+                                                return renderImageCard(model, url, i, index);
+                                            });
+                                        })}
+                                </div>
+                            )}
+                        </>
                     )}
 
                     {/* Ads List */}
@@ -532,7 +661,7 @@ const ModelListPage: FC = () => {
         </main>
 
         {/* Floating Action Bar (Mobile Only) */}
-        {selectedModel.length > 0 && (
+        {isSelectionEnabled && selectedModel.length > 0 && (
             <div className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-stone-900/90 backdrop-blur-md text-white p-2 rounded-full shadow-xl border border-white/10 animate-in slide-in-from-bottom-6 px-4">
                 <span className="text-xs font-bold mr-2">{selectedModel.length}</span>
                 <div className="h-4 w-px bg-white/20" />
@@ -563,6 +692,175 @@ const ModelListPage: FC = () => {
                  document.body.removeChild(link);
             }}
         />
+
+        {/* Lifestyle Listing Details Modal */}
+        {isListingModalOpen && selectedListingGeneration && (
+            <div
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200"
+                onClick={() => setIsListingModalOpen(false)}
+            >
+                <div
+                    className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="p-5 border-b border-[#E5E2DA] flex justify-between items-center bg-gray-50/50">
+                        <div>
+                            <h2 className="text-xl font-bold text-stone-900">
+                                {(selectedListingGeneration.configData?.product_name as string | undefined) || "Lifestyle Listing"}
+                            </h2>
+                            <p className="text-xs text-[#9E9893]">
+                                {mapMarketplaceLabel(selectedListingGeneration.configData?.target_marketplace as string | undefined)}
+                            </p>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => setIsListingModalOpen(false)}>
+                            <ChevronLeft className="w-5 h-5" />
+                        </Button>
+                    </div>
+
+                    <div className="p-6 overflow-y-auto space-y-6">
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="font-bold text-stone-900">Generated Images</h3>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {selectedListingImages.map((url: string, idx: number) => (
+                                    <div key={`${selectedListingGeneration._id}-${idx}`} className="rounded-xl overflow-hidden border border-[#E5E2DA] bg-white">
+                                        <img src={url} alt={`Lifestyle listing ${idx + 1}`} className="w-full aspect-square object-cover" />
+                                        <button
+                                            onClick={() => handleDownloadListingImage(url, idx)}
+                                            className="w-full text-[12px] font-semibold text-stone-700 py-2 border-t border-[#E5E2DA] hover:bg-[#F9F8F5] transition-colors"
+                                        >
+                                            Download
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-bold text-stone-900">Listing Copy</h3>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleCopyListingAll(selectedListingData)}
+                                    icon={<Copy className="w-3.5 h-3.5" />}
+                                >
+                                    Copy All
+                                </Button>
+                            </div>
+
+                            {!selectedListingData ? (
+                                <div className="p-4 rounded-xl border border-[#E5E2DA] bg-[#FAFAF8] text-sm text-[#6B6560]">
+                                    Listing copy not available for this older generation.
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {selectedListingData.title && (
+                                        <div className="p-3 rounded-xl border border-[#E5E2DA] bg-[#FAFAF8]">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <p className="text-[11px] font-semibold text-[#9E9893] uppercase tracking-wide">Title</p>
+                                                <button
+                                                    onClick={() => handleCopyListingField(selectedListingData.title || "", "Title")}
+                                                    className="text-[#9E9893] hover:text-stone-900"
+                                                >
+                                                    <Copy className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                            <p className="text-[13px] text-stone-900 leading-relaxed">{selectedListingData.title}</p>
+                                        </div>
+                                    )}
+
+                                    {selectedListingData.bullets && selectedListingData.bullets.length > 0 && (
+                                        <div className="p-3 rounded-xl border border-[#E5E2DA] bg-[#FAFAF8]">
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <p className="text-[11px] font-semibold text-[#9E9893] uppercase tracking-wide">Key Features</p>
+                                                <button
+                                                    onClick={() => handleCopyListingField(selectedListingData.bullets?.join("\n") || "", "Key features")}
+                                                    className="text-[#9E9893] hover:text-stone-900"
+                                                >
+                                                    <Copy className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                {selectedListingData.bullets.map((bullet, idx) => (
+                                                    <div key={idx} className="text-[12px] text-stone-800 leading-relaxed flex gap-2">
+                                                        <span className="mt-[6px] w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0" />
+                                                        <span>{bullet}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {selectedListingData.description && (
+                                        <div className="p-3 rounded-xl border border-[#E5E2DA] bg-[#FAFAF8]">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <p className="text-[11px] font-semibold text-[#9E9893] uppercase tracking-wide">Description</p>
+                                                <button
+                                                    onClick={() => handleCopyListingField(selectedListingData.description || "", "Description")}
+                                                    className="text-[#9E9893] hover:text-stone-900"
+                                                >
+                                                    <Copy className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                            <p className="text-[12px] text-stone-800 leading-relaxed whitespace-pre-wrap">{selectedListingData.description}</p>
+                                        </div>
+                                    )}
+
+                                    {selectedListingSpecs.length > 0 && (
+                                        <div className="p-3 rounded-xl border border-[#E5E2DA] bg-[#FAFAF8]">
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <p className="text-[11px] font-semibold text-[#9E9893] uppercase tracking-wide">Specifications</p>
+                                                <button
+                                                    onClick={() =>
+                                                        handleCopyListingField(
+                                                            selectedListingSpecs.map((spec) => `${spec.key}: ${spec.val}`).join("\n"),
+                                                            "Specifications"
+                                                        )
+                                                    }
+                                                    className="text-[#9E9893] hover:text-stone-900"
+                                                >
+                                                    <Copy className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                            <div className="rounded-lg border border-[#E5E2DA] overflow-hidden">
+                                                {selectedListingSpecs.map((spec, idx) => (
+                                                    <div
+                                                        key={`${spec.key}-${idx}`}
+                                                        className={`flex text-[12px] ${idx % 2 === 0 ? "bg-white" : "bg-[#F9F8F5]"}`}
+                                                    >
+                                                        <span className="w-2/5 px-3 py-1.5 font-semibold text-[#6B6560] border-r border-[#E5E2DA]">
+                                                            {spec.key}
+                                                        </span>
+                                                        <span className="flex-1 px-3 py-1.5 text-stone-800">{spec.val}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {selectedListingData.keywords && (
+                                        <div className="p-3 rounded-xl border border-[#E5E2DA] bg-[#FAFAF8]">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <p className="text-[11px] font-semibold text-[#9E9893] uppercase tracking-wide">Keywords</p>
+                                                <button
+                                                    onClick={() => handleCopyListingField(selectedListingData.keywords || "", "Keywords")}
+                                                    className="text-[#9E9893] hover:text-stone-900"
+                                                >
+                                                    <Copy className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                            <p className="text-[12px] text-stone-800 leading-relaxed">{selectedListingData.keywords}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
 
         {/* Ads Flow Details Modal */}
         {isFlowModalOpen && selectedFlow && (

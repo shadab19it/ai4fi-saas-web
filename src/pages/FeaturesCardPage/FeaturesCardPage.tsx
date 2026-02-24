@@ -53,7 +53,7 @@ export default function FeaturesPage() {
       accentBg: "bg-violet-50",
       accentBorder: "border-violet-200",
       accentShadow: "shadow-violet-500/12",
-      path: "/try-on-v2-beta",
+      path: "/trial-room",
       image: CardImage6,
       badge: "PRO",
       badgeColor: "bg-violet-600",

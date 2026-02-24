@@ -67,8 +67,7 @@ export default function ModelSelection({
       
       if (propModelImage) {
         if (propModelImage.startsWith("http://") || propModelImage.startsWith("https://")) {
-          const response = await fetch(propModelImage)
-          const blob = await response.blob()
+          const blob = await commonService.downloadSingleFile(propModelImage)
           const modelImageFile = new File([blob], "model-image.jpg", { type: blob.type })
           formData.append("model_image", modelImageFile)
         } else {

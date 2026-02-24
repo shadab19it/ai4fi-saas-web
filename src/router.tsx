@@ -28,6 +28,7 @@ import ProductListingStudioPage from "./pages/ProductListingStudio/ProductListin
 import UnstitchedStudioPage from "./pages/UnstitchedStudio/UnstitchedStudioPage";
 import PricingPage from "./pages/Pricing/PricingPage";
 import BillingPage from "./pages/Billing/BillingPage";
+import ClientShowcase from "./pages/client-showcase";
 
 export const router = createBrowserRouter([
   {
@@ -72,6 +73,26 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  	{
+		path: "/client-showcase",
+		element: <HomeLayout />,
+		children: [
+			{
+				index: true,
+				element: <ClientShowcase />,
+			},
+		],
+	},
+	{
+		path: "/model-gallery",
+		element: <HomeLayout />,
+		children: [
+			{
+				index: true,
+				element: <HomePageGallery />,
+			},
+		],
+	},
   {
     path: "/login",
     element: <LoginPage />,
@@ -108,7 +129,7 @@ export const router = createBrowserRouter([
   },
 
   {
-    path: "try-on-v2-beta",
+    path: "trial-room",
     element: <ProtectedRoute component={TryOnV2BetaPage} />,
   },
   {

@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { usePlanFeatures } from "../../../hooks/usePlanFeatures";
 import Button from "../../ui/Button";
+import GroupedSelect from "../../common/GroupedSelect";
+import { getGroupedFootwearOptions } from "../../TryOnV2Beta/optionInputs";
 import {
   nationalityOptions,
   eyeColorOptions,
@@ -29,8 +31,6 @@ import {
   poseTypeOptions,
   femaleDressTypeOptions,
   maleDressTypeOptions,
-  femaleFootwearOptions,
-  maleFootwearOptions,
   tierOptions,
   aspectRatioOptions,
   resolutionOptions,
@@ -79,7 +79,7 @@ export interface IOption {
 }
 
 const SegmentedControl: FC<{
-  options: IOption[];
+  options: (IOption & { disabled?: boolean })[];
   value: string;
   onChange: (v: string) => void;
 }> = ({ options, value, onChange }) => (
@@ -87,10 +87,13 @@ const SegmentedControl: FC<{
     {options.map((option) => (
       <button
         key={option.value}
+        disabled={option.disabled}
         className={`flex-1 px-3 py-[7px] text-[13px] font-semibold rounded-lg transition-all ${
           value === option.value
             ? "bg-[#2563EB] text-white shadow-sm"
-            : "text-[#6B6560] hover:text-stone-900 hover:bg-white/60"
+            : option.disabled
+              ? "text-[#9E9893] cursor-not-allowed opacity-50"
+              : "text-[#6B6560] hover:text-stone-900 hover:bg-white/60"
         }`}
         onClick={() => onChange(option.value)}
       >
@@ -168,6 +171,7 @@ const ModelConfigForm: FC<any> = ({
   loading,
   setIsSidebarOpen,
   isSidebarOpen,
+  isModeLocked,
 }) => {
   const { isResolutionAllowed, isFeatureAllowed } = usePlanFeatures();
   const disabledResolutions = resolutionOptions
@@ -205,14 +209,17 @@ const ModelConfigForm: FC<any> = ({
             <div>
               <label className='block text-[11.5px] font-semibold text-[#9E9893] mb-1.5'>Mode</label>
               <SegmentedControl
-                options={modeOptions.map((o) =>
-                  o.value === "face" && !customModelAllowed
-                    ? { ...o, label: `${o.label} (Upgrade)` }
-                    : o
-                )}
+                options={modeOptions.map((o) => {
+                  const isUpgradeNeeded = o.value === "face" && !customModelAllowed;
+                  const isLockedFashion = isModeLocked && mode === "face" && o.value === "fashion";
+                  return {
+                    ...o,
+                    label: isUpgradeNeeded ? `${o.label} (Upgrade)` : o.label,
+                    disabled: isUpgradeNeeded || isLockedFashion,
+                  };
+                })}
                 value={mode}
                 onChange={(v) => {
-                  if (v === "face" && !customModelAllowed) return;
                   setMode(v);
                 }}
               />
@@ -305,13 +312,15 @@ const ModelConfigForm: FC<any> = ({
                       placeholder='Enter custom dress description'
                     />
                   )}
-                <SelectField
-                  label='Footwear'
-                  value={footwear}
-                  onChange={setFootwear}
-                  options={gender === "male" ? maleFootwearOptions : femaleFootwearOptions}
-                  placeholder='Select footwear...'
-                />
+                <div>
+                  <label className="block text-[11.5px] font-semibold text-[#9E9893] mb-1.5">Footwear</label>
+                  <GroupedSelect
+                    groupedOptions={getGroupedFootwearOptions(gender)}
+                    value={footwear}
+                    onChange={setFootwear}
+                    placeholder="Select footwear..."
+                  />
+                </div>
               </div>
             </CollapsibleSection>
           </>

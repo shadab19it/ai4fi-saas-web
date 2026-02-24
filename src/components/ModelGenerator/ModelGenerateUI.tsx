@@ -13,7 +13,7 @@ import {
   ImageIcon,
   RefreshCw,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import modelService from "../../services/modelService";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
@@ -78,6 +78,7 @@ const ModelGeneratorUI: React.FC = () => {
   const isMobile = useMediaQuery("(max-width: 440px)");
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [mode, setMode] = useState<string>("fashion");
   const [gender, setGender] = useState<string>("male");
@@ -110,6 +111,7 @@ const ModelGeneratorUI: React.FC = () => {
   const [downloadLoading, setDownloadLoading] = useState<boolean>(false);
   const [isModelGenerated, setModelGenerated] = useState<boolean>(false);
   const [regenInfo, setRegenInfo] = useState<RegenInfo | null>(null);
+  const [isModeLocked, setIsModeLocked] = useState<boolean>(false);
   const is4kResolution = (resolution || "").toUpperCase() === "4K";
   const canShowFreeRegen = !!regenInfo && !is4kResolution && regenInfo.freeRegensRemaining > 0;
 
@@ -243,11 +245,17 @@ const ModelGeneratorUI: React.FC = () => {
     }
   }, [gender]);
 
+
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const requestedMode = (searchParams.get("mode") || "").toLowerCase();
+    const requestedGender = (searchParams.get("gender") || "").toLowerCase();
     if (requestedMode === "face" || requestedMode === "fashion") {
       setMode(requestedMode);
+      setIsModeLocked(true);
+    }
+    if (requestedGender) {
+      setGender(requestedGender);
     }
   }, [location.search]);
 
@@ -322,6 +330,7 @@ const ModelGeneratorUI: React.FC = () => {
           loading={loading}
           setIsSidebarOpen={setIsSidebarOpen}
           isSidebarOpen={isSidebarOpen}
+          isModeLocked={isModeLocked}
         />
       </aside>
 
@@ -359,11 +368,34 @@ const ModelGeneratorUI: React.FC = () => {
             >
               Home
             </Link>
-            {/* {generatedImages.length > 0 && (
-              <Button variant='gradient' size='md' onClick={handleVirtualTryOn} className='font-bold'>
-                Virtual Try Room
+            {isModeLocked && mode === "face" && isModelGenerated && generatedImages.length > 0 && (
+              <Button
+                variant='gradient'
+                size='md'
+                icon={<ArrowLeft className='w-4 h-4 rotate-180' />}
+                onClick={() => {
+                  if (generatedImages[0]?.url) {
+                    localStorage.setItem(MODEL_FACE_RETURN_URL_KEY, generatedImages[0].url);
+                  }
+                  const source = new URLSearchParams(location.search).get("source");
+                  if (source === "product-listing") {
+                    navigate("/product-listing");
+                  } else if (source === "fabric-studio") {
+                    navigate("/unstitched-studio");
+                  } else {
+                    navigate("/trial-room");
+                  }
+                }}
+                className='font-bold animate-pulse'
+              >
+                {(() => {
+                  const source = new URLSearchParams(location.search).get("source");
+                  if (source === "product-listing") return "Next Step → Product Studio";
+                  if (source === "fabric-studio") return "Next Step → Fabric Studio";
+                  return "Next Step → Trial Room";
+                })()}
               </Button>
-            )} */}
+            )}
           </div>
         </div>
 

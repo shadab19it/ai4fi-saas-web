@@ -6,23 +6,25 @@ import Features from "./sections/Features";
 
 import AboutUs from "./sections/AboutUs";
 // import HeroSection2 from "./sections/HeroSection2";
-import TrialRoom from "./sections/KeyFeatureItems";
 import KeyFeatures from "./sections/KeyFeatures";
-import VideoShowcase from "./sections/VideoShowcase";
 import AiFashionHero from "./sections/AiFashionHero";
+import SayGoodBySection from "./sections/SayGoodBy";
+import TestimonialsStacked from "./sections/Testimonial";
+
+
 
 const HomePage: FC = () => {
 	return (
 		<div>
 			<AiFashionHero />
 			{/* <HeroSection2 /> */}
+			<SayGoodBySection />
 			<KeyFeatures />
 			<DemoSection />
-			{/* <VideoShowcase /> */}
 			<Features />
 			<FeaturedGallery />
+			<TestimonialsStacked />
 			<AboutUs />
-			{/* <TestimonialsSection /> */}
 			<CTASection />
 		</div>
 	);
