@@ -7,7 +7,9 @@ import { router } from "./router";
 import { Toaster } from "sonner";
 import "./index.css";
 import authService from "./services/authService";
+import teamService from "./services/teamService";
 import { setUser } from "./store/userReducer";
+import { setTeam } from "./store/teamSlice";
 import { ThemeProvider } from "./context/ThemeContext";
 
 const MainRoute: FC = () => {
@@ -18,8 +20,19 @@ const MainRoute: FC = () => {
     if (authService.isAuthenticated()) {
       const res = await authService.getUserInfo();
       dispatch(setUser(res.user));
+      if (res.user?.teamId) {
+        try {
+          const teamData = await teamService.getTeam();
+          dispatch(setTeam(teamData.team));
+        } catch {
+          dispatch(setTeam(null));
+        }
+      } else {
+        dispatch(setTeam(null));
+      }
     } else {
       dispatch(setUser(null));
+      dispatch(setTeam(null));
     }
   };
 

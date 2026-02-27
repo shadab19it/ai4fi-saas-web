@@ -46,7 +46,8 @@ const CREDIT_COST_KEYS = [
 ];
 
 const WATERMARK_KEYS = ["watermarkEnabled", "watermarkText"];
-const SPECIAL_KEYS = ["supportedCurrencies", ...WATERMARK_KEYS];
+const HIDDEN_KEYS = ["usdToInrRate"];
+const SPECIAL_KEYS = ["supportedCurrencies", ...WATERMARK_KEYS, ...HIDDEN_KEYS];
 const GLOBAL_TEAM_LIMIT_KEY = "teamMemberLimit";
 const PLAN_LIMIT_CARD_ORDER: Array<PlanData["name"]> = ["silver", "gold", "platinum"];
 

@@ -25,8 +25,21 @@ import {
   ShieldOff,
   UserCheck,
   UserX,
+  Plus,
+  X,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import Button from "../../components/ui/Button";
+
+interface SubscriptionPlan {
+  _id: string;
+  name: string;
+  displayName?: string;
+  price: number;
+  priceINR: number;
+  isActive: boolean;
+}
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -71,6 +84,20 @@ const AdminDashboard = () => {
   // Action loading states
   const [togglingStatusId, setTogglingStatusId] = useState<string | null>(null);
   const [changingRoleId, setChangingRoleId] = useState<string | null>(null);
+
+  // Create user modal state
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [createUserLoading, setCreateUserLoading] = useState(false);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
+  const [newUserForm, setNewUserForm] = useState({
+    email: "",
+    username: "",
+    password: "",
+    role: "user" as "user" | "admin",
+    planId: "",
+    credits: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -239,6 +266,52 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchSubscriptionPlans = async () => {
+    try {
+      const result = await adminService.getSubscriptionPlans();
+      setSubscriptionPlans(result.plans?.filter((p: SubscriptionPlan) => p.isActive) || []);
+    } catch (error: any) {
+      console.error("Failed to fetch plans:", error);
+    }
+  };
+
+  const handleOpenCreateUserModal = () => {
+    setNewUserForm({ email: "", username: "", password: "", role: "user", planId: "", credits: "" });
+    setShowPassword(false);
+    fetchSubscriptionPlans();
+    setShowCreateUserModal(true);
+  };
+
+  const handleCreateUser = async () => {
+    if (!newUserForm.email || !newUserForm.password) {
+      toast.error("Email and password are required");
+      return;
+    }
+    if (newUserForm.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setCreateUserLoading(true);
+    try {
+      const result = await adminService.createUser({
+        email: newUserForm.email,
+        username: newUserForm.username || undefined,
+        password: newUserForm.password,
+        role: newUserForm.role,
+        planId: newUserForm.planId || undefined,
+        credits: newUserForm.credits ? Number(newUserForm.credits) : undefined,
+      });
+      toast.success(result.message || "User created successfully");
+      setShowCreateUserModal(false);
+      fetchUsers();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create user");
+    } finally {
+      setCreateUserLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
   }, [page]);
@@ -376,9 +449,19 @@ const AdminDashboard = () => {
                   <div className='rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden'>
                     <div className='px-5 py-4 border-b border-[#E5E2DA] flex items-center justify-between'>
                       <span className='text-sm font-bold text-stone-900'>Users</span>
-                      <span className='text-[11px] text-[#9E9893]'>
-                        {loading ? "Loading..." : `${users.length} users`}
-                      </span>
+                      <div className='flex items-center gap-3'>
+                        <span className='text-[11px] text-[#9E9893]'>
+                          {loading ? "Loading..." : `${users.length} users`}
+                        </span>
+                        <Button
+                          size='sm'
+                          onClick={handleOpenCreateUserModal}
+                          icon={<Plus className='h-3.5 w-3.5' />}
+                          className='h-8'
+                        >
+                          Add User
+                        </Button>
+                      </div>
                     </div>
                     <div className='overflow-x-auto'>
                       <table className='w-full border-collapse'>
@@ -798,6 +881,145 @@ const AdminDashboard = () => {
           </div>
         </main>
       </div>
+
+      {/* Create User Modal */}
+      {showCreateUserModal && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center'>
+          <div
+            className='absolute inset-0 bg-black/50 backdrop-blur-sm'
+            onClick={() => setShowCreateUserModal(false)}
+          />
+          <div className='relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200'>
+            <div className='px-6 py-4 border-b border-[#E5E2DA] flex items-center justify-between'>
+              <h2 className='text-lg font-bold text-stone-900'>Create New User</h2>
+              <button
+                onClick={() => setShowCreateUserModal(false)}
+                className='p-1.5 rounded-lg hover:bg-[#F9F8F5] text-[#9E9893] hover:text-stone-900 transition-colors'
+                aria-label='Close modal'
+              >
+                <X className='h-5 w-5' />
+              </button>
+            </div>
+
+            <div className='p-6 space-y-4'>
+              <div>
+                <label className='block text-[11px] font-bold tracking-[0.5px] uppercase text-[#9E9893] mb-1.5'>
+                  Email <span className='text-red-500'>*</span>
+                </label>
+                <input
+                  type='email'
+                  value={newUserForm.email}
+                  onChange={(e) => setNewUserForm((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder='user@example.com'
+                  className='w-full h-10 px-3.5 rounded-xl border border-[#E5E2DA] bg-white text-[13px] text-stone-900 placeholder:text-[#9E9893] outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all'
+                />
+              </div>
+
+              <div>
+                <label className='block text-[11px] font-bold tracking-[0.5px] uppercase text-[#9E9893] mb-1.5'>
+                  Username
+                </label>
+                <input
+                  type='text'
+                  value={newUserForm.username}
+                  onChange={(e) => setNewUserForm((prev) => ({ ...prev, username: e.target.value }))}
+                  placeholder='Optional username'
+                  className='w-full h-10 px-3.5 rounded-xl border border-[#E5E2DA] bg-white text-[13px] text-stone-900 placeholder:text-[#9E9893] outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all'
+                />
+              </div>
+
+              <div>
+                <label className='block text-[11px] font-bold tracking-[0.5px] uppercase text-[#9E9893] mb-1.5'>
+                  Password <span className='text-red-500'>*</span>
+                </label>
+                <div className='relative'>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={newUserForm.password}
+                    onChange={(e) => setNewUserForm((prev) => ({ ...prev, password: e.target.value }))}
+                    placeholder='Min 6 characters'
+                    className='w-full h-10 px-3.5 pr-10 rounded-xl border border-[#E5E2DA] bg-white text-[13px] text-stone-900 placeholder:text-[#9E9893] outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all'
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setShowPassword(!showPassword)}
+                    className='absolute right-3 top-1/2 -translate-y-1/2 text-[#9E9893] hover:text-stone-900 transition-colors'
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
+                  </button>
+                </div>
+              </div>
+
+              <div className='grid grid-cols-2 gap-4'>
+                <div>
+                  <label className='block text-[11px] font-bold tracking-[0.5px] uppercase text-[#9E9893] mb-1.5'>
+                    Role
+                  </label>
+                  <select
+                    value={newUserForm.role}
+                    onChange={(e) => setNewUserForm((prev) => ({ ...prev, role: e.target.value as "user" | "admin" }))}
+                    className='w-full h-10 px-3 rounded-xl border border-[#E5E2DA] bg-white text-[13px] text-stone-900 outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all cursor-pointer'
+                  >
+                    <option value='user'>User</option>
+                    <option value='admin'>Admin</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className='block text-[11px] font-bold tracking-[0.5px] uppercase text-[#9E9893] mb-1.5'>
+                    Initial Credits
+                  </label>
+                  <input
+                    type='number'
+                    min={0}
+                    value={newUserForm.credits}
+                    onChange={(e) => setNewUserForm((prev) => ({ ...prev, credits: e.target.value }))}
+                    placeholder='0'
+                    className='w-full h-10 px-3.5 rounded-xl border border-[#E5E2DA] bg-white text-[13px] text-stone-900 placeholder:text-[#9E9893] outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all'
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className='block text-[11px] font-bold tracking-[0.5px] uppercase text-[#9E9893] mb-1.5'>
+                  Subscription Plan
+                </label>
+                <select
+                  value={newUserForm.planId}
+                  onChange={(e) => setNewUserForm((prev) => ({ ...prev, planId: e.target.value }))}
+                  className='w-full h-10 px-3 rounded-xl border border-[#E5E2DA] bg-white text-[13px] text-stone-900 outline-none focus:border-[#0F62FE] focus:ring-2 focus:ring-[#0F62FE]/10 transition-all cursor-pointer'
+                >
+                  <option value=''>No subscription</option>
+                  {subscriptionPlans.map((plan) => (
+                    <option key={plan._id} value={plan._id}>
+                      {plan.displayName || plan.name} — ₹{plan.priceINR || plan.price}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className='px-6 py-4 border-t border-[#E5E2DA] bg-[#F9F8F5]/50 flex items-center justify-end gap-3'>
+              <Button
+                variant='outline'
+                onClick={() => setShowCreateUserModal(false)}
+                className='h-10'
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateUser}
+                loading={createUserLoading}
+                icon={!createUserLoading ? <Plus className='h-4 w-4' /> : undefined}
+                className='h-10'
+              >
+                Create User
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

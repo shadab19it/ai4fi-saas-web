@@ -333,23 +333,23 @@ const ModelListPage: FC = () => {
                  <Button 
                     size="icon" 
                     className="h-8 w-8 bg-white/95 backdrop-blur hover:bg-white border-0 rounded-full shadow-sm"
+                    icon={<ZoomIn className="w-4 h-4" />}
                     onClick={(e) => {
                         e.stopPropagation();
                         setZoomedImage(url);
                         setIsModalOpen(true);
                     }}
                  >
-                     <ZoomIn className="w-4 h-4 fill-black" />
                  </Button>
                  <Button 
                     size="icon" 
+                    icon={<Trash2 className="w-4 h-4" />}
                     className="h-8 w-8 bg-white/95 backdrop-blur hover:!bg-red-50 hover:!text-red-700 border-0 rounded-full shadow-sm"
                     onClick={(e) => {
                         e.stopPropagation();
                         onDeleteImage(model._id, url);
                     }}
                  >
-                     <Trash2 className="w-4 h-4 fill-red-600" />
                  </Button>
             </div>
         </div>
@@ -477,9 +477,9 @@ const ModelListPage: FC = () => {
                                 size="icon" 
                                 onClick={onPrev} 
                                 disabled={pageSize <= 1}
+                                icon={<ChevronLeft className="w-4 h-4 text-stone-600" />}
                                 className="h-8 w-8 rounded-md"
                              >
-                                 <ChevronLeft className="w-4 h-4 text-stone-600" />
                              </Button>
                              <span className="text-[13px] font-mono font-medium text-stone-600 min-w-[3rem] text-center">
                                  {pageSize} / {totalPages}
@@ -489,9 +489,9 @@ const ModelListPage: FC = () => {
                                 size="icon" 
                                 onClick={onNext} 
                                 disabled={pageSize >= totalPages}
+                                icon={<ChevronRight className="w-4 h-4 text-stone-600" />}
                                 className="h-8 w-8 rounded-md"
                              >
-                                 <ChevronRight className="w-4 h-4 text-stone-600" />
                              </Button>
                          </div>
                          <div className="h-4 w-px bg-[#E5E2DA]" />
@@ -712,9 +712,7 @@ const ModelListPage: FC = () => {
                                 {mapMarketplaceLabel(selectedListingGeneration.configData?.target_marketplace as string | undefined)}
                             </p>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => setIsListingModalOpen(false)}>
-                            <ChevronLeft className="w-5 h-5" />
-                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setIsListingModalOpen(false)} icon={<ChevronLeft className="w-5 h-5" />} />
                     </div>
 
                     <div className="p-6 overflow-y-auto space-y-6">
@@ -878,9 +876,7 @@ const ModelListPage: FC = () => {
                     </h2>
                     <p className="text-xs text-[#9E9893]">Campaign Details</p>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsFlowModalOpen(false)}>
-                     <ChevronLeft className="w-5 h-5" /> 
-                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setIsFlowModalOpen(false)} icon={<ChevronLeft className="w-5 h-5" />} />
               </div>
 
               <div className='p-6 overflow-y-auto space-y-8'>

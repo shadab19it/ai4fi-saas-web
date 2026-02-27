@@ -120,6 +120,23 @@ class AdminService extends BaseService {
     }
   }
 
+  async createUser(data: {
+    email: string;
+    username?: string;
+    password: string;
+    role?: "admin" | "user";
+    planId?: string;
+    credits?: number;
+  }): Promise<{ success: boolean; message: string; user: AdminUser }> {
+    try {
+      const response = await this.axiosInstance.post<{ success: boolean; message: string; user: AdminUser }>("/admin/users", data);
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
   async adjustCredits(userId: string, amount: number, reason: string): Promise<AdminAdjustCreditsResponse> {
     try {
       const response = await this.axiosInstance.patch<AdminAdjustCreditsResponse>(`/admin/users/${userId}/credits`, {

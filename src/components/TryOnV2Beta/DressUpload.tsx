@@ -4,7 +4,6 @@ import { Link } from "react-router-dom"
 import { Upload, ZoomIn, X, Image as ImageIcon, Info, Sparkles, Grid3x3, Link as LinkIcon, Unlink, ChevronDown } from "lucide-react"
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import { female_model_tryon_prompt, male_model_tryon_prompt } from "../../services/prompt"
-import modelGalleryList from "../../services/ModelGallery"
 import { MODEL_FACE_RETURN_URL_KEY, DRESS_IMAGE_PERSIST_KEY } from "../../constants/modelFace"
 import {
   ECOMMERCE_PLATFORM_OPTIONS,
@@ -14,6 +13,7 @@ import {
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
 import ZoomImageModal from "../ui/ZoomImageModal"
+import ModelGalleryModal from "../common/ModelGalleryModal"
 
 interface DressUploadProps {
   onUploadComplete: (
@@ -43,7 +43,6 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   const [fileSize, setFileSize] = useState<string>("")
   const [modelImage, setModelImage] = useState<string | null>(null)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
-  const [activeCategory, setActiveCategory] = useState<string>("formal")
   const [tier, setTier] = useState<"basic" | "professional">("basic")
   const [aspectRatio, setAspectRatio] = useState<string>("")
   const [resolution, setResolution] = useState<string>("")
@@ -108,17 +107,6 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
     if (file) {
       handleImageUpload(file)
     }
-  }
-
-  const handleGalleryModelSelect = (imageUrl: string) => {
-    setModelImage(imageUrl)
-    setIsGalleryOpen(false)
-  }
-
-  const getGalleryImages = () => {
-    const categoryData = modelGalleryList.find((c) => c.category === activeCategory)
-    if (!categoryData) return []
-    return gender === "male" ? categoryData.male : categoryData.female
   }
 
   const handleAspectRatioSelect = (ratio: string) => {
@@ -566,7 +554,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                     <div className="flex items-center gap-2 mb-4">
                       <Sparkles className="w-4 h-4 text-violet-500" />
                       <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
-                        Model Face Image
+                       Select Model 
                         <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
                         <div className="group relative">
                           <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
@@ -583,7 +571,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                         <img
                           src={modelImage}
                           alt="Model face"
-                          className="w-full h-32 object-cover"
+                          className="w-full h-32 object-contain"
                         />
                         <button
                           onClick={() => {
@@ -694,70 +682,13 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
         alt="Dress preview"
       />
 
-      {/* Model Gallery Modal */}
-      {isGalleryOpen && (
-        <div
-          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setIsGalleryOpen(false)}
-        >
-          <div
-            className="rounded-2xl border border-[#E5E2DA] bg-white shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="px-6 pt-5 pb-4 border-b border-[#E5E2DA] flex items-center justify-between">
-              <div>
-                <h2 className="text-[15px] font-bold text-stone-900 mb-1">Choose Model from Gallery</h2>
-                <p className="text-[13px] text-[#9E9893]">Select a model face image based on {gender === "male" ? "male" : "female"} gender</p>
-              </div>
-              <Button variant="outline" size="icon" onClick={() => setIsGalleryOpen(false)} aria-label="Close">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Category Tabs */}
-            <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2">
-              {["formal", "casual", "lingerie", "PlusSize"].map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
-                  className={`px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
-                    activeCategory === category
-                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
-                      : "bg-[#F9F8F5] text-[#6B6560] hover:bg-[#E5E2DA]"
-                  }`}
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            {/* Gallery Grid */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {getGalleryImages().map((imageUrl, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleGalleryModelSelect(imageUrl)}
-                    className="relative aspect-square rounded-xl overflow-hidden border-2 border-[#E5E2DA] hover:border-violet-400 cursor-pointer transition-all group shadow-[0_1px_3px_rgba(28,25,23,0.06)]"
-                  >
-                    <img
-                      src={imageUrl}
-                      alt={`Model ${index + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-[13px] shadow-lg">
-                        Select
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModelGalleryModal
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        onSelect={(imageUrl) => setModelImage(imageUrl)}
+        source="model_faces"
+        initialCategory={gender === "male" ? "male" : "female"}
+      />
     </div>
   )
 }

@@ -21,9 +21,9 @@ import {
   Check,
   AlertCircle,
 } from "lucide-react"
-import modelGalleryList from "../../services/ModelGallery"
 import Button from "../../components/ui/Button"
 import ZoomImageModal from "../../components/ui/ZoomImageModal"
+import ModelGalleryModal from "../../components/common/ModelGalleryModal"
 import modelService from "../../services/modelService"
 import commonService from "../../services/commonService"
 import DarkLogo from "../../../public/dark-logo2.png"
@@ -164,7 +164,6 @@ export default function UnstitchedStudioPage() {
   // Model face
   const [modelFace, setModelFace] = useState<string | null>(null)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
-  const [activeCategory, setActiveCategory] = useState("formal")
 
   // Dragging state per slot
   const [draggingSlot, setDraggingSlot] = useState<string | null>(null)
@@ -228,17 +227,6 @@ export default function UnstitchedStudioPage() {
     setDraggingSlot(null)
     const file = e.dataTransfer.files?.[0]
     if (file) handleFabricUpload(slotId, file)
-  }
-
-  const handleGallerySelect = (url: string) => {
-    setModelFace(url)
-    setIsGalleryOpen(false)
-  }
-
-  const getGalleryImages = () => {
-    const cat = modelGalleryList.find((c) => c.category === activeCategory)
-    if (!cat) return []
-    return gender === "male" ? cat.male : cat.female
   }
 
   useEffect(() => {
@@ -1013,72 +1001,13 @@ export default function UnstitchedStudioPage() {
         </div>
       </div>
 
-      {/* ─── Gallery Modal ─── */}
-      {isGalleryOpen && (
-        <div
-          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setIsGalleryOpen(false)}
-        >
-          <div
-            className="rounded-2xl border border-[#E5E2DA] bg-white shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="px-6 pt-5 pb-4 border-b border-[#E5E2DA] flex items-center justify-between">
-              <div>
-                <h2 className="text-[15px] font-bold text-stone-900 mb-1">Choose Model from Gallery</h2>
-                <p className="text-[13px] text-[#9E9893]">
-                  Select a model face image ({gender === "male" ? "male" : "female"})
-                </p>
-              </div>
-              <Button variant="outline" size="icon" onClick={() => setIsGalleryOpen(false)} aria-label="Close">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Category Tabs */}
-            <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2">
-              {["formal", "casual", "lingerie", "PlusSize"].map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
-                  className={`px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
-                    activeCategory === category
-                      ? "bg-[#2563EB] text-white shadow-sm"
-                      : "bg-[#F9F8F5] text-[#6B6560] hover:bg-[#E5E2DA]"
-                  }`}
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            {/* Gallery Grid */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {getGalleryImages().map((imageUrl, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleGallerySelect(imageUrl)}
-                    className="relative aspect-square rounded-xl overflow-hidden border-2 border-[#E5E2DA] hover:border-[#2563EB] cursor-pointer transition-all group shadow-[0_1px_3px_rgba(28,25,23,0.06)]"
-                  >
-                    <img
-                      src={imageUrl}
-                      alt={`Model ${index + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-[#2563EB] text-white px-4 py-2 rounded-lg font-semibold text-[13px] shadow-lg">
-                        Select
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModelGalleryModal
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        onSelect={(imageUrl) => setModelFace(imageUrl)}
+        source="model_faces"
+        initialCategory={gender === "male" ? "male" : "female"}
+      />
 
       {/* ─── Zoom Modal ─── */}
       <ZoomImageModal

@@ -12,7 +12,7 @@ interface ZoomImageModalProps {
   alt?: string;
 }
 
-const ZOOM_LEVELS = [1, 1.5, 2, 3] as const;
+const ZOOM_LEVELS = [1, 2, 3, 5] as const;
 
 const ZoomImageModal: FC<ZoomImageModalProps> = ({
   open,
@@ -125,11 +125,11 @@ const ZoomImageModal: FC<ZoomImageModalProps> = ({
           <Button
             variant="outline"
             size="icon"
+            icon={<ZoomOut className="w-4 h-4" />}
             onClick={handleZoomOut}
             disabled={zoomLevel === 0}
             aria-label="Zoom out"
           >
-            <ZoomOut className="w-4 h-4 " />
           </Button>
           <div className="flex items-center gap-0.5 px-2">
             {ZOOM_LEVELS.map((level, idx) => (
@@ -149,11 +149,11 @@ const ZoomImageModal: FC<ZoomImageModalProps> = ({
           <Button
             variant="outline"
             size="icon"
+            icon={<ZoomIn className="w-4 h-4" />}
             onClick={handleZoomIn}
             disabled={zoomLevel === ZOOM_LEVELS.length - 1}
             aria-label="Zoom in"
           >
-            <ZoomIn className="w-4 h-4" />
           </Button>
 
           {onDownload && (
@@ -162,18 +162,16 @@ const ZoomImageModal: FC<ZoomImageModalProps> = ({
               <Button
                 variant="outline"
                 size="icon"
+                icon={<Download className="w-4 h-4" />}
                 onClick={() => onDownload(currentImage)}
                 aria-label="Download image"
               >
-                <Download className="w-4 h-4" />
               </Button>
             </>
           )}
 
           <div className="w-px h-5 bg-[#E5E2DA] mx-1" />
-          <Button variant="outline" size="icon" onClick={onClose} aria-label="Close">
-            <X className="w-4 h-4" />
-          </Button>
+          <Button variant="outline" size="icon" onClick={onClose} aria-label="Close" icon={<X className="w-4 h-4" />} />
         </div>
       </div>
 

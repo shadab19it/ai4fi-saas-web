@@ -1,8 +1,10 @@
 import { FC, useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, LogOut, ChevronDown, User, ShieldCheck } from 'lucide-react';
-import { useSelector } from 'react-redux';
+import { Home, LogOut, ChevronDown, User, ShieldCheck, Coins } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/store';
+import { setUser } from '../../store/userReducer';
+import authService from '../../services/authService';
 import logo from '../../../public/dark-logo2.png';
 
 interface AppHeaderProps {
@@ -11,20 +13,21 @@ interface AppHeaderProps {
   onLogout?: () => void;
 }
 
-const AppHeader: FC<AppHeaderProps> = ({ title, onLogout }) => {
+const AppHeader: FC<AppHeaderProps> = ({ title }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { user } = useSelector((state: RootState) => state.user);
+  const { team } = useSelector((state: RootState) => state.team);
+  const effectiveCredits = user?.teamId ? (team?.credits ?? 0) : (user?.credits ?? 0);
+  const isTeamUser = !!user?.teamId;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    } else {
-      localStorage.removeItem('token');
+      authService.logout();
+      dispatch(setUser(null));
       navigate('/login');
-    }
-    setIsDropdownOpen(false);
+      setIsDropdownOpen(false);
   };
 
   // Get user display name
@@ -71,8 +74,19 @@ const AppHeader: FC<AppHeaderProps> = ({ title, onLogout }) => {
           )}
         </div>
 
-        {/* User Dropdown */}
-        <nav className='flex items-center gap-2'>
+        {/* Credits & User Dropdown */}
+        <nav className='flex items-center gap-3'>
+          {/* Credits Display */}
+          <div className='flex items-center gap-1.5 rounded-full border border-[#E5E2DA] px-3 py-1.5 bg-gradient-to-r from-emerald-50 to-green-50'>
+            <Coins className='h-4 w-4 text-emerald-600' />
+            <span className='text-sm font-bold text-emerald-700 font-mono'>
+              {effectiveCredits}
+            </span>
+            <span className='text-[10px] text-emerald-600/70 hidden sm:inline'>
+              {isTeamUser ? "team credits" : "credits"}
+            </span>
+          </div>
+
           <div className='relative' ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}

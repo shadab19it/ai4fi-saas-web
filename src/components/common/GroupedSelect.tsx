@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, X } from "lucide-react";
 
 interface GroupedSelectProps {
   groupedOptions: Record<string, string[]>;
@@ -21,6 +21,7 @@ export default function GroupedSelect({
 }: GroupedSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,6 +34,15 @@ export default function GroupedSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (isOpen) {
+      const firstGroup = Object.keys(groupedOptions)[0];
+      if (firstGroup) {
+        setExpandedGroups(new Set([firstGroup]));
+      }
+    }
+  }, [isOpen, groupedOptions]);
+
   const handleSelect = (option: string) => {
     onChange(option);
     setIsOpen(false);
@@ -44,7 +54,18 @@ export default function GroupedSelect({
     onChange("");
   };
 
-  // Flatten options for filtering, but keep track of groups for rendering
+  const toggleGroup = (groupLabel: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupLabel)) {
+        newSet.delete(groupLabel);
+      } else {
+        newSet.add(groupLabel);
+      }
+      return newSet;
+    });
+  };
+
   const filteredGroups = Object.entries(groupedOptions).reduce((acc, [groupLabel, options]) => {
     const matchedOptions = options.filter((option) =>
       option.toLowerCase().includes(query.toLowerCase())
@@ -109,30 +130,48 @@ export default function GroupedSelect({
                 <p className="text-[#9E9893] text-[13px]">No options found</p>
               </div>
             ) : (
-              Object.entries(filteredGroups).map(([groupLabel, options]) => (
-                <div key={groupLabel} className="pb-1">
-                  <div className="px-4 py-2 mt-1 first:mt-0">
-                    <span className="text-[10px] font-bold text-violet-600 uppercase tracking-widest bg-violet-50 px-2 py-0.5 rounded-md">
-                      {groupLabel.replace(/_/g, " ")}
-                    </span>
+              Object.entries(filteredGroups).map(([groupLabel, options]) => {
+                const isExpanded = expandedGroups.has(groupLabel) || query.length > 0;
+                return (
+                  <div key={groupLabel} className="pb-1">
+                    <button
+                      type="button"
+                      className="w-full flex items-center gap-2 px-4 py-2 mt-1 first:mt-0 hover:bg-[#F9F8F5] transition-colors"
+                      onClick={() => toggleGroup(groupLabel)}
+                      aria-expanded={isExpanded}
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="w-3.5 h-3.5 text-violet-500" />
+                      ) : (
+                        <ChevronRight className="w-3.5 h-3.5 text-violet-500" />
+                      )}
+                      <span className="text-[10px] font-bold text-violet-600 uppercase tracking-widest bg-violet-50 px-2 py-0.5 rounded-md">
+                        {groupLabel.replace(/_/g, " ")}
+                      </span>
+                      <span className="text-[10px] text-[#9E9893] ml-auto">
+                        {options.length}
+                      </span>
+                    </button>
+                    {isExpanded && (
+                      <div className="space-y-0.5 mt-1">
+                        {options.map((option) => (
+                          <button
+                            key={option}
+                            className={`w-full capitalize text-left px-5 pl-9 py-1 text-[13px] transition-colors ${
+                              value === option
+                                ? "bg-violet-50 text-violet-700 font-semibold border-l-2 border-violet-500"
+                                : "text-stone-600 hover:bg-[#F9F8F5] hover:text-stone-900"
+                            }`}
+                            onClick={() => handleSelect(option)}
+                          >
+                            {option}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-0.5 mt-1">
-                    {options.map((option) => (
-                      <button
-                        key={option}
-                        className={`w-full capitalize text-left px-5 py-1 text-[13px] transition-colors ${
-                          value === option
-                            ? "bg-violet-50 text-violet-700 font-semibold border-l-2 border-violet-500"
-                            : "text-stone-600 hover:bg-[#F9F8F5] hover:text-stone-900"
-                        }`}
-                        onClick={() => handleSelect(option)}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

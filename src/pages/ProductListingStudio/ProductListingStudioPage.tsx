@@ -29,8 +29,8 @@ import productListingService, {
   type BannerResponse,
   type LifestyleListingResponse,
 } from "../../services/productListingService"
-import modelGalleryList from "../../services/ModelGallery"
 import { MODEL_FACE_RETURN_URL_KEY } from "../../constants/modelFace"
+import ModelGalleryModal from "../../components/common/ModelGalleryModal"
 import {
   PRODUCT_LISTING_MARKETPLACES,
   type ProductListingMarketplace,
@@ -86,8 +86,6 @@ export default function ProductListingStudioPage() {
   const [modelImagePreview, setModelImagePreview] = useState<string | null>(null)
   const [modelImageUrl, setModelImageUrl] = useState<string | null>(null)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
-  const [activeCategory, setActiveCategory] = useState("formal")
-  const [galleryGender, setGalleryGender] = useState<"female" | "male">("female")
   const [productName, setProductName] = useState("")
   const [category, setCategory] = useState("Fashion")
   const [shortDescription, setShortDescription] = useState("")
@@ -240,13 +238,6 @@ export default function ProductListingStudioPage() {
     setModelImageUrl(imageUrl)
     setModelImagePreview(imageUrl)
     setModelImageCount((prev) => (prev === 0 ? Math.min(2, count - 1) : prev))
-    setIsGalleryOpen(false)
-  }
-
-  const getGalleryImages = () => {
-    const categoryData = modelGalleryList.find((c) => c.category === activeCategory)
-    if (!categoryData) return []
-    return galleryGender === "male" ? categoryData.male : categoryData.female
   }
 
   useEffect(() => {
@@ -1088,85 +1079,13 @@ export default function ProductListingStudioPage() {
         )}
       </div>
 
-      {/* Model Gallery Modal */}
-      {isGalleryOpen && (
-        <div
-          className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setIsGalleryOpen(false)}
-        >
-          <div
-            className="rounded-2xl border border-[#E5E2DA] bg-white shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 pt-5 pb-4 border-b border-[#E5E2DA] flex items-center justify-between">
-              <div>
-                <h2 className="text-[15px] font-bold text-stone-900 mb-1">Choose Model from Gallery</h2>
-                <p className="text-[13px] text-[#9E9893]">
-                  Select a model face image ({galleryGender})
-                </p>
-              </div>
-              <Button variant="outline" size="icon" onClick={() => setIsGalleryOpen(false)} aria-label="Close">
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2">
-              {(["female", "male"] as const).map((g) => (
-                <button
-                  key={g}
-                  onClick={() => setGalleryGender(g)}
-                  className={`px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
-                    galleryGender === g
-                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
-                      : "bg-[#F9F8F5] text-[#6B6560] hover:bg-[#E5E2DA]"
-                  }`}
-                >
-                  {g.charAt(0).toUpperCase() + g.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2">
-              {["formal", "casual", "lingerie", "PlusSize"].map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setActiveCategory(category)}
-                  className={`px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
-                    activeCategory === category
-                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
-                      : "bg-[#F9F8F5] text-[#6B6560] hover:bg-[#E5E2DA]"
-                  }`}
-                >
-                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {getGalleryImages().map((imageUrl, index) => (
-                  <div
-                    key={index}
-                    onClick={() => handleGalleryModelSelect(imageUrl)}
-                    className="relative aspect-square rounded-xl overflow-hidden border-2 border-[#E5E2DA] hover:border-violet-400 cursor-pointer transition-all group shadow-[0_1px_3px_rgba(28,25,23,0.06)]"
-                  >
-                    <img
-                      src={imageUrl}
-                      alt={`Model ${index + 1}`}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-2 rounded-lg font-semibold text-[13px] shadow-lg">
-                        Select
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModelGalleryModal
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        onSelect={handleGalleryModelSelect}
+        source="model_faces"
+        initialCategory="female"
+      />
     </div>
   )
 }

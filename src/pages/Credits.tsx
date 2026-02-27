@@ -80,7 +80,7 @@ const CreditsPage = () => {
     loadTeam();
   }, [user?.teamId]);
 
-  const creditHistory: CreditHistoryEntry[] = (team?.creditHistory || user?.creditHistory || []) as CreditHistoryEntry[];
+  const creditHistory: CreditHistoryEntry[] = (team?.creditHistory.reverse() || user?.creditHistory?.reverse() || []) as CreditHistoryEntry[];
   const creditsBalance = team?.credits ?? user?.credits ?? 0;
   const canManageTeam = user?.teamRole === "owner" || user?.teamRole === "admin";
   const isOwner = user?.teamRole === "owner";

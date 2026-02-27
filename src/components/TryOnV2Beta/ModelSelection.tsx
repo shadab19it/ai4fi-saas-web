@@ -227,11 +227,7 @@ export default function ModelSelection({
                         {segment}
                       </span>
                     )}
-                    {tier === "professional" && garmentCategory && (
-                      <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-white text-[#6B6560] border border-[#E5E2DA]">
-                        {garmentCategory}
-                      </span>
-                    )}
+
                   </div>
                 </div>
 
@@ -243,7 +239,7 @@ export default function ModelSelection({
                       <img
                         src={propModelImage}
                         alt="Model face"
-                        className="w-full h-32 object-cover"
+                        className="w-full h-32 object-contain"
                       />
                     </div>
                   </div>

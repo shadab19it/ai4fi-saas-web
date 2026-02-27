@@ -56,7 +56,7 @@ const ManageCreditsPanel: FC<ManageCreditsPanelProps> = ({
             </p>
           </div>
           <div className='mb-2.5'>
-            <p className='text-[11px] font-bold text-[#6B6560] mb-1.5'>AMOUNT</p>
+            <p className='text-[11px] font-bold text-[#6B6560] mb-1.5'>CREDITS</p>
             <input
               type='number'
               value={amountInput}
