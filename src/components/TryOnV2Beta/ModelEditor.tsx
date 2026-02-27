@@ -1,6 +1,6 @@
 "use client"
 import { useState, useRef, useMemo } from "react"
-import { Plus, X, Download, Upload, ZoomIn, Sparkles, ChevronDown, Info, Lock, RefreshCw } from "lucide-react"
+import { Plus, X, Download, Upload, ZoomIn, Sparkles, Info, Lock, RefreshCw } from "lucide-react"
 import axios from "axios"
 import appConstant from "../../services/appConstant"
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
@@ -10,7 +10,7 @@ import MultiSelect from "../common/MultiSelect"
 import GroupedSelect from "../common/GroupedSelect"
 import { IOption } from "../ModelGenerator/ModelConfigForm/ModelConfigForm"
 import { toast } from "sonner"
-import { defaultExt, downloadBlob, resizeImage, ResizeOptions } from "./resizeImage"
+import { downloadBlob } from "./resizeImage"
 import JSZip from "jszip"
 import {
   getGroupedFootwearOptions,
@@ -21,6 +21,7 @@ import {
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
 import ZoomImageModal from "../ui/ZoomImageModal"
+import LoadingOverlay from "../CreateAds/LoadingOverlay"
 
 interface ModelEditorProps {
   selectedModel: string
@@ -168,22 +169,13 @@ export default function ModelEditor({
   const [background, setBackground] = useState<string>("")
   const [accessory, setAccessory] = useState<string>("")
   const [jewelry, setJewelry] = useState<string>("")
-  const [tier, setTier] = useState<"basic" | "professional">(propTier)
-  const [aspectRatio, setAspectRatio] = useState<string>(propAspectRatio || "")
-  const [resolution, setResolution] = useState<string>(propResolution || "")
-  const [showQualityAdvanced, setShowQualityAdvanced] = useState(true)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [newPose, setNewPose] = useState<string>("")
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<string[]>([])
   const [regenInfo, setRegenInfo] = useState<{ generationId: string; freeRegensRemaining: number } | null>(null)
-  const is4kResolution = (resolution || "").toUpperCase() === "4K"
+  const is4kResolution = (propResolution || "").toUpperCase() === "4K"
   const canShowFreeRegen = !!regenInfo && !is4kResolution && regenInfo.freeRegensRemaining > 0
-
-  const [downloadWidth, setDownloadWidth] = useState<string>("1024")
-  const [downloadHeight, setDownloadHeight] = useState<string>("1280")
-  const [downloadRatio, setDownloadRatio] = useState<string>("custom")
-  const [fitMode, setFitMode] = useState<"contain" | "cover" | "stretch">("contain")
   const [isDownloading, setIsDownloading] = useState<{ index: number | undefined, isDownloading: boolean }>({ index: undefined, isDownloading: false })
 
   const [replacedModel, setReplacedModel] = useState<string | null>(null)
@@ -214,22 +206,6 @@ export default function ModelEditor({
       FEMALE_POSES.push({ id: `${new Date().getTime()}`, label: newPose, description: newPose })
     } else {
       MALE_POSES.push({ id: `${new Date().getTime()}`, label: newPose, description: newPose })
-    }
-  }
-
-  const handleRatioChange = (ratio: string) => {
-    setDownloadRatio(ratio)
-    const ratios: Record<string, [number, number]> = {
-      "1:1": [1024, 1024],
-      "4:5": [1024, 1280],
-      "9:16": [1080, 1920],
-      "16:9": [1920, 1080],
-      "3:4": [768, 1024],
-    }
-    if (ratio !== "custom" && ratios[ratio]) {
-      const [w, h] = ratios[ratio]
-      setDownloadWidth(w.toString())
-      setDownloadHeight(h.toString())
     }
   }
 
@@ -297,11 +273,11 @@ export default function ModelEditor({
       if (accessory) formData.append("accessory", accessory)
       if (jewelry) formData.append("jewelry", jewelry)
 
-      formData.append("tier", tier)
+      formData.append("tier", propTier)
 
-      if (tier === "professional") {
-        if (aspectRatio) formData.append("aspect_ratio", aspectRatio)
-        if (resolution) formData.append("resolution", resolution.toUpperCase())
+      if (propTier === "professional") {
+        if (propAspectRatio) formData.append("aspect_ratio", propAspectRatio)
+        if (propResolution) formData.append("resolution", propResolution.toUpperCase())
         if (propWidth) formData.append("width", propWidth.toString())
         if (propHeight) formData.append("height", propHeight.toString())
         if (propSegment) formData.append("segment", propSegment)
@@ -345,62 +321,45 @@ export default function ModelEditor({
   }
 
 
-  const handleDownload = async (imageIndex?: number) => {
+  const handleDownload = async (imageIndex: number) => {
     if (generatedImages.length === 0) {
       toast.info("No images to download")
       return
     }
     setIsDownloading({ index: imageIndex, isDownloading: true })
     try {
-      const w = Number(downloadWidth)
-      const h = Number(downloadHeight)
-
-      if (isNaN(w) || w <= 0 || !isFinite(w)) {
-        toast.error("Invalid width. Please enter a valid positive number.")
-        return
-      }
-      if (isNaN(h) || h <= 0 || !isFinite(h)) {
-        toast.error("Invalid height. Please enter a valid positive number.")
-        return
-      }
-
-      const opts: ResizeOptions = {
-        width: Math.round(w),
-        height: Math.round(h),
-        keepAspect: false,
-        fit: fitMode,
-        mimeType: "image/png",
-        quality: 0.92,
-        background: fitMode === "contain" ? "#FFFFFF" : "#00000000",
-      };
-
-      if (imageIndex !== undefined) {
-        const image = generatedImages[imageIndex]
-        const blob = await commonService.downloadSingleFile(image)
-        const resizeBlob = await resizeImage(blob, opts);
-        const ext = defaultExt(opts.mimeType || "image/png");
-        downloadBlob(resizeBlob, `ai4fi-pose-${imageIndex + 1}-${Date.now()}.${ext}`);
-        return
-      }
-
-      const imageBlobs = await Promise.all(
-        generatedImages.map(async (image) => {
-          const blob = await commonService.downloadSingleFile(image)
-          return await resizeImage(blob, opts)
-        })
-      )
-
-      const zip = new JSZip()
-      imageBlobs.forEach((blob, index) => {
-        const ext = defaultExt(opts.mimeType || "image/png")
-        zip.file(`ai4fi-pose-${index + 1}.${ext}`, blob)
-      })
-
-      const zipBlob = await zip.generateAsync({ type: "blob" })
-      downloadBlob(zipBlob, `ai4fi-poses-${w}x${h}-${Date.now()}.zip`)
+      const image = generatedImages[imageIndex]
+      const blob = await commonService.downloadSingleFile(image)
+      downloadBlob(blob, `ai4fi-pose-${imageIndex + 1}-${Date.now()}.png`)
     } catch (error: any) {
-      console.error("Error downloading poses:", error)
-      toast.error(error?.response?.data?.message || error?.message || "Failed to download poses. Please try again.")
+      console.error("Error downloading pose:", error)
+      toast.error(error?.response?.data?.message || error?.message || "Failed to download. Please try again.")
+    } finally {
+      setIsDownloading({ index: undefined, isDownloading: false })
+    }
+  }
+
+  const handleDownloadAll = async () => {
+    if (generatedImages.length === 0) {
+      toast.info("No images to download")
+      return
+    }
+    setIsDownloading({ index: undefined, isDownloading: true })
+    try {
+      const zip = new JSZip()
+      const allUrls = [
+        ...(currentModel ? [{ url: currentModel, name: "ai4fi-source-model.png" }] : []),
+        ...generatedImages.map((url, i) => ({ url, name: `ai4fi-pose-${i + 1}.png` })),
+      ]
+      const blobs = await Promise.all(allUrls.map(({ url }) => commonService.downloadSingleFile(url)))
+      blobs.forEach((blob, index) => {
+        zip.file(allUrls[index].name, blob)
+      })
+      const zipBlob = await zip.generateAsync({ type: "blob" })
+      downloadBlob(zipBlob, `ai4fi-poses-${Date.now()}.zip`)
+    } catch (error: any) {
+      console.error("Error downloading all poses:", error)
+      toast.error(error?.response?.data?.message || error?.message || "Failed to download. Please try again.")
     } finally {
       setIsDownloading({ index: undefined, isDownloading: false })
     }
@@ -416,10 +375,19 @@ export default function ModelEditor({
   const jewelryOptionsList = useMemo(() => getGroupedJewelryOptions(gender), [gender])
 
   // Helper for select styling
-  const selectClass = "w-full px-3 py-2.5 pr-10 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
   const labelClass = "flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] mb-2"
 
+  const GENERATING_MESSAGES = [
+    "Analyzing pose configurations and garment details...",
+    "Applying AI model to generate unique poses...",
+    "Rendering lighting and shadow effects...",
+    "Fine-tuning garment fit and drape on the model...",
+    "Almost there — polishing the final outputs...",
+  ]
+
   return (
+    <>
+      <LoadingOverlay isVisible={isGenerating} messages={GENERATING_MESSAGES} />
     <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6">
       <div className="w-full">
         {/* Main Content - Two Column Layout */}
@@ -682,109 +650,6 @@ export default function ModelEditor({
               </div>
             </div>
 
-            {/* Quality Tier */}
-            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
-                  <Sparkles className="w-4.5 h-4.5 text-violet-500" />
-                </div>
-                <h3 className="text-[14px] font-bold text-stone-900">Quality Settings</h3>
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-3">Quality Tier</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => {
-                      setTier("basic")
-                      setAspectRatio("")
-                      setResolution("")
-                      setShowQualityAdvanced(false)
-                    }}
-                    className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
-                      tier === "basic"
-                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 border-violet-500 text-white shadow-[0_4px_12px_rgba(99,102,241,0.25)]"
-                        : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
-                    }`}
-                  >
-                    <div className="text-[13px] font-bold">Basic</div>
-                    <div className="text-[11px] opacity-75 mt-0.5">Standard Quality</div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setTier("professional")
-                      setShowQualityAdvanced(true)
-                    }}
-                    className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
-                      tier === "professional"
-                        ? "bg-gradient-to-r from-violet-600 to-indigo-600 border-violet-500 text-white shadow-[0_4px_12px_rgba(99,102,241,0.25)]"
-                        : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
-                    }`}
-                  >
-                    <div className="text-[13px] font-bold">Professional</div>
-                    <div className="text-[11px] opacity-75 mt-0.5">High Quality</div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Professional Tier Options */}
-              {tier === "professional" && (
-                <div className="rounded-xl border border-violet-200 bg-violet-50/50">
-                  <button
-                    onClick={() => setShowQualityAdvanced(!showQualityAdvanced)}
-                    className="w-full px-4 py-3 flex items-center justify-between text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-violet-500" />
-                      <span className="text-[13px] font-bold text-violet-700">Professional Options</span>
-                    </div>
-                    <ChevronDown
-                      className={`w-4 h-4 text-violet-500 transition-transform ${showQualityAdvanced ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {showQualityAdvanced && (
-                    <div className="space-y-4 px-4 pb-4">
-                      <div>
-                        <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Aspect Ratio</label>
-                        <div className="relative">
-                          <select
-                            value={aspectRatio}
-                            onChange={(e) => setAspectRatio(e.target.value)}
-                            className={selectClass}
-                          >
-                            <option value="">Default</option>
-                            <option value="1:1">1:1 (Square)</option>
-                            <option value="4:5">4:5 (Portrait)</option>
-                            <option value="9:16">9:16 (Vertical)</option>
-                            <option value="16:9">16:9 (Landscape)</option>
-                            <option value="3:4">3:4 (Portrait)</option>
-                          </select>
-                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Resolution</label>
-                        <div className="relative">
-                          <select
-                            value={resolution}
-                            onChange={(e) => setResolution(e.target.value)}
-                            className={selectClass}
-                          >
-                            <option value="">Default</option>
-                            <option value="1K">1K</option>
-                            <option value="2K">2K</option>
-                            <option value="4K">4K</option>
-                          </select>
-                          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893] pointer-events-none" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
           </CollapsibleSidebar>
         </div>
@@ -801,6 +666,30 @@ export default function ModelEditor({
                 <span className="ml-auto text-[12px] text-[#9E9893] font-medium">({generatedImages.length} images)</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Source model card */}
+                {currentModel && (
+                  <div className="space-y-3">
+                    <div
+                      className="rounded-xl overflow-hidden border-2 border-violet-200 bg-violet-50/30 relative group cursor-pointer aspect-square"
+                      onClick={() => { setZoomedImage(currentModel); setIsZoomOpen(true); }}
+                    >
+                      <img
+                        src={currentModel}
+                        alt="Source model"
+                        className="w-full h-full object-contain"
+                      />
+                      <div className="absolute top-2 left-2">
+                        <span className="bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md">Source</span>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-3">
+                        <div className="bg-white/90 backdrop-blur-sm border border-[#E5E2DA] text-stone-900 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm">
+                          <ZoomIn className="w-3.5 h-3.5" />
+                          <span className="text-[11px] font-semibold">Zoom</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {generatedImages.map((img, idx) => (
                   <div key={idx} className="space-y-3">
                     <div
@@ -835,123 +724,19 @@ export default function ModelEditor({
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Download with Custom Size */}
-        {generatedImages.length > 0 && (
-          <div className="mt-6">
-            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
-                  <Download className="w-4.5 h-4.5 text-violet-500" />
-                </div>
-                <h3 className="text-[14px] font-bold text-stone-900">Download with Custom Size</h3>
-              </div>
-              <div className="space-y-4">
-                {/* Ratio Presets */}
-                <div>
-                  <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-3">Aspect Ratio</label>
-                  <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                    {["1:1", "4:5", "9:16", "16:9", "3:4"].map((ratio) => (
-                      <button
-                        key={ratio}
-                        onClick={() => handleRatioChange(ratio)}
-                        className={`px-3 py-2 rounded-xl text-[12px] font-semibold transition-all ${
-                          downloadRatio === ratio
-                            ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-2 border-violet-500 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
-                            : "border-2 border-[#E5E2DA] bg-white text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
-                        }`}
-                      >
-                        {ratio}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setDownloadRatio("custom")}
-                      className={`px-3 py-2 rounded-xl text-[12px] font-semibold transition-all ${
-                        downloadRatio === "custom"
-                          ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-2 border-violet-500 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
-                          : "border-2 border-[#E5E2DA] bg-white text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
-                      }`}
-                    >
-                      Custom
-                    </button>
-                  </div>
-                </div>
-
-                {/* Fit Mode Selector */}
-                <div>
-                  <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-3">Resize Mode</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {(["contain", "cover", "stretch"] as const).map((mode) => (
-                      <button
-                        key={mode}
-                        onClick={() => setFitMode(mode)}
-                        className={`px-4 py-2.5 rounded-xl text-[12px] font-semibold transition-all capitalize ${
-                          fitMode === mode
-                            ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-2 border-violet-500 shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
-                            : "border-2 border-[#E5E2DA] bg-white text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
-                        }`}
-                        title={
-                          mode === "contain" ? "Fits entire image without cropping (may have padding)" :
-                          mode === "cover" ? "Fills entire area (may crop image)" :
-                          "Stretches to exact dimensions (may distort)"
-                        }
-                      >
-                        {mode}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Custom Dimensions */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Width (px)</label>
-                    <input
-                      type="number"
-                      value={downloadWidth}
-                      onChange={(e) => {
-                        setDownloadWidth(e.target.value)
-                        setDownloadRatio("custom")
-                      }}
-                      min="256"
-                      max="4096"
-                      step="256"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E2DA] bg-white text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11.5px] font-semibold text-[#6B6560] mb-2">Height (px)</label>
-                    <input
-                      type="number"
-                      value={downloadHeight}
-                      onChange={(e) => {
-                        setDownloadHeight(e.target.value)
-                        setDownloadRatio("custom")
-                      }}
-                      min="256"
-                      max="4096"
-                      step="256"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E2DA] bg-white text-stone-900 text-[13px] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all"
-                    />
-                  </div>
-                </div>
-
-                {/* Download All Button */}
+              {/* Download All */}
+              <div className="mt-6 pt-5 border-t border-[#E5E2DA]">
                 <Button
                   variant="gradient"
                   size="lg"
-                  onClick={() => handleDownload(undefined)}
+                  onClick={handleDownloadAll}
                   loading={isDownloading.index === undefined && isDownloading.isDownloading}
                   icon={!(isDownloading.index === undefined && isDownloading.isDownloading) ? <Download className="w-4 h-4" /> : undefined}
                   className="w-full"
                 >
                   {isDownloading.index === undefined && isDownloading.isDownloading
                     ? "Downloading All..."
-                    : `Download All (${downloadWidth}x${downloadHeight})`
-                  }
+                    : `Download All (${generatedImages.length + (currentModel ? 1 : 0)} images)`}
                 </Button>
               </div>
             </div>
@@ -1021,5 +806,6 @@ export default function ModelEditor({
         alt="Pose preview"
       />
     </div>
+    </>
   )
 }

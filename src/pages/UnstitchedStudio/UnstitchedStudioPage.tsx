@@ -411,6 +411,7 @@ export default function UnstitchedStudioPage() {
     : fabrics
 
   const hasResults = generatedImages.length > 0
+  const [isDesignConfigOpen, setIsDesignConfigOpen] = useState(true)
 
   return (
     <div className="min-h-screen bg-[#F4F3EF]">
@@ -730,17 +731,26 @@ export default function UnstitchedStudioPage() {
           {/* ─── RIGHT: Configuration Sidebar ─── */}
           <div className="w-full xl:w-[380px] xl:flex-none space-y-4">
             {/* ── Dress Configuration Card ── */}
-            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 space-y-5">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center">
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setIsDesignConfigOpen((v) => !v)}
+                className="w-full flex items-center gap-2 p-5 hover:bg-[#F9F8F5] transition-colors text-left"
+                aria-expanded={isDesignConfigOpen}
+              >
+                <div className="w-8 h-8 rounded-lg bg-[#2563EB] flex items-center justify-center flex-shrink-0">
                   <Scissors className="w-4 h-4 text-white" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <h3 className="text-[14px] font-bold text-stone-900">Design Configuration</h3>
                   <p className="text-[11px] text-[#9E9893]">Customize your garment style</p>
                 </div>
-              </div>
+                <ChevronDown className={`w-4 h-4 text-[#9E9893] transition-transform duration-200 flex-shrink-0 ${isDesignConfigOpen ? "rotate-180" : ""}`} />
+              </button>
 
+              {isDesignConfigOpen && (
+              <div className="px-5 pb-5 space-y-5 border-t border-[#E5E2DA]">
+              <div className="pt-4" />
               {/* Gender */}
               <div>
                 <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
@@ -828,6 +838,55 @@ export default function UnstitchedStudioPage() {
                   ))}
                 </div>
               </div>
+              </div>
+              )}
+            </div>
+
+
+                  {/* ── Model Face Card ── */}
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#2563EB]" />
+                <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
+                  Model Face
+                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
+                </label>
+              </div>
+
+              {modelFace ? (
+                <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
+                  <img src={modelFace} alt="Model face" className="w-full h-32 object-cover" />
+                  <button
+                    onClick={() => {
+                      setModelFace(null)
+                    }}
+                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setIsGalleryOpen(true)}
+                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
+                  >
+                    <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
+                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
+                      From Gallery
+                    </span>
+                  </button>
+                  <Link
+                    to={`/model?mode=face&source=fabric-studio&gender=${gender}`}
+                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
+                  >
+                    <Sparkles className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
+                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
+                      Generate Face
+                    </span>
+                  </Link>
+                </div>
+              )}
             </div>
 
 
@@ -950,51 +1009,7 @@ export default function UnstitchedStudioPage() {
               </div>
             </div>
 
-            {/* ── Model Face Card ── */}
-            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 space-y-4">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#2563EB]" />
-                <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
-                  Model Face
-                  <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
-                </label>
-              </div>
-
-              {modelFace ? (
-                <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
-                  <img src={modelFace} alt="Model face" className="w-full h-32 object-cover" />
-                  <button
-                    onClick={() => {
-                      setModelFace(null)
-                    }}
-                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setIsGalleryOpen(true)}
-                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
-                  >
-                    <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
-                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
-                      From Gallery
-                    </span>
-                  </button>
-                  <Link
-                    to={`/model?mode=face&source=fabric-studio&gender=${gender}`}
-                    className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-[#2563EB] hover:bg-blue-50/40 transition-all flex flex-col items-center justify-center gap-2 group"
-                  >
-                    <Sparkles className="w-5 h-5 text-[#9E9893] group-hover:text-[#2563EB] transition-colors" />
-                    <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-[#2563EB] transition-colors">
-                      Generate Face
-                    </span>
-                  </Link>
-                </div>
-              )}
-            </div>
+      
 
     
           </div>

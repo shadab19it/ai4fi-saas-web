@@ -379,7 +379,7 @@ const ModelGeneratorUI: React.FC = () => {
                   }
                   const source = new URLSearchParams(location.search).get("source");
                   if (source === "product-listing") {
-                    navigate("/product-listing");
+                    navigate("/product-listing-studio");
                   } else if (source === "fabric-studio") {
                     navigate("/unstitched-studio");
                   } else {

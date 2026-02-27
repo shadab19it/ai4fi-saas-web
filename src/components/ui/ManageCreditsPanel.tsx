@@ -40,7 +40,7 @@ const ManageCreditsPanel: FC<ManageCreditsPanelProps> = ({
   hasSelection,
 }) => {
   return (
-    <div className='rounded-2xl border border-[#E5E2DA] bg-white p-5 shadow-[0_1px_3px_rgba(28,25,23,0.06)] self-start'>
+    <div className='rounded-2xl border border-[#E5E2DA] bg-white p-5 shadow-[0_1px_3px_rgba(28,25,23,0.06)] self-stretch'>
       <h3 className='text-sm font-bold text-stone-900 mb-3.5'>{title}</h3>
       {!hasSelection ? (
         <p className='text-[13px] text-[#9E9893]'>{emptyMessage}</p>

@@ -148,14 +148,6 @@ export default function ProductListingStudioPage() {
       }
     }
 
-    // Check for returned model face
-    const returnedModelFaceUrl = localStorage.getItem(MODEL_FACE_RETURN_URL_KEY)
-    if (returnedModelFaceUrl) {
-      setModelImageUrl(returnedModelFaceUrl)
-      setModelImage(null)
-      setModelImagePreview(null)
-      localStorage.removeItem(MODEL_FACE_RETURN_URL_KEY)
-    }
   }, [])
 
   useEffect(() => {
@@ -234,7 +226,6 @@ export default function ProductListingStudioPage() {
   }
 
   const handleGalleryModelSelect = (imageUrl: string) => {
-    setModelImage(null)
     setModelImageUrl(imageUrl)
     setModelImagePreview(imageUrl)
     setModelImageCount((prev) => (prev === 0 ? Math.min(2, count - 1) : prev))
@@ -700,7 +691,7 @@ export default function ProductListingStudioPage() {
                         <span>8</span>
                       </div>
                     </div>
-                    {modelImage && (
+                    {modelImageUrl && (
                       <div>
                         <label className="text-[10px] font-semibold text-[#6B6560] uppercase tracking-wide mb-0.5 block">
                           With Model: {modelImageCount}
