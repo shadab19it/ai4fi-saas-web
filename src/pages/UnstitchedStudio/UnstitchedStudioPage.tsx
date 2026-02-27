@@ -1,6 +1,6 @@
 import type React from "react"
 import { useState, useRef, useCallback, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import {
   Upload,
   ZoomIn,
@@ -11,7 +11,6 @@ import {
   Grid3x3,
   ChevronDown,
   ArrowLeft,
-  Loader2,
   Download,
   RotateCcw,
   Scissors,
@@ -24,6 +23,7 @@ import {
 import Button from "../../components/ui/Button"
 import ZoomImageModal from "../../components/ui/ZoomImageModal"
 import ModelGalleryModal from "../../components/common/ModelGalleryModal"
+import LoadingOverlay from "../../components/CreateAds/LoadingOverlay"
 import modelService from "../../services/modelService"
 import commonService from "../../services/commonService"
 import DarkLogo from "../../../public/dark-logo2.png"
@@ -33,7 +33,7 @@ import {
   ECOMMERCE_PLATFORM_PRESETS,
   type EcommercePlatformKey,
 } from "../../constants/ecommercePlatforms"
-import { MODEL_FACE_RETURN_URL_KEY, FABRIC_STUDIO_PERSIST_KEY } from "../../constants/modelFace"
+import { MODEL_FACE_RETURN_URL_KEY, FABRIC_STUDIO_PERSIST_KEY, TRIAL_ROOM_HANDOFF_KEY } from "../../constants/modelFace"
 
 // ──────────────────────────────────────────────
 // Types
@@ -91,12 +91,22 @@ const FIT_TYPES: FitType[] = [
   { value: "flared", label: "Flared" },
 ]
 
+const GENERATING_MESSAGES = [
+  "Analyzing your fabric texture and pattern...",
+  "Designing the garment silhouette...",
+  "Draping fabric onto the virtual model...",
+  "Applying stitching details and finishing...",
+  "Rendering high-quality output image...",
+  "Almost done — polishing the final look...",
+]
+
 // ──────────────────────────────────────────────
 // Component
 // ──────────────────────────────────────────────
 
 export default function UnstitchedStudioPage() {
   const { isResolutionAllowed } = usePlanFeatures()
+  const navigate = useNavigate()
   // Fabric slots
   const [fabrics, setFabrics] = useState<FabricSlot[]>([
     {
@@ -381,6 +391,19 @@ export default function UnstitchedStudioPage() {
     }
   }
 
+  const handleGeneratePoses = (imageUrl: string) => {
+    const handoff = {
+      dressImage: imageUrl,
+      selectedModel: modelFace || imageUrl,
+      gender,
+      tier,
+      ...(aspectRatio && { aspectRatio }),
+      ...(resolution && { resolution }),
+    }
+    localStorage.setItem(TRIAL_ROOM_HANDOFF_KEY, JSON.stringify(handoff))
+    navigate("/trial-room")
+  }
+
   const handleReset = () => {
     setFabrics((prev) => prev.map((f) => ({ ...f, image: null })))
     setFabricFiles({ top_fabric: null, bottom_fabric: null, dupatta_fabric: null })
@@ -654,9 +677,9 @@ export default function UnstitchedStudioPage() {
                   {generatedImages.map((url, i) => (
                     <div
                       key={i}
-                      className="relative rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_2px_8px_rgba(28,25,23,0.08)] overflow-hidden group"
+                      className="relative rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_2px_8px_rgba(28,25,23,0.08)] overflow-hidden group flex flex-col"
                     >
-                      <div className="aspect-[3/4] overflow-hidden">
+                      <div className="relative aspect-[3/4] overflow-hidden">
                         <img
                           src={url}
                           alt={`Generated design ${i + 1}`}
@@ -667,24 +690,33 @@ export default function UnstitchedStudioPage() {
                             setZoomOpen(true)
                           }}
                         />
+                        {/* Actions overlay — scoped inside image container */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-3 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <button
+                            onClick={() => {
+                              setZoomImages(generatedImages)
+                              setZoomIndex(i)
+                              setZoomOpen(true)
+                            }}
+                            className="bg-white/90 backdrop-blur-sm text-stone-900 p-2 rounded-lg hover:bg-white transition-colors"
+                          >
+                            <ZoomIn className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDownload(url)}
+                            className="bg-white/90 backdrop-blur-sm text-stone-900 p-2 rounded-lg hover:bg-white transition-colors"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
-                      {/* Actions */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-4 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="p-2 border-t border-[#E5E2DA]">
                         <button
-                          onClick={() => {
-                            setZoomImages(generatedImages)
-                            setZoomIndex(i)
-                            setZoomOpen(true)
-                          }}
-                          className="bg-white/90 backdrop-blur-sm text-stone-900 p-2 rounded-lg hover:bg-white transition-colors"
+                          onClick={() => handleGeneratePoses(url)}
+                          className="w-full flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition-colors"
                         >
-                          <ZoomIn className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDownload(url)}
-                          className="bg-white/90 backdrop-blur-sm text-stone-900 p-2 rounded-lg hover:bg-white transition-colors"
-                        >
-                          <Download className="w-4 h-4" />
+                          <Sparkles className="w-3.5 h-3.5" />
+                          Generate Poses
                         </button>
                       </div>
                     </div>
@@ -855,7 +887,7 @@ export default function UnstitchedStudioPage() {
 
               {modelFace ? (
                 <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
-                  <img src={modelFace} alt="Model face" className="w-full h-32 object-cover" />
+                  <img src={modelFace} alt="Model face" className="w-full h-32 object-contain" />
                   <button
                     onClick={() => {
                       setModelFace(null)
@@ -1033,23 +1065,7 @@ export default function UnstitchedStudioPage() {
         alt="Fabric preview"
       />
 
-      {/* ─── Loading Overlay ─── */}
-      {isGenerating && (
-        <div className="fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-2xl border border-[#E5E2DA] shadow-2xl p-8 max-w-sm w-full mx-4 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-[#2563EB] flex items-center justify-center mx-auto mb-5">
-              <Loader2 className="w-8 h-8 text-white animate-spin" />
-            </div>
-            <h3 className="text-[17px] font-bold text-stone-900 mb-2">Crafting Your Design</h3>
-            <p className="text-[13px] text-[#9E9893] mb-4">
-              Our AI is stitching your fabric into a beautiful garment. This may take a minute...
-            </p>
-            <div className="w-full bg-[#E5E2DA] rounded-full h-1.5 overflow-hidden">
-              <div className="h-full bg-[#2563EB] rounded-full animate-pulse" style={{ width: "60%" }} />
-            </div>
-          </div>
-        </div>
-      )}
+      <LoadingOverlay isVisible={isGenerating} messages={GENERATING_MESSAGES} />
     </div>
   )
 }

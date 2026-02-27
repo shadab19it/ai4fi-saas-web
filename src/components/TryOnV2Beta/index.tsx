@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import DressUpload from "./DressUpload"
 import ModelSelection from "./ModelSelection"
 import ModelEditor from "./ModelEditor"
 import { Link } from "react-router-dom"
+import { TRIAL_ROOM_HANDOFF_KEY } from "../../constants/modelFace"
 import DarkLogo from "../../../public/dark-logo2.png"
 import { CheckCircle2, ArrowLeft } from "lucide-react"
 import Button from "../ui/Button"
@@ -22,6 +23,24 @@ export default function Home() {
   const [height, setHeight] = useState<number | undefined>()
   const [segment, setSegment] = useState<string | undefined>()
   const [garmentCategory, setGarmentCategory] = useState<string | undefined>()
+
+  useEffect(() => {
+    const raw = localStorage.getItem(TRIAL_ROOM_HANDOFF_KEY)
+    if (!raw) return
+    localStorage.removeItem(TRIAL_ROOM_HANDOFF_KEY)
+    try {
+      const handoff = JSON.parse(raw)
+      setDressImage(handoff.selectedModel)
+      setSelectedModel(handoff.dressImage)
+      setGender(handoff.gender)
+      setTier(handoff.tier || "basic")
+      if (handoff.aspectRatio) setAspectRatio(handoff.aspectRatio)
+      if (handoff.resolution) setResolution(handoff.resolution)
+      setStep("editor")
+    } catch {
+      // invalid handoff data, ignore
+    }
+  }, [])
 
   const steps = [
     { id: "dress", label: "Upload Dress", number: 1 },
