@@ -28,6 +28,10 @@ export interface AdminUser {
   effectiveCredits?: number;
   effectiveCreditHistory?: CreditHistoryEntry[];
   walletType?: "user" | "team";
+  effectiveDataRetentionDays?: number;
+  dataRetentionSource?: "override" | "plan" | "default";
+  effectiveMaxGalleryImages?: number;
+  maxGalleryImagesSource?: "override" | "plan" | "default";
 }
 
 export interface AdminUserListResponse {
@@ -182,6 +186,44 @@ class AdminService extends BaseService {
   }> {
     try {
       const response = await this.axiosInstance.patch(`/admin/users/${userId}/team-member-limit`, { limit });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async updateUserDataRetention(
+    userId: string,
+    days: number | null
+  ): Promise<{
+    success: boolean;
+    message: string;
+    effectiveDataRetentionDays: number;
+    dataRetentionSource: "override" | "plan" | "default";
+    overrideValue: number | null;
+  }> {
+    try {
+      const response = await this.axiosInstance.patch(`/admin/users/${userId}/data-retention`, { days });
+      return this.handleResponse(response);
+    } catch (error) {
+      const errInfo = this.handleCommonError(error as any);
+      throw new Error(errInfo.error);
+    }
+  }
+
+  async updateUserMaxGalleryImages(
+    userId: string,
+    value: number | null
+  ): Promise<{
+    success: boolean;
+    message: string;
+    effectiveMaxGalleryImages: number;
+    maxGalleryImagesSource: "override" | "plan" | "default";
+    overrideValue: number | null;
+  }> {
+    try {
+      const response = await this.axiosInstance.patch(`/admin/users/${userId}/max-gallery-images`, { value });
       return this.handleResponse(response);
     } catch (error) {
       const errInfo = this.handleCommonError(error as any);

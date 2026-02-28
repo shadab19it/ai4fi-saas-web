@@ -252,8 +252,8 @@ export default function BillingPage() {
           </div>
         </div>
 
-        {/* Credit History */}
-        <div className="bg-white rounded-2xl border border-[#E5E2DA] overflow-hidden">
+        {/* Credit History -- Uncomment if used in future*/}
+        {/* <div className="bg-white rounded-2xl border border-[#E5E2DA] overflow-hidden">
           <div className="px-5 py-3 border-b border-[#E5E2DA] flex items-center justify-between">
             <h3 className="text-sm font-bold text-stone-900">
               Credit Usage History
@@ -365,7 +365,7 @@ export default function BillingPage() {
           ) : (
             <div className="px-5 py-10 text-center text-sm text-stone-400">No credit history yet.</div>
           )}
-        </div>
+        </div> */}
 
         {/* Recent Payments */}
         <div className="bg-white rounded-2xl border border-[#E5E2DA] overflow-hidden">

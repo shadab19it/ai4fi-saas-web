@@ -66,6 +66,10 @@ const AdminDashboard = () => {
   const [reasonInput, setReasonInput] = useState("");
   const [teamLimitInput, setTeamLimitInput] = useState("");
   const [savingTeamLimit, setSavingTeamLimit] = useState(false);
+  const [retentionLimitInput, setRetentionLimitInput] = useState("");
+  const [savingRetentionLimit, setSavingRetentionLimit] = useState(false);
+  const [maxGalleryLimitInput, setMaxGalleryLimitInput] = useState("");
+  const [savingMaxGalleryLimit, setSavingMaxGalleryLimit] = useState(false);
 
   const [teams, setTeams] = useState<AdminTeam[]>([]);
   const [teamsLoading, setTeamsLoading] = useState(false);
@@ -133,8 +137,98 @@ const AdminDashboard = () => {
       setTeamLimitInput(
         result.user.teamMemberLimit != null ? String(result.user.teamMemberLimit) : ""
       );
+      if (result.user.dataRetentionSource === "override") {
+        setRetentionLimitInput(result.user.effectiveDataRetentionDays?.toString() || "");
+      } else {
+        setRetentionLimitInput("");
+      }
+      if (result.user.maxGalleryImagesSource === "override") {
+        setMaxGalleryLimitInput(result.user.effectiveMaxGalleryImages?.toString() || "");
+      } else {
+        setMaxGalleryLimitInput("");
+      }
     } catch (error: any) {
       toast.error(error.message || "Failed to load user");
+    }
+  };
+
+  const handleSaveDataRetentionLimit = async () => {
+    if (!selectedUser) return;
+    try {
+      setSavingRetentionLimit(true);
+      const val = retentionLimitInput.trim() === "" ? null : Number(retentionLimitInput);
+      const res = await adminService.updateUserDataRetention(selectedUser._id, val);
+      toast.success(res.message);
+
+      setUsers((prev) =>
+        prev.map((u) => {
+          if (u._id === selectedUser._id) {
+            return {
+              ...u,
+              effectiveDataRetentionDays: res.effectiveDataRetentionDays,
+              dataRetentionSource: res.dataRetentionSource,
+            };
+          }
+          return u;
+        })
+      );
+
+      setSelectedUser((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          effectiveDataRetentionDays: res.effectiveDataRetentionDays,
+          dataRetentionSource: res.dataRetentionSource,
+        };
+      });
+
+      if (val === null) {
+        setRetentionLimitInput("");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update data retention");
+    } finally {
+      setSavingRetentionLimit(false);
+    }
+  };
+
+  const handleSaveMaxGalleryLimit = async () => {
+    if (!selectedUser) return;
+    try {
+      setSavingMaxGalleryLimit(true);
+      const val = maxGalleryLimitInput.trim() === "" ? null : Number(maxGalleryLimitInput);
+      const res = await adminService.updateUserMaxGalleryImages(selectedUser._id, val);
+      toast.success(res.message);
+
+      setUsers((prev) =>
+        prev.map((u) => {
+          if (u._id === selectedUser._id) {
+            return {
+              ...u,
+              effectiveMaxGalleryImages: res.effectiveMaxGalleryImages,
+              maxGalleryImagesSource: res.maxGalleryImagesSource,
+            };
+          }
+          return u;
+        })
+      );
+
+      setSelectedUser((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          effectiveMaxGalleryImages: res.effectiveMaxGalleryImages,
+          maxGalleryImagesSource: res.maxGalleryImagesSource,
+        };
+      });
+
+      if (val === null) {
+        setMaxGalleryLimitInput("");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update max gallery limit");
+    } finally {
+      setSavingMaxGalleryLimit(false);
     }
   };
 
@@ -642,6 +736,65 @@ const AdminDashboard = () => {
                               </p>
                             </div>
                           )}
+
+                          {/* Data Retention Settings */}
+                          <div className='border border-[#E5E2DA] rounded-xl p-3 bg-[#F9F8F5]'>
+                            <p className='text-[11.5px] font-semibold text-stone-900 mb-1'>Data Retention (Auto Archive)</p>
+                            <p className='text-[11px] text-[#9E9893] mb-2'>
+                              Override retention days for this user. Leave empty for default.
+                            </p>
+                            <div className='flex items-center gap-2'>
+                              <input
+                                type='number'
+                                min={1}
+                                value={retentionLimitInput}
+                                onChange={(e) => setRetentionLimitInput(e.target.value)}
+                                placeholder={`Effective: ${selectedUser.effectiveDataRetentionDays ?? 7} days`}
+                                className='w-[200px] h-8 px-2.5 rounded-lg border border-[#E5E2DA] bg-white text-[13px] text-stone-900 outline-none focus:border-[#0F62FE] transition-all'
+                              />
+                              <Button
+                                size='sm'
+                                loading={savingRetentionLimit}
+                                onClick={handleSaveDataRetentionLimit}
+                                className='h-8'
+                              >
+                                Save
+                              </Button>
+                            </div>
+                            <p className='text-[10px] text-[#9E9893] mt-2 capitalize'>
+                              Source: {selectedUser.dataRetentionSource || "default"}
+                            </p>
+                          </div>
+
+                          {/* Max Gallery Images Settings */}
+                          <div className='border border-[#E5E2DA] rounded-xl p-3 bg-[#F9F8F5]'>
+                            <p className='text-[11.5px] font-semibold text-stone-900 mb-1'>Max Gallery Images</p>
+                            <p className='text-[11px] text-[#9E9893] mb-2'>
+                              Override maximum gallery images for this user. Leave empty for default.
+                            </p>
+                            <div className='flex items-center gap-2'>
+                              <input
+                                type='number'
+                                min={1}
+                                value={maxGalleryLimitInput}
+                                onChange={(e) => setMaxGalleryLimitInput(e.target.value)}
+                                placeholder={`Effective: ${selectedUser.effectiveMaxGalleryImages ?? 20}`}
+                                className='w-[200px] h-8 px-2.5 rounded-lg border border-[#E5E2DA] bg-white text-[13px] text-stone-900 outline-none focus:border-[#0F62FE] transition-all'
+                              />
+                              <Button
+                                size='sm'
+                                loading={savingMaxGalleryLimit}
+                                onClick={handleSaveMaxGalleryLimit}
+                                className='h-8'
+                              >
+                                Save
+                              </Button>
+                            </div>
+                            <p className='text-[10px] text-[#9E9893] mt-2 capitalize'>
+                              Source: {selectedUser.maxGalleryImagesSource || "default"}
+                            </p>
+                          </div>
+
                           <div className='border-t border-[#E5E2DA] pt-3 flex flex-col gap-2'>
                             <Button
                               variant='outline'
