@@ -119,13 +119,7 @@ const ModelListPage: FC = () => {
         const [leftIndex, rightIndex] = key.split("_").map(Number);
         if (modelList[leftIndex]) {
           const element = modelList[leftIndex];
-          let imageUrl = "";
-          if (imageType === "model" || imageType === "product_listing_banner" || imageType === "product_listing" || imageType === "unstitched_tryon") {
-             imageUrl = element.generatedImages?.image_urls?.[rightIndex];
-          } else {
-             imageUrl = element.generatedImages?.[rightIndex];
-          }
-
+          const imageUrl = element.generatedImages?.image_urls?.[rightIndex];
           if (imageUrl) {
             filterModel.push(imageUrl);
           }
@@ -556,16 +550,16 @@ const ModelListPage: FC = () => {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-                                    {/* Models, banners, and fabric studio which store as { image_urls: [...] } */}
-                                    {(imageType === "model" || imageType === "product_listing_banner" || imageType === "unstitched_tryon") &&
+                                    {/* Types that store as { image_urls: [...] } */}
+                                    {(imageType === "model" || imageType === "product_listing_banner" || imageType === "unstitched_tryon" || imageType === "tryon_beta" || imageType === "pose_variants") &&
                                         modelList.map((model, i) =>
                                             model.generatedImages?.image_urls?.map((url: string, index: number) =>
                                                 renderImageCard(model, url, i, index)
                                             )
                                         )}
 
-                                    {/* Unified mapping for try-on / variants which can be flat array */}
-                                    {(imageType === "tryon" || imageType === "tryon_beta" || imageType === "pose_variants") &&
+                                    {/* Legacy tryon which stores as a flat array */}
+                                    {imageType === "tryon" &&
                                         modelList.map((model, i) => {
                                             const images = Array.isArray(model?.generatedImages)
                                                 ? model.generatedImages

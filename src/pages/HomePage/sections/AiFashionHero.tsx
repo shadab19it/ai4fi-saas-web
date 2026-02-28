@@ -94,12 +94,20 @@ const AiFashionHero: React.FC<AiFashionHeroProps> = ({
 	}, []);
 
 	const partners = [
-		SvgIcons.amazone,
-		SvgIcons.google,
-		SvgIcons.netflix,
-		SvgIcons.shopify,
-		SvgIcons.youtube,
+		"./partners/chand.png",
+		"./partners/charkha_tales.webp",
+		"./partners/dhaga.png",
+		"./partners/mrignandani.png",
+		"./partners/zuni.png",
+		"./partners/novelty.png",
 	];
+	// const partners = [
+	// 	SvgIcons.amazone,
+	// 	SvgIcons.google,
+	// 	SvgIcons.netflix,
+	// 	SvgIcons.shopify,
+	// 	SvgIcons.youtube,
+	// ];
 	const imageCards = [
 		{
 			id: 1,
@@ -265,12 +273,14 @@ const AiFashionHero: React.FC<AiFashionHeroProps> = ({
 						>
 							<div className="flex flex-wrap gap-4">
 								<Link to="/features">
+
 								<button
 									type="button"
 									className="px-8 py-3 md:w-fit w-full rounded-md bg-brand-color text-white hover:opacity-90 transition shadow-lg shadow-brand/20"
 								>
 									{primaryCTA}
 								</button>
+
 								</Link>
 
 								<button
@@ -326,7 +336,7 @@ const AiFashionHero: React.FC<AiFashionHeroProps> = ({
 					<h4 className="text-center  mb-5 font-bold leading-tight">
 						Our Trusted Partners
 					</h4>
-					<div className="md:grid flex flex-wrap items-center justify-between md:place-items-center md:grid-cols-5 gap-6 md:gap-8">
+					<div className="md:grid flex flex-wrap items-center justify-between md:place-items-center md:grid-cols-6 gap-6 md:gap-8">
 						{partners.map((partner, index) => (
 							<motion.div
 								key={index}
@@ -335,10 +345,11 @@ const AiFashionHero: React.FC<AiFashionHeroProps> = ({
 								transition={{ duration: 0.8, delay: index * 0.2 }}
 								className="group"
 							>
-								<i className="leading-0 text-[7rem] text-muted-foreground">
+								{/* <i className="leading-0 text-[7rem] text-muted-foreground">
 									{" "}
 									{partner}
-								</i>
+								</i> */}
+								<img alt={`partners_${index}`} src={partner} />
 							</motion.div>
 						))}
 					</div>

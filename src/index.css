@@ -44,7 +44,7 @@
 }
 
 .dark {
-	--background: #020c24;
+	--background: #000000da;
 	/* slate-950 */
 	--foreground: #f8fafc;
 	/* slate-50 */
@@ -519,4 +519,22 @@ select option:checked {
 		-webkit-backdrop-filter: blur(20px) saturate(180%);
 		border: 1px solid color-mix(in srgb, var(--border), transparent 80%);
 	}
+
+	.auth-input {
+		background-color: #1e293b !important;
+		border: 1px solid #1f2c41 !important;
+		color: #f8fafc !important;
+		outline: none !important;
+	}
+
+	.auth-input:focus {
+		border-color: #0891b2 !important;
+		box-shadow: 0 0 0 2px rgba(8, 145, 178, 0.2) !important;
+	}
+
+	.auth-input::placeholder {
+		color: #94a3b8 !important;
+	}
+
+	@keyframes twinkle {}
 }

@@ -1,13 +1,13 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { Menu, X, ChevronRight, Zap, User, ChevronDown, Sparkles, Layers, Clapperboard, GalleryHorizontal } from "lucide-react";
+import { Menu, X, ChevronRight, Zap, User, ChevronDown, Sparkles, Layers, Clapperboard, GalleryHorizontal, CreditCard, Shield, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import authService from "../../../services/authService";
 import { setUser } from "../../../store/userReducer";
-import { ThemeToggle } from "../../../components/ThemeToggle";
+
 
 // ─── Dropdown overlay backdrop blur panel ────────────────────────────────────
 const dropdownVariants = {
@@ -184,6 +184,160 @@ const HoverDropdown = ({
 	);
 };
 
+// ─── Profile Dropdown Component ───────────────────────────────────────────────
+const ProfileDropdown = ({ user, effectiveCredits, onLogout }: { user: any, effectiveCredits: number, onLogout: () => void }) => {
+	const [open, setOpen] = useState(false);
+	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const handleEnter = () => {
+		if (timeoutRef.current) clearTimeout(timeoutRef.current);
+		setOpen(true);
+	};
+	const handleLeave = () => {
+		timeoutRef.current = setTimeout(() => setOpen(false), 120);
+	};
+
+	const items = [
+		{ name: "Credits", href: "/credits", icon: <Zap /> },
+		{ name: "Billing", href: "/billing", icon: <CreditCard /> },
+	];
+
+	if (user?.role === "admin") {
+		items.push({ name: "Admin Dashboard", href: "/admin", icon: <Shield /> });
+	}
+
+	return (
+		<div
+			className="relative z-50"
+			onMouseEnter={handleEnter}
+			onMouseLeave={handleLeave}
+		>
+			<button className="flex items-center gap-2.5 px-3.5 py-2 mx-1 rounded-xl border border-border bg-muted hover:bg-background/5 transition-all text-secondary-foreground hover:text-foreground group">
+				<div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-sky-500 flex items-center justify-center">
+					<User size={11} className="text-white" />
+				</div>
+				<span className="text-sm font-semibold text-foreground">
+					{user?.username}
+				</span>
+				{user?.role === "user" && (
+					<span className="text-xs text-cyan-500 font-medium">
+						{effectiveCredits} {user.teamId ? "team credits" : "credits"}
+					</span>
+				)}
+				<motion.span
+					animate={{ rotate: open ? 180 : 0 }}
+					transition={{ duration: 0.2 }}
+					className="opacity-50 group-hover:opacity-100"
+				>
+					<ChevronDown size={13} strokeWidth={2.5} />
+				</motion.span>
+			</button>
+
+			<AnimatePresence>
+				{open && (
+					<motion.div
+						variants={dropdownVariants}
+						initial="hidden"
+						animate="visible"
+						exit="exit"
+						className="absolute top-full right-0 mt-3 min-w-[220px]"
+					>
+						<div
+							className="relative rounded-2xl bg-background backdrop-blur-lg overflow-hidden border border-border shadow-2xl"
+							style={{
+								boxShadow:
+									"0 0 0 1px rgba(6,182,212,0.08), 0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(6,182,212,0.06)",
+							}}
+						>
+							<div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent" />
+
+							<div className="p-2.5">
+								{items.map((item, i) => (
+									<motion.div
+										key={item.href}
+										custom={i}
+										variants={itemVariants}
+										initial="hidden"
+										animate="visible"
+									>
+										<Link
+											to={item.href}
+											onClick={() => setOpen(false)}
+											className="group/item flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200
+                        hover:bg-background/5 text-foreground/60 hover:text-foreground"
+										>
+											<div
+												className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200
+                          bg-muted group-hover/item:bg-cyan-500/15 text-foreground group-hover/item:text-cyan-400"
+												style={{
+													boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
+												}}
+											>
+												{React.cloneElement(item.icon as React.ReactElement, {
+													size: 15,
+													strokeWidth: 1.8,
+												})}
+											</div>
+
+											<span className="text-sm text-secondary-foreground font-semibold leading-tight tracking-wide">
+												{item.name}
+											</span>
+
+											<ChevronRight
+												size={12}
+												className="ml-auto opacity-0 group-hover/item:opacity-40 -translate-x-1 group-hover/item:translate-x-0 transition-all duration-200 flex-shrink-0"
+											/>
+										</Link>
+									</motion.div>
+								))}
+
+								<div className="h-px bg-border my-1.5 mx-2" />
+
+								<motion.div
+									custom={items.length}
+									variants={itemVariants}
+									initial="hidden"
+									animate="visible"
+								>
+									<button
+										onClick={() => {
+											setOpen(false);
+											onLogout();
+										}}
+										className="w-full group/item flex items-center gap-3.5 px-3.5 py-3 rounded-xl transition-all duration-200
+                        hover:bg-red-500/10 text-foreground/60 hover:text-red-500"
+									>
+										<div
+											className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200
+                          bg-muted group-hover/item:bg-red-500/15 text-foreground group-hover/item:text-red-500"
+											style={{
+												boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07)",
+											}}
+										>
+											<LogOut size={15} strokeWidth={1.8} />
+										</div>
+
+										<span className="text-sm text-secondary-foreground font-semibold leading-tight tracking-wide">
+											Logout
+										</span>
+									</button>
+								</motion.div>
+							</div>
+
+							<div className="absolute bottom-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+						</div>
+
+						<div
+							className="absolute -top-[5px] right-6 w-2.5 h-2.5 rotate-45 rounded-sm border-t border-l border-white/10"
+							style={{ background: "var(--background)" }}
+						/>
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</div>
+	);
+};
+
 // ─── Main Navbar ──────────────────────────────────────────────────────────────
 const Navbar = () => {
 	const dispatch = useDispatch();
@@ -320,30 +474,14 @@ const Navbar = () => {
 
 					{authService.isAuthenticated() && user ? (
 						<div className="flex items-center gap-2.5">
-							<div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl border border-border bg-muted">
-								<div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-400 to-sky-500 flex items-center justify-center">
-									<User size={11} className="text-white" />
-								</div>
-								<span className="text-sm font-semibold text-foreground">
-									{user?.username}
-								</span>
-								{user?.role === "user" && (
-									<span className="text-xs text-cyan-500 font-medium">
-										{effectiveCredits} {user.teamId ? "team credits" : "credits"}
-									</span>
-								)}
-							</div>
-							<motion.button
-								onClick={() => {
+							<ProfileDropdown
+								user={user}
+								effectiveCredits={effectiveCredits}
+								onLogout={() => {
 									authService.logout();
 									dispatch(setUser(null));
 								}}
-								whileHover={{ scale: 1.03 }}
-								whileTap={{ scale: 0.97 }}
-								className="px-4 py-2 rounded-xl text-sm font-semibold text-secondary-foreground hover:text-foreground border border-border hover:border-foreground/20 transition-all duration-200"
-							>
-								Logout
-							</motion.button>
+							/>
 						</div>
 					) : (
 							<div className="flex items-center gap-2">
@@ -522,18 +660,47 @@ const Navbar = () => {
 							{/* Mobile Auth */}
 							<>
 						{authService.isAuthenticated() && (
-								<div className="pt-3 border-t border-border">
-									<div className="flex items-center justify-between px-4 py-3">
-										<span className="text-sm font-semibold text-foreground">
-											{user?.username}
-										{user?.role === "user" && (
-											<span className="text-cyan-500 ml-2 text-xs">{effectiveCredits} {user.teamId ? "team credits" : "credits"}</span>
+								<div className="pt-3 border-t border-border mt-3">
+									<div className="px-4 py-2 flex flex-col gap-2">
+										<div className="flex items-center justify-between mb-2">
+											<span className="text-sm font-semibold text-foreground">
+												{user?.username}
+												{user?.role === "user" && (
+													<span className="text-cyan-500 ml-2 text-xs">{effectiveCredits} {user.teamId ? "team credits" : "credits"}</span>
+												)}
+											</span>
+										</div>
+										<Link
+											to="/credit"
+											onClick={() => setIsMobileMenuOpen(false)}
+											className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-secondary-foreground hover:text-foreground hover:bg-secondary transition-all"
+										>
+											<Zap size={14} className="text-cyan-400" />
+											Credits
+										</Link>
+										<Link
+											to="/billing"
+											onClick={() => setIsMobileMenuOpen(false)}
+											className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-secondary-foreground hover:text-foreground hover:bg-secondary transition-all"
+										>
+											<CreditCard size={14} className="text-cyan-400" />
+											Billing
+										</Link>
+										{user?.role === "admin" && (
+											<Link
+												to="/admin"
+												onClick={() => setIsMobileMenuOpen(false)}
+												className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-secondary-foreground hover:text-foreground hover:bg-secondary transition-all"
+											>
+												<Shield size={14} className="text-cyan-400" />
+												Admin Dashboard
+											</Link>
 										)}
-										</span>
 										<button
 											onClick={() => { authService.logout(); dispatch(setUser(null)); }}
-											className="text-sm text-secondary-foreground hover:text-foreground transition-colors"
+											className="flex items-center gap-3 px-3 py-2 mt-2 rounded-xl text-sm text-red-500/80 hover:text-red-500 hover:bg-red-500/10 transition-all text-left w-full"
 										>
+											<LogOut size={14} />
 											Logout
 										</button>
 									</div>

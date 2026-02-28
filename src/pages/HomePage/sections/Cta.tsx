@@ -2,6 +2,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import authService from "../../../services/authService";
+import SectionHeader from "./SectionHeader";
+import { ArrowRight } from "lucide-react";
 
 const CTASection = () => {
   const navigate = useNavigate();
@@ -16,10 +18,12 @@ const CTASection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           className='text-center text-foreground'>
-          <h2 className='text-4xl md:text-5xl font-bold mb-6'>Start Your AI Fashion Journey Today!</h2>
-          <p className='text-xl text-muted-foreground mb-8 max-w-2xl mx-auto'>
-            Join the future of fashion visualization and transform your brand's digital presence
-          </p>
+          <SectionHeader
+            title="Start Your AI Fashion Journey Today!"
+            description="Join the future of fashion visualization and transform your brand's digital presence"
+            highlightedWord="AI Fashion"
+          />
+
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

@@ -113,7 +113,7 @@ const HeroSection2 = () => {
             <div className="relative flex items-start justify-center -mt-5">
               <video
                 ref={videoRef}
-                src="/hero_video.MP4"
+                src="/herovideo.MP4"
                 autoPlay
                 muted
                 loop

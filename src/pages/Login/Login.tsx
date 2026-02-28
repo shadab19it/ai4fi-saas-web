@@ -55,14 +55,14 @@ const LoginPage: React.FC = () => {
       navigate("/");
     }
   }, []);
- 
+
   return (
-    <AuthLayout 
-      mode='login' 
+    <AuthLayout
+      mode='login'
       customForm={
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-foreground">Email Address</label>
+            <label className="block text-sm font-semibold text-white">Email Address</label>
             <div className="relative">
               <input
                 type='email'
@@ -70,7 +70,7 @@ const LoginPage: React.FC = () => {
                 value={loginData.email}
                 onChange={handleChange}
                 placeholder='Enter your email address'
-                className='w-full px-4 py-3 rounded-xl   transition-all'
+                className='w-full px-4 py-3 rounded-xl auth-input transition-all'
                 required
               />
               <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
@@ -78,7 +78,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-foreground">
+            <label className="block text-sm font-semibold text-white">
               Password <span className='text-xs text-muted-foreground font-normal'>(Must be at least 6 characters)</span>
             </label>
             <div className='relative'>
@@ -88,14 +88,14 @@ const LoginPage: React.FC = () => {
                 value={loginData.password}
                 onChange={handleChange}
                 placeholder='Enter your password'
-                className='w-full px-4 py-3 rounded-xl transition-all pr-12'
+                className='w-full px-4 py-3 rounded-xl auth-input transition-all pr-12'
                 required
               />
               <button
                 type="button"
-                className='absolute right-4 top-1/2 -translate-y-1/2  text-muted-foreground transition-colors'
+                className='absolute right-4 top-1/2 -translate-y-1/2  text-white transition-colors'
                 onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? <Eye size={20}  /> : <EyeOff size={20}  />}
+                {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
               </button>
             </div>
           </div>
@@ -107,7 +107,7 @@ const LoginPage: React.FC = () => {
             {loading ? "Logging In..." : "Log In"}
           </button>
         </form>
-      } 
+      }
     />
   );
 };

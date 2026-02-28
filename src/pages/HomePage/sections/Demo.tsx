@@ -1,4 +1,4 @@
-import React, { FC, useRef, useState } from "react";
+import { FC, useRef, useState } from "react";
 import {
 	Play,
 	Zap,
@@ -55,54 +55,46 @@ const DemoSection = () => {
 	// Animation finishes early (0 → 0.4)
 	const contentX = useTransform(
 		scrollYProgress,
-		[0, 0.20, 0.5],
+		[0, 0.2, 0.5],
 		["-100%", "-100%", "0%"]
 	);
 
-	const contentOpacity = useTransform(
-		scrollYProgress,
-		[0.2, 0.35],
-		[0, 1]
-	);
+	const contentOpacity = useTransform(scrollYProgress, [0.2, 0.35], [0, 1]);
 
 	const videoX = useTransform(
 		scrollYProgress,
-		[0, 0.20, 0.5],
+		[0, 0.2, 0.5],
 		["100%", "100%", "0%"]
 	);
 
-	const videoOpacity = useTransform(
-		scrollYProgress,
-		[0.2, 0.35],
-		[0, 1]
-	);
+	const videoOpacity = useTransform(scrollYProgress, [0.2, 0.35], [0, 1]);
 
 	const features = [
 		{
 			icon: Zap,
-			title: "Instant AI Models",
-			desc: "Generate professional models in under 10 seconds.",
+			title: "Instant AI Model Creation",
+			desc: "Generate production-ready fashion models in under 10 seconds.",
 			color: "text-amber-500",
 			bg: "bg-amber-50",
 		},
 		{
 			icon: CheckCircle2,
-			title: "4K Photorealism",
-			desc: "High-quality, lifelike results.",
+			title: "4K Ultra-Photorealism",
+			desc: "Studio-grade, hyper-realistic outputs built for professional e-commerce",
 			color: "text-blue-500",
 			bg: "bg-blue-50",
 		},
 		{
 			icon: Sliders,
-			title: "Fully Customizable",
-			desc: "Control pose, body type, hairstyle, and ethnicity.",
+			title: "Precision Customization",
+			desc: "Control pose, body type, facial features, hairstyle, skin tone, and styling with accuracy",
 			color: "text-purple-500",
 			bg: "bg-purple-50",
 		},
 		{
 			icon: InfinityIcon,
-			title: "Unlimited Variations",
-			desc: "Perfect for scaling e-commerce.",
+			title: "Unlimited Scalable Variations",
+			desc: "Create endless model variations to scale catalogues effortlessly",
 			color: "text-pink-500",
 			bg: "bg-pink-50",
 		},
@@ -113,24 +105,22 @@ const DemoSection = () => {
 			ref={sectionRef}
 			className="relative lg:h-[180vh] h-auto bg-background overflow-hidden lg:overflow-clip py-20 lg:py-0"
 		>
-			<VideoModal
-				isOpen={isModalOpen}
-				onClose={() => setIsModalOpen(false)}
-			/>
+			<VideoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 
 			{/* Sticky Wrapper */}
 			<div className="lg:sticky top-[40px] lg:h-screen flex items-center">
 				<div className="max-w-7xl mx-auto px-4 sm:px-8 w-full">
-
 					{/* Header */}
 					<div className="lg:mb-16  lg:mt-0">
 						<SectionHeader
 							title="See AI4FI in Action"
 							description="Watch how our AI transforms fashion visualization"
 							subtitle="Visual Demonstrations"
+							highlightedWord="AI4FI"
 							icon={<Zap className="text-muted-foreground" size={18} />}
 						/>
 					</div>
+
 
 					{/* Split Content */}
 					<div className="flex flex-col lg:flex-row items-center gap-12   lg:gap-20">
@@ -152,10 +142,10 @@ const DemoSection = () => {
 									{features.map((item, idx) => (
 										<div
 											key={idx}
-											className="p-4 rounded-xl flex flex-row items-center md:flex-col border glass-card shadow-sm"
+											className="p-4 rounded-xl flex flex-col gap-4 md:gap-0  md:items-start md:flex-col border glass-card shadow-sm"
 										>
 											<div
-												className={`w-10 h-10 ${item.bg} rounded-lg flex items-center justify-center mb-3`}
+												className={`min-w-10 min-h-10 ${item.bg} rounded-lg flex items-center justify-center mb-3`}
 											>
 												<item.icon
 													size={20}

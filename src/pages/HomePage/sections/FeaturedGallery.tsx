@@ -320,7 +320,7 @@ const marqueeStyle = `
   .animate-marquee-reverse {
     animation: marquee-reverse 40s linear infinite;
   }
-  .pause-hover:hover {
+  .group:hover .pause-hover {
     animation-play-state: paused;
   }
   .scrollbar-hide::-webkit-scrollbar {
@@ -376,11 +376,14 @@ const ModelCard: FC<{ model: any; isDark?: boolean }> = ({ model, isDark = false
 
 const InfiniteShowcase = () => {
 	const scrollRef = useRef<HTMLDivElement>(null);
+	const marquee1Ref = useRef<HTMLDivElement>(null);
+	const marquee2Ref = useRef<HTMLDivElement>(null);
 	const [isPaused, setIsPaused] = useState(false);
 
-	const scroll = (direction: "left" | "right") => {
-		if (scrollRef.current) {
-			const { scrollLeft, clientWidth, scrollWidth } = scrollRef.current;
+	const scroll = (direction: "left" | "right", ref?: React.RefObject<HTMLDivElement>) => {
+		const targetRef = ref || scrollRef;
+		if (targetRef.current) {
+			const { scrollLeft, clientWidth, scrollWidth } = targetRef.current;
 			const scrollAmount = clientWidth * 0.8;
 			let scrollTo =
 				direction === "left"
@@ -391,7 +394,7 @@ const InfiniteShowcase = () => {
 			if (scrollTo < 0) scrollTo = 0;
 			if (scrollTo > scrollWidth - clientWidth) scrollTo = scrollWidth - clientWidth;
 
-			scrollRef.current.scrollTo({
+			targetRef.current.scrollTo({
 				left: scrollTo,
 				behavior: "smooth",
 			});
@@ -429,34 +432,80 @@ const InfiniteShowcase = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 lg:px-8">
 				<SectionHeader
 					subtitle="Featured AI Model"
-					title={`Diverse Identities`}
+					title="Diverse Identities"
 					description="Discover our diverse range of AI-generated fashion models"
+					highlightedWord="Identities"
 				/>
 			</div>
 
 			{/* --- MARQUEE 1: Standard Models (Row 1 - Left) --- */}
-			<div className="relative w-full overflow-hidden mb-8 group">
-				<div className="flex w-max animate-marquee pause-hover">
-					{/* Double the array to create seamless loop */}
-					{[...GallerySetOne, ...GallerySetTwo].map((model, idx) => (
-						<ModelCard key={`row1-${idx}`} model={model} />
-					))}
+			<div className="relative w-full mb-8 group overflow-hidden">
+				<div
+					ref={marquee1Ref}
+					className="flex overflow-x-auto scrollbar-hide snap-none"
+				>
+					<div className="flex w-max animate-marquee pause-hover">
+						{/* Double the array to create seamless loop */}
+						{[...GallerySetOne, ...GallerySetTwo].map((model, idx) => (
+							<ModelCard key={`row1-${idx}`} model={model} />
+						))}
+					</div>
 				</div>
+
+				{/* Navigation Buttons for Marquee Row 1 */}
+				<button
+					onClick={() => scroll("left", marquee1Ref)}
+					className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full text-black bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center  opacity-0 group-hover:opacity-100 transition-all hover:bg-white/20 z-20 shadow-xl"
+					aria-label="Scroll Left"
+				>
+					<ChevronLeft size={24} />
+				</button>
+				<button
+					onClick={() => scroll("right", marquee1Ref)}
+					className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-black opacity-0 group-hover:opacity-100 transition-all hover:bg-white/20 z-20 shadow-xl"
+					aria-label="Scroll Right"
+				>
+					<ChevronRight size={24} />
+				</button>
 
 				{/* Fog Fade Effect on Edges */}
-				<div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none"></div>
-				<div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none"></div>
+				<div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-background to-transparent z-10 pointer-events-none"></div>
+				<div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-background to-transparent z-10 pointer-events-none"></div>
 			</div>
 
-			{/* --- MARQUEE 2: Standard Models (Row 2 - Right) --- */}
-			<div className="relative w-full overflow-hidden mb-24 group">
-				<div className="flex w-max animate-marquee-reverse pause-hover">
-					{[...GallerySetTwo.reverse(), ...GallerySetTwo].map((model, idx) => (
-						<ModelCard key={`row2-${idx}`} model={model} />
-					))}
+			{/* --- MARQUEE 1: Standard Models (Row 2 - Right) --- */}
+			<div className="relative w-full mb-24 group overflow-hidden">
+				<div
+					ref={marquee2Ref}
+					className="flex overflow-x-auto scrollbar-hide snap-none"
+				>
+					<div className="flex w-max animate-marquee-reverse pause-hover">
+						{[...[...GallerySetTwo].reverse(), ...GallerySetTwo].map(
+							(model, idx) => (
+								<ModelCard key={`row2-${idx}`} model={model} />
+							),
+						)}
+					</div>
 				</div>
-				<div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-slate-50 to-transparent z-10 pointer-events-none"></div>
-				<div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-slate-50 to-transparent z-10 pointer-events-none"></div>
+
+				{/* Navigation Buttons for Marquee Row 2 */}
+				<button
+					onClick={() => scroll("left", marquee2Ref)}
+					className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-black opacity-0 group-hover:opacity-100 transition-all hover:bg-white/20 z-20 shadow-xl"
+					aria-label="Scroll Left"
+				>
+					<ChevronLeft size={24} />
+				</button>
+				<button
+					onClick={() => scroll("right", marquee2Ref)}
+					className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-black opacity-0 group-hover:opacity-100 transition-all hover:bg-white/20 z-20 shadow-xl"
+					aria-label="Scroll Right"
+				>
+					<ChevronRight size={24} />
+				</button>
+
+				<div className="absolute top-0 left-0 w-32 h-full bg-gradient-to-r from-background to-transparent z-10 pointer-events-none"></div>
+				<div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-background to-transparent z-10 pointer-events-none"></div>
 			</div>
 
 			{/* --- SECTION: SPECIAL CATEGORY (Dark Mode) --- */}
@@ -474,16 +523,14 @@ const InfiniteShowcase = () => {
 								<span className="text-muted-foreground">Body Positivity</span>
 							</span>
 							<h2 className="text-4xl md:text-5xl font-serif text-foreground leading-tight">
-								The Inclusive <br />
+								Celebrating  <br />
 								<span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-									Collection
+									Real Curves
 								</span>
 							</h2>
 
 							<p className="text-slate-400 text-lg leading-relaxed">
-								Breaking barriers in fashion technology. Our "Real Bodies" AI
-								engine generates stunning, authentic representations of diverse
-								body types, ensuring your brand resonates with everyone.
+								Our platform generates confident, beautifully styled plus-size and curvy models that reflect real-world body diversity. Designed with proportion accuracy and natural posture, these visuals help your brand connect authentically with every customer.
 							</p>
 
 							<button className="group flex items-center gap-2 text-brand border-b border-brand pb-1 hover:text-brand hover:border-brand transition-all">
@@ -521,14 +568,14 @@ const InfiniteShowcase = () => {
 							{/* Navigation Arrows */}
 							<button
 								onClick={() => scroll("left")}
-								className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white opacity-0 group-hover/carousel:opacity-100 transition-opacity hover:bg-white/20 z-20"
+								className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-black opacity-0 group-hover/carousel:opacity-100 transition-opacity hover:bg-white/20 z-20"
 								aria-label="Scroll Left"
 							>
 								<ChevronLeft size={24} />
 							</button>
 							<button
 								onClick={() => scroll("right")}
-								className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white opacity-0 group-hover/carousel:opacity-100 transition-opacity hover:bg-white/20 z-20"
+								className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-black opacity-0 group-hover/carousel:opacity-100 transition-opacity hover:bg-white/20 z-20"
 								aria-label="Scroll Right"
 							>
 								<ChevronRight size={24} />

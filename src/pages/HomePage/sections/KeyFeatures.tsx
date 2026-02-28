@@ -117,6 +117,7 @@ const KeyFeatures = () => {
 					title="Key Features"
 					description="Transform your operations with intelligent automation"
 					subtitle="Why Choose Us"
+					highlightedWord="Features"
 					icon={<TrendingUp className="text-muted-foreground" size={18} />}
 				/>
 
@@ -124,11 +125,10 @@ const KeyFeatures = () => {
 					{/* Sidebar Tabs */}
 					{!isMobile && (
 						<aside
-							className={`w-full md:w-[35%] lg:w-[25%] z-30 transition-all duration-300 ${
-								isMobile
+							className={`w-full md:w-[35%] lg:w-[25%] z-30 transition-all duration-300 ${isMobile
 									? "mt-10 static"
 									: "mt-[30vh] sticky top-[20vh] bg-background/5 md:bg-transparent backdrop-blur-md md:backdrop-blur-none py-6 md:py-0"
-							}`}
+								}`}
 						>
 							<div className="flex items-center justify-center flex-row md:flex-col gap-6 md:gap-10 overflow-x-auto md:overflow-visible px-4 md:px-0 scrollbar-hide">
 								{features.map((feature, index) => {
@@ -168,11 +168,10 @@ const KeyFeatures = () => {
 														stiffness: 200,
 														damping: 20,
 													}}
-													className={`text-lg md:text-xl lg:text-2xl font-extrabold whitespace-nowrap transition-colors duration-300 ${
-														isActive
+													className={`text-lg md:text-xl lg:text-2xl font-extrabold whitespace-nowrap transition-colors duration-300 ${isActive
 															? "text-foreground"
 															: "text-muted-foreground/30 hover:text-muted-foreground/60"
-													}`}
+														}`}
 												>
 													{feature.title}
 												</motion.span>
@@ -201,9 +200,8 @@ const KeyFeatures = () => {
 									ref={(el) => {
 										sectionRefs.current[index] = el;
 									}}
-									className={`w-full mb-12 md:mb-[0vh] last:mb-0 ${
-										isMobile ? "" : "sticky top-[120px]"
-									}`}
+									className={`w-full mb-12 md:mb-[0vh] last:mb-0 ${isMobile ? "" : "sticky top-[120px]"
+										}`}
 									style={{
 										zIndex: isMobile ? 1 : index + 10,
 									}}

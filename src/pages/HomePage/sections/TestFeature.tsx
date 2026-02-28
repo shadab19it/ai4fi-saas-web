@@ -1,4 +1,4 @@
-import React, { FC, ReactNode } from "react";
+import React, { FC, ReactNode, useEffect, useRef } from "react";
 import {
 	Camera,
 	Image as ImageIcon,
@@ -462,6 +462,16 @@ const AdStep: FC<{
 );
 
 export const AdGeneratorSection = () => {
+	const videoRef = useRef<HTMLVideoElement>(null);
+
+	useEffect(() => {
+		if (videoRef.current) {
+			videoRef.current.play().catch(error => {
+				console.log("Video autoplay failed:", error);
+			});
+		}
+	}, []);
+
 	return (
 		<section className="py-10  h-full md:h-[85vh] flex flex-col items-center justify-center  px-6 bg-background border-b border-border font-sans relative overflow-hidden">
 			<style>{style}</style>
@@ -547,16 +557,20 @@ export const AdGeneratorSection = () => {
 							{/* 2. Main Viewport (The Ad) */}
 							<div className="relative aspect-[4/5] w-[75vw] md:w-[20vw] bg-card overflow-hidden">
 								{/* Simulated Video Content */}
-								<img
-									src="https://images.unsplash.com/photo-1616150638538-2b6a6950be36?auto=format&fit=crop&w=800&q=80"
-									alt="AI Generated Ad"
+								<video
+									ref={videoRef}
+									src="/Archive/ad/1/generated_video (5).mp4"
 									className="w-full h-full object-cover opacity-90"
+									autoPlay
+									loop
+									muted
+									playsInline
 								/>
 
 								{/* Floating "Raw Input" Card */}
 								<div className="absolute top-4 left-4 w-16 h-16 bg-white rounded-lg p-1 shadow-lg border border-slate-100 transform -rotate-6 z-20 animate-bounce-slow">
 									<img
-										src="https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&w=200&q=80"
+										src="./Archive/ad/1/ads-product-img-B-Z9QbSE.png"
 										className="w-full h-full object-contain"
 										alt="Shoe Input"
 									/>
@@ -572,10 +586,10 @@ export const AdGeneratorSection = () => {
 									</span>
 								</div>
 
-								{/* Play Button Overlay */}
+								{/* Pulse effect for implied action */}
 								<div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-									<div className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/50 rounded-full flex items-center justify-center shadow-2xl">
-										<Play className="text-white fill-white ml-1" size={20} />
+									<div className="w-12 h-12 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 shadow-xl">
+										<div className="absolute inset-0 rounded-full border border-white/50 animate-ping opacity-30"></div>
 									</div>
 								</div>
 							</div>

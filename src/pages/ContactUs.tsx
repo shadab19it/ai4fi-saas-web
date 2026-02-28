@@ -79,7 +79,7 @@ const ContactForm: React.FC = () => {
   }, []);
 
   return (
-    <div className='flex flex-col h-auto justify-center items-center dark:bg-gradient-to-br from-sky-950 to-gray-950 bg-background dark:bg-transparent pb-16 lg:pt-28'>
+    <div className='flex flex-col h-auto justify-center items-center bg-background  pb-16 lg:pt-28'>
       <div className='max-w-7xl w-full flex flex-col md:flex-row justify-center items-center'>
         {/* Left Section */}
         <motion.div

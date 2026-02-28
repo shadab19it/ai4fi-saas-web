@@ -73,7 +73,7 @@ const SignUpForm: React.FC = () => {
   };
 
   return (
-    <AuthLayout 
+    <AuthLayout
       mode='signup'
       customForm={<form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
@@ -81,19 +81,19 @@ const SignUpForm: React.FC = () => {
           {!isOtpSent && (
             <>
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">Name</label>
+                <label className="block text-sm font-semibold text-white">Name</label>
                 <input
                   type='text'
                   name='username'
                   value={formData.username}
                   onChange={handleChange}
                   placeholder='Enter your name'
-                  className='w-full px-4 py-3 rounded-lg transition-all'
+                  className='w-full px-4 py-3 rounded-lg auth-input transition-all'
                   required />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">Email Address</label>
+                <label className="block text-sm font-semibold text-white">Email Address</label>
                 <div className="relative">
                   <input
                     type='email'
@@ -101,14 +101,14 @@ const SignUpForm: React.FC = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder='Enter your email'
-                    className='w-full px-4 py-3 rounded-lg transition-all'
+                    className='w-full px-4 py-3 rounded-lg auth-input transition-all'
                     required />
                   <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">
+                <label className="block text-sm font-semibold text-white">
                   Password <span className='text-xs text-muted-foreground font-normal'>(Must be at least 6 characters)</span>
                 </label>
                 <div className='relative'>
@@ -118,7 +118,7 @@ const SignUpForm: React.FC = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder='Enter your password'
-                    className='w-full px-4 py-3 rounded-lg transition-all pr-12'
+                    className='w-full px-4 py-3 rounded-lg auth-input transition-all pr-12'
                     required />
                   <button
                     type="button"
@@ -130,7 +130,7 @@ const SignUpForm: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">
+                <label className="block text-sm font-semibold text-white">
                   Confirm Password
                 </label>
                 <div className='relative'>
@@ -140,7 +140,7 @@ const SignUpForm: React.FC = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder='Confirm your password'
-                    className='w-full px-4 py-3 rounded-lg transition-all pr-12'
+                    className='w-full px-4 py-3 rounded-lg auth-input transition-all pr-12'
                     required />
                   <button
                     type="button"
@@ -165,14 +165,14 @@ const SignUpForm: React.FC = () => {
           {isOtpSent && (
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">OTP Code</label>
+                <label className="block text-sm font-semibold text-white">OTP Code</label>
                 <input
                   type='text'
                   name='otp'
                   value={formData.otp}
                   onChange={handleChange}
                   placeholder='Enter OTP'
-                  className='w-full px-4 py-3 rounded-lg transition-all'
+                  className='w-full px-4 py-3 rounded-lg auth-input transition-all'
                   required />
               </div>
               <button
@@ -193,7 +193,7 @@ const SignUpForm: React.FC = () => {
             </button>
           )}
         </div>
-      </form>}    />
+      </form>} />
   );
 };
 
