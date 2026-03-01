@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
-import modelGalleryList from "../services/ModelGallery";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { setSelectedModel } from "../store/modelSlice";
-import { Search, Check, X, MousePointer2, ChevronLeft, ChevronRight, ChevronDown, Camera, Sparkles, Layout, Shirt } from "lucide-react";
+import { Search, Check, X, MousePointer2, ChevronLeft, ChevronRight, ChevronDown, Camera, Loader2, Layout, Shirt } from "lucide-react";
+import galleryService, { GalleryGender } from "../services/galleryService";
 import "./HomePageGallery.css";
 
 /* ─── DATA ─────────────────────────────────────────────────── */
@@ -52,149 +52,31 @@ const AI_FEATURES = [
   { id: "ag", label: "Ad Generator", path: "/ads-generator", icon: <Layout size={14} />, desc: "High-converting social ads" },
 ];
 
-const seeds = {
-  women: [
-    "cara1",
-    "cara2",
-    "cara3",
-    "cara4",
-    "cara5",
-    "cara6",
-    "cara7",
-    "cara8",
-    "cara9",
-    "cara10",
-    "cara11",
-    "cara12",
-    "cara13",
-    "cara14",
-    "cara15",
-    "cara16",
-    "cara17",
-    "cara18",
-  ],
-  men: [
-    "men1",
-    "men2",
-    "men3",
-    "men4",
-    "men5",
-    "men6",
-    "men7",
-    "men8",
-    "men9",
-    "men10",
-    "men11",
-    "men12",
-  ],
-  boys: ["boy1", "boy2", "boy3", "boy4", "boy5", "boy6", "boy7", "boy8"],
-  girls: [
-    "girl1",
-    "girl2",
-    "girl3",
-    "girl4",
-    "girl5",
-    "girl6",
-    "girl7",
-    "girl8",
-  ],
-  baby: ["bab1", "bab2", "bab3", "bab4", "bab5", "bab6"],
+/* ─── CATEGORY → GENDER MAPPING ────────────────────────────── */
+const CATEGORY_GENDER_MAP: Record<string, GalleryGender> = {
+  women: "female",
+  men: "male",
+  boys: "boy",
+  girls: "girl",
+  baby: "baby",
 };
 
-const names = {
-  women: [
-    "Aria",
-    "Luna",
-    "Sofia",
-    "Maya",
-    "Zara",
-    "Elena",
-    "Nora",
-    "Priya",
-    "Leila",
-    "Ines",
-    "Camila",
-    "Mia",
-    "Yuki",
-    "Sara",
-    "Aisha",
-    "Ruby",
-    "Grace",
-    "Lily",
-  ],
-  men: [
-    "Ethan",
-    "Noah",
-    "Liam",
-    "James",
-    "Omar",
-    "Kai",
-    "Leo",
-    "Ravi",
-    "Marcus",
-    "Drew",
-    "Alex",
-    "Sam",
-  ],
-  boys: ["Finn", "Eli", "Max", "Jake", "Remy", "Cole", "Theo", "Ben"],
-  girls: ["Emma", "Ava", "Chloe", "Bella", "Zoey", "Nina", "Isla", "Hana"],
-  baby: ["Cub·A", "Cub·B", "Cub·C", "Cub·D", "Cub·E", "Cub·F"],
+/* ─── MODEL NAME POOLS (cycle by index) ─────────────────────── */
+const MODEL_NAMES: Record<string, string[]> = {
+  women: ["Aria","Luna","Sofia","Maya","Zara","Elena","Nora","Priya","Leila","Ines","Camila","Mia","Yuki","Sara","Aisha","Ruby","Grace","Lily","Amara","Bianca","Carmen","Diya","Eva","Freya","Giselle","Hana","Isla","Jasmine","Kiara","Layla","Mila","Naomi","Olivia","Paris","Quinn","Riya","Stella","Tara","Uma","Vera","Wren","Ximena","Yasmin","Zoe"],
+  men: ["Ethan","Noah","Liam","James","Omar","Kai","Leo","Ravi","Marcus","Drew","Alex","Sam","Aiden","Blake","Carlos","Diego","Erik","Felix","Grayson","Hugo","Ivan","Jaden","Kenji","Lucas","Miles","Nathan","Oscar","Pedro","Quinn","Rafael","Soren","Theo","Ulric","Victor","Wyatt","Xavier","Yusuf","Zane"],
+  boys: ["Finn","Eli","Max","Jake","Remy","Cole","Theo","Ben","Arlo","Asher","Beau","Caden","Dash","Ezra","Fox","Gray","Huxley","Ike","Jax","Knox","Louie","Milo","Nico","Otis","Pike","Reid","Sage","Tate","Uri","Vance"],
+  girls: ["Emma","Ava","Chloe","Bella","Zoey","Nina","Isla","Hana","Abby","Bree","Clara","Daisy","Eden","Fiona","Gemma","Holly","Ivy","Jess","Kira","Lola","Mae","Nell","Opal","Piper","Rosa","Skye","Tess","Uma","Vivi","Willa"],
+  baby: ["Cub A","Cub B","Cub C","Cub D","Cub E","Cub F","Bean","Button","Dot","Lark","Pea","Pip","Sprout","Tiny","Wren"],
 };
 
-// Varying aspect ratios for editorial masonry feel
-const aspects = [
-  "1/1",
-  "3/4",
-  "2/3",
-  "3/4",
-  "3/4",
-  "4/5",
-  "3/4",
-  "2/3",
-  "3/4",
-  "3/4",
-  "3/4",
-  "2/3",
-  "3/4",
-  "4/5",
-  "3/4",
-  "3/4",
-  "3/4",
-  "3/4",
-];
-
-
-const buildModels = (catId: string) => {
-  const mapping: Record<string, string> = {
-    women: "female",
-    men: "male",
-    boys: "boy",
-    girls: "girl",
-    baby: "baby",
-  };
-
-  const targetCategory = mapping[catId] || catId;
-  const categoryData = modelGalleryList.find((item: any) => item.category === targetCategory);
-
-  let images: string[] = categoryData ? categoryData.images : [];
-
-  if (images.length === 0) {
-    // Fallback if no images found in service
-    const seedList = seeds[catId as keyof typeof seeds] || [];
-    images = seedList.map((seed) => `https://picsum.photos/seed/${seed}/400/520`);
-  }
-
-  return images.map((imgUrl, i) => ({
-    id: `${catId}-${i}`,
-    cat: catId,
-    name:
-      (names[catId as keyof typeof names] || [])[i] ||
-      `${catId.charAt(0).toUpperCase() + catId.slice(1)} Model ${i + 1}`,
-    img: imgUrl,
-    hero: i === 0,
-    aspect: "1/1", // Square aspect ratio is better for face focuses
-  }));
+const getModelName = (catId: string, idx: number): string => {
+  const pool = MODEL_NAMES[catId] || [];
+  if (pool.length === 0) return `${catId} Model ${idx + 1}`;
+  return pool[idx % pool.length];
 };
+
+const PAGE_LIMIT = 24;
 
 /* ─── COMPONENT ─────────────────────────────────────────────── */
 export default function HomePageGallery() {
@@ -212,14 +94,54 @@ export default function HomePageGallery() {
   const dispatch = useDispatch();
   const { selectedModel } = useSelector((state: RootState) => state.modelList);
 
+  // ── S3 Gallery state ──
+  const [images, setImages] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalImages, setTotalImages] = useState(0);
+
   const trayRef = useRef<HTMLDivElement>(null);
   const cat = CATEGORIES.find((c) => c.id === activeCat) || CATEGORIES[0];
-  const models = buildModels(activeCat);
-  const filtered = models.filter((m) =>
-    m.name.toLowerCase().includes(search.toLowerCase()),
+
+  // Filter images by name search (images are URLs so we filter on index-based label)
+  const filtered = images.filter((_, i) =>
+    search === "" ||
+    `${cat.label} Model ${i + 1}`.toLowerCase().includes(search.toLowerCase())
   );
 
   const activeTool = AI_FEATURES.find(f => f.id === activeTrayTool) || AI_FEATURES[0];
+
+  // ── Fetch first page ──
+  const fetchImages = useCallback(async (catId: string, pg: number, append = false) => {
+    const gender = CATEGORY_GENDER_MAP[catId];
+    if (!gender) return;
+    if (append) setLoadingMore(true); else setLoading(true);
+    try {
+      const res = await galleryService.getImages({
+        source: "model_faces",
+        category:gender,
+        page: pg,
+        limit: PAGE_LIMIT,
+      });
+      if (res.success) {
+        setImages(prev => append ? [...prev, ...res.images] : res.images);
+        setHasMore(res.pagination.hasMore);
+        setTotalImages(res.pagination.totalImages);
+        setPage(pg);
+      }
+    } catch (err) {
+      console.error("Failed to load gallery images:", err);
+      if (!append) setImages([]);
+    } finally {
+      if (append) setLoadingMore(false); else setLoading(false);
+    }
+  }, []);
+
+  const handleLoadMore = () => {
+    fetchImages(activeCat, page + 1, true);
+  };
 
   const scrollTray = (dir: "left" | "right") => {
     if (trayRef.current) {
@@ -256,8 +178,14 @@ export default function HomePageGallery() {
     };
   }, []);
 
-  // Reset search on tab switch
-  useEffect(() => setSearch(""), [activeCat]);
+  // Fetch images when category changes
+  useEffect(() => {
+    setSearch("");
+    setImages([]);
+    setPage(1);
+    setHasMore(false);
+    fetchImages(activeCat, 1, false);
+  }, [activeCat, fetchImages]);
 
   // Handle body scroll and global navbar when modal is open
   useEffect(() => {
@@ -359,7 +287,7 @@ export default function HomePageGallery() {
                 Select Your <em>{cat.label}</em> Cast
               </h1>
               <p className="text-sm">
-                {filtered.length} models available — click to choose
+                {loading ? "Loading models…" : `${totalImages} models available — click to choose`}
               </p>
             </div>
 
@@ -459,74 +387,88 @@ export default function HomePageGallery() {
 
           {/* Grid Area */}
           <div className="grid-area">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 opacity-60">
+                <Loader2 size={40} className="animate-spin mb-3" />
+                <p className="text-sm">Loading models…</p>
+              </div>
+            ) : filtered.length === 0 && search !== "" ? (
               <div className="flex flex-col items-center justify-center py-20 opacity-30">
                 <MousePointer2 size={48} className="mb-4" />
                 <p className="font-serif text-xl italic">
                   No models found for "{search}"
                 </p>
               </div>
+            ) : filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 opacity-30">
+                <MousePointer2 size={48} className="mb-4" />
+                <p className="font-serif text-xl italic">No models available</p>
+              </div>
             ) : (
-              <div className="masonry">
-                {filtered.map((m, i) => (
-                  <div
-                    key={m.id}
-                    className="card-wrap"
-                    style={{ animationDelay: `${Math.min(i * 0.03, 0.5)}s` }}
-                  >
-                    <div
-                      className={`model-card${selectedModel.includes(m.img) ? " sel" : ""}`}
-                      onClick={() => setModalIdx(i)}
-                    >
+              <>
+                <div className="masonry">
+                  {filtered.map((imgUrl, i) => {
+                    const modelName = getModelName(activeCat, i);
+                    const isHero = i === 0;
+                    return (
                       <div
-                        style={{
-                          paddingTop:
-                            m.aspect === "2/3"
-                              ? "150%"
-                              : m.aspect === "4/5"
-                                ? "125%"
-                                : "133%",
-                          position: "relative",
-                        }}
+                        key={`${activeCat}-${imgUrl}-${i}`}
+                        className="card-wrap"
+                        style={{ animationDelay: `${Math.min(i * 0.03, 0.5)}s` }}
                       >
-                        <img
-                          className="card-img"
-                          src={m.img}
-                          alt={m.name}
-                          loading="lazy"
-                          style={{
-                            position: "absolute",
-                            inset: 0,
-                            width: "100%",
-                            height: "100%",
-                          }}
-                        />
-                        <div className="card-cinematic" />
-                        {(selectedModel.length == 0 || selectedModel.includes(m.img)) && <div
-                          className="tick-pill"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggle(m.img);
-                          }}
+                        <div
+                          className={`model-card${selectedModel.includes(imgUrl) ? " sel" : ""}`}
+                          onClick={() => setModalIdx(i)}
                         >
-                          {selectedModel.includes(m.img) ? (
-                            <Check size={12} />
-                          ) : (
-                            <span>+</span>
-                          )}
-                        </div>}
-                        {m.hero && <div className="hero-badge">Featured</div>}
-                        <div className="card-info">
-                          <div className="info-name">{m.name}</div>
-                          <div className="info-sub">
-                            {cat.label} Collection
+                          <div style={{ paddingTop: "133%", position: "relative" }}>
+                            <img
+                              className="card-img"
+                              src={imgUrl}
+                              alt={modelName}
+                              loading="lazy"
+                              style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+                            />
+                            <div className="card-cinematic" />
+                            {(selectedModel.length === 0 || selectedModel.includes(imgUrl)) && (
+                              <div
+                                className="tick-pill"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggle(imgUrl);
+                                }}
+                              >
+                                {selectedModel.includes(imgUrl) ? <Check size={12} /> : <span>+</span>}
+                              </div>
+                            )}
+                            {isHero && <div className="hero-badge">Featured</div>}
+                            <div className="card-info">
+                              <div className="info-name">{modelName}</div>
+                              <div className="info-sub">{cat.label} Collection</div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    );
+                  })}
+                </div>
+
+                {/* Load More */}
+                {hasMore && search === "" && (
+                  <div className="flex justify-center py-8">
+                    <button
+                      className="proceed-btn"
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                    >
+                      {loadingMore ? (
+                        <><Loader2 size={14} className="animate-spin mr-2" />Loading…</>
+                      ) : (
+                        `Load More (${images.length} / ${totalImages})`
+                      )}
+                    </button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </div>
 
@@ -536,7 +478,7 @@ export default function HomePageGallery() {
         {/* /gallery-body */}
 
         {/* ─── MODAL GALLERY ─── */}
-        {modalIdx !== null && (
+        {modalIdx !== null && filtered[modalIdx] && (
           <div className="modal-gallery" onClick={() => setModalIdx(null)}>
             <div className="modal-content">
               <button className="modal-close" onClick={() => setModalIdx(null)}>
@@ -557,23 +499,23 @@ export default function HomePageGallery() {
               <div className="modal-viewer">
                 <div className="modal-img-wrap">
                   <img
-                    src={filtered[modalIdx].img}
-                    alt={filtered[modalIdx].name}
+                    src={filtered[modalIdx]}
+                    alt={`${cat.label} Model ${modalIdx + 1}`}
                     className="modal-img"
                   />
                   <div className="modal-meta">
-                    <h2 className="modal-name">{filtered[modalIdx].name}</h2>
+                    <h2 className="modal-name">{getModelName(activeCat, modalIdx)}</h2>
                     <p className="modal-sub">
                       {cat.label} · AI Generated Collection
                     </p>
                     <button
-                      className={`modal-select-btn${selectedModel.includes(filtered[modalIdx].img) ? " selected" : ""}`}
+                      className={`modal-select-btn${selectedModel.includes(filtered[modalIdx]) ? " selected" : ""}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggle(filtered[modalIdx].img);
+                        toggle(filtered[modalIdx]);
                       }}
                     >
-                      {selectedModel.includes(filtered[modalIdx].img)
+                      {selectedModel.includes(filtered[modalIdx])
                         ? "Remove from Cast"
                         : "Add to Cast"}
                     </button>

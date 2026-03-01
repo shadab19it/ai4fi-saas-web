@@ -153,11 +153,8 @@ export default function UnstitchedStudioPage() {
   const handleGenderChange = (newGender: string) => {
     setGender(newGender)
     setCustomDressName("")
-    // Update default dress style based on gender
-    if (newGender === "male") {
+    if (newGender === "male" || newGender === "boy") {
       setDressName("kurta_pajama")
-      // Clear dupatta for male
-      setCustomDressName("")
       handleFabricRemove("dupatta_fabric")
     } else {
       setDressName("salwar_kameez")
@@ -788,8 +785,8 @@ export default function UnstitchedStudioPage() {
                 <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
                   Gender
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["female", "male"].map((g) => (
+                <div className="grid grid-cols-3 gap-2">
+                  {["baby", "boy", "female", "girl", "male"].map((g) => (
                     <button
                       key={g}
                       onClick={() => handleGenderChange(g)}
@@ -1056,7 +1053,9 @@ export default function UnstitchedStudioPage() {
         onClose={() => setIsGalleryOpen(false)}
         onSelect={(imageUrl) => setModelFace(imageUrl)}
         source="model_faces"
-        initialCategory={gender === "male" ? "male" : "female"}
+        initialCategory={gender}
+        gender={gender as import("../../services/galleryService").GalleryGender}
+        showGenderFilter={true}
       />
 
       {/* ─── Zoom Modal ─── */}

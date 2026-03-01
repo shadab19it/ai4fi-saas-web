@@ -5,7 +5,7 @@ import DressUpload from "./DressUpload"
 import ModelSelection from "./ModelSelection"
 import ModelEditor from "./ModelEditor"
 import { Link } from "react-router-dom"
-import { TRIAL_ROOM_HANDOFF_KEY } from "../../constants/modelFace"
+import { DRESS_IMAGE_PERSIST_KEY, TRIAL_ROOM_HANDOFF_KEY } from "../../constants/modelFace"
 import DarkLogo from "../../../public/dark-logo2.png"
 import { CheckCircle2, ArrowLeft } from "lucide-react"
 import Button from "../ui/Button"
@@ -99,6 +99,14 @@ export default function Home() {
     console.log("[v0] Try-on complete!")
   }
 
+  const clearLocalStorage = () => {
+    localStorage.removeItem(TRIAL_ROOM_HANDOFF_KEY)
+    localStorage.removeItem(DRESS_IMAGE_PERSIST_KEY)
+    setStep("dress")
+    setDressImage(null)
+    setSelectedModel(null)
+  }
+
   return (
     <main className="min-h-screen bg-[#F4F3EF]">
       {/* Header */}
@@ -115,7 +123,7 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-2">
           <Link to="/features">
-            <Button variant="outline" size="md" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
+            <Button variant="outline" onClick={clearLocalStorage} size="md" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
               Back
             </Button>
           </Link>
@@ -126,6 +134,9 @@ export default function Home() {
       </div>
 
       {/* Progress Stepper */}
+
+      {
+        step !== "dress" && (
       <div className="border-b border-[#E5E2DA] bg-white py-4 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-center gap-4 md:gap-8">
@@ -174,6 +185,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+        )
+      }
 
       {step === "dress" && <DressUpload onUploadComplete={handleDressUpload} />}
       {step === "selection" && dressImage && (

@@ -79,17 +79,23 @@ export default function ModelGalleryModal({
 
   useEffect(() => {
     if (isOpen) {
-      setActiveGender(initialGender);
-      fetchCategories();
+      if (showGenderFilter) {
+        const g = initialGender || "female";
+        setActiveGender(g);
+        setActiveCategory(g);
+      } else {
+        setActiveGender(initialGender);
+        fetchCategories();
+      }
     }
-  }, [isOpen, initialGender, fetchCategories]);
+  }, [isOpen, initialGender, showGenderFilter, fetchCategories]);
 
   useEffect(() => {
     if (isOpen && activeCategory) {
       setPage(1);
-      fetchImages(activeCategory, 1, activeGender);
+      fetchImages(activeCategory, 1, showGenderFilter ? undefined : activeGender);
     }
-  }, [isOpen, activeCategory, activeGender, fetchImages]);
+  }, [isOpen, activeCategory, activeGender, showGenderFilter, fetchImages]);
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);
@@ -98,6 +104,7 @@ export default function ModelGalleryModal({
 
   const handleGenderChange = (gender: GalleryGender) => {
     setActiveGender(gender);
+    setActiveCategory(gender);
     setPage(1);
   };
 
@@ -135,8 +142,8 @@ export default function ModelGalleryModal({
         </div>
 
         {showGenderFilter && (
-          <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2">
-            {(["female", "male"] as const).map((g) => (
+          <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2 flex-wrap">
+            {(["baby", "boy", "female", "girl", "male"] as const).map((g) => (
               <button
                 key={g}
                 onClick={() => handleGenderChange(g)}
@@ -152,28 +159,30 @@ export default function ModelGalleryModal({
           </div>
         )}
 
-        <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2 flex-wrap">
-          {loadingCategories ? (
-            <div className="flex items-center gap-2 text-[#9E9893] text-[12px]">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Loading categories...
-            </div>
-          ) : (
-            categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => handleCategoryChange(category)}
-                className={`px-3.5 py-1.5 rounded-lg text-[12px] font-semibold capitalize transition-all ${
-                  activeCategory === category
-                    ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
-                    : "bg-[#F9F8F5] text-[#6B6560] hover:bg-[#E5E2DA]"
-                }`}
-              >
-                {category.replace(/_/g, " ")}
-              </button>
-            ))
-          )}
-        </div>
+        {!showGenderFilter && (
+          <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2 flex-wrap">
+            {loadingCategories ? (
+              <div className="flex items-center gap-2 text-[#9E9893] text-[12px]">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading categories...
+              </div>
+            ) : (
+              categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => handleCategoryChange(category)}
+                  className={`px-3.5 py-1.5 rounded-lg text-[12px] font-semibold capitalize transition-all ${
+                    activeCategory === category
+                      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_2px_8px_rgba(99,102,241,0.25)]"
+                      : "bg-[#F9F8F5] text-[#6B6560] hover:bg-[#E5E2DA]"
+                  }`}
+                >
+                  {category.replace(/_/g, " ")}
+                </button>
+              ))
+            )}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (

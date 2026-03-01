@@ -1,7 +1,7 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom"
-import { Upload, ZoomIn, X, Image as ImageIcon, Info, Sparkles, Grid3x3, Link as LinkIcon, Unlink, ChevronDown } from "lucide-react"
+import { Upload, ZoomIn, X, Info, Sparkles, Grid3x3, Link as LinkIcon, Unlink, ChevronDown, ImagePlus, ArrowRight, SlidersHorizontal } from "lucide-react"
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import { female_model_tryon_prompt, male_model_tryon_prompt } from "../../services/prompt"
 import { MODEL_FACE_RETURN_URL_KEY, DRESS_IMAGE_PERSIST_KEY } from "../../constants/modelFace"
@@ -157,9 +157,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
 
   const handleContinue = () => {
     if (dressImage) {
-      // Clear the persisted dress image once user proceeds to generation
       localStorage.removeItem(DRESS_IMAGE_PERSIST_KEY)
-      // For custom aspect ratio, pass the raw w/h but no aspectRatio string
       const isCustom = aspectRatio === "custom"
       const effectiveAspectRatio = isCustom ? "1:1" : aspectRatio
       onUploadComplete(
@@ -207,54 +205,169 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
       <div className="w-full">
         <div>
           {!dressImage ? (
-            /* Upload Area */
-            <div className="max-w-3xl mx-auto">
-              <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-6 md:p-8 space-y-6">
-                <div
-                  ref={dropZoneRef}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={() => dressInputRef.current?.click()}
-                  className={`w-full border-2 border-dashed rounded-2xl p-16 transition-all duration-300 flex flex-col items-center justify-center gap-6 cursor-pointer group ${
-                    isDragging
-                      ? "border-violet-500 bg-violet-50 scale-[1.01] shadow-lg shadow-violet-500/10"
-                      : "border-[#E5E2DA] hover:border-violet-400 hover:bg-[#F9F8F5]"
-                  }`}
-                >
+            /* ── Upload Area (Premium Design) ── */
+            <div className="relative bg-[#F8FAFC] overflow-x-hidden -mx-4 -mt-12 px-4 pt-0 selection:bg-zinc-200 selection:text-zinc-900">
+              <style dangerouslySetInnerHTML={{ __html: `
+               
+                .bg-box {
+                  background: rgba(255,255,255,0.4);
+                  backdrop-filter: blur(12px);
+                  -webkit-backdrop-filter: blur(12px);
+                  border: 1px solid rgba(255,255,255,0.8);
+                  box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+             
+                }
+                .glass-surface {
+                  background: rgba(255,255,255,0.85);
+                  -webkit-backdrop-filter: blur(24px);
+                  border: 1px solid rgba(255,255,255,1);
+
+                }
+                .animated-dashed-border {
+                  background-image:
+                    repeating-linear-gradient(0deg,   #D4D4D8, #D4D4D8 8px, transparent 8px, transparent 16px),
+                    repeating-linear-gradient(90deg,  #D4D4D8, #D4D4D8 8px, transparent 8px, transparent 16px),
+                    repeating-linear-gradient(180deg, #D4D4D8, #D4D4D8 8px, transparent 8px, transparent 16px),
+                    repeating-linear-gradient(270deg, #D4D4D8, #D4D4D8 8px, transparent 8px, transparent 16px);
+                  background-size: 2px 100%, 100% 2px, 2px 100%, 100% 2px;
+                  background-position: 0 0, 0 0, 100% 0, 0 100%;
+                  background-repeat: no-repeat;
+                  border-radius: 1.75rem;
+                }
+                .upload-drop-zone:hover .animated-dashed-border {
+                  background-image:
+                    repeating-linear-gradient(0deg,   #A1A1AA, #A1A1AA 8px, transparent 8px, transparent 16px),
+                    repeating-linear-gradient(90deg,  #A1A1AA, #A1A1AA 8px, transparent 8px, transparent 16px),
+                    repeating-linear-gradient(180deg, #A1A1AA, #A1A1AA 8px, transparent 8px, transparent 16px),
+                    repeating-linear-gradient(270deg, #A1A1AA, #A1A1AA 8px, transparent 8px, transparent 16px);
+                }
+                .btn-premium {
+                  background: #18181B;
+                  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+                  transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+                }
+                .btn-premium:hover {
+                  transform: translateY(-2px);
+                  box-shadow: 0 20px 35px -5px rgba(0,0,0,0.3);
+                  background: #000000;
+                }
+              `}} />
+
+              {/* Animated background columns */}
+              <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[1100px] rounded-full blur-[120px] z-10" />
+
+                {/* Left column — floats up */}
+                <div className="absolute left-[5%] md:left-[8%] top-0 bottom-0 w-48 md:w-64 z-0">
+                  <div className="flex flex-col gap-8 animate-float-up pt-[20vh]">
+                    <div className="bg-box p-3 rounded-3xl -rotate-2">
+                      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400" className="w-full h-64 object-cover rounded-2xl" alt="" />
+                    </div>
+                    <div className="bg-box p-3 rounded-3xl rotate-3">
+                      <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=400" className="w-full h-80 object-cover rounded-2xl" alt="" />
+                    </div>
+                    <div className="bg-box p-3 rounded-3xl -rotate-1">
+                      <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=400" className="w-full h-56 object-cover rounded-2xl object-top" alt="" />
+                    </div>
+                    <div className="bg-box p-3 rounded-3xl -rotate-2">
+                      <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400" className="w-full h-64 object-cover rounded-2xl" alt="" />
+                    </div>
+                    <div className="bg-box p-3 rounded-3xl rotate-3">
+                      <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=400" className="w-full h-80 object-cover rounded-2xl" alt="" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right column — floats down */}
+                <div className="absolute right-[5%] md:right-[8%] top-0 bottom-0 w-48 md:w-64 z-0">
+                  <div className="flex flex-col gap-8 animate-float-down">
+                    <div className="bg-box p-3 rounded-3xl rotate-2">
+                      <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=400" className="w-full h-72 object-cover rounded-2xl" alt="" />
+                    </div>
+                    <div className="bg-box p-3 rounded-3xl -rotate-3">
+                      <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=400" className="w-full h-64 object-cover rounded-2xl object-top" alt="" />
+                    </div>
+                    <div className="bg-box p-3 rounded-3xl rotate-1">
+                      <img src="https://images.unsplash.com/photo-1588516903720-8ceb67f9ef84?auto=format&fit=crop&q=80&w=400" className="w-full h-80 object-cover rounded-2xl" alt="" />
+                    </div>
+                    <div className="bg-box p-3 rounded-3xl rotate-2">
+                      <img src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=400" className="w-full h-72 object-cover rounded-2xl" alt="" />
+                    </div>
+                    <div className="bg-box p-3 rounded-3xl -rotate-3">
+                      <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=400" className="w-full h-64 object-cover rounded-2xl object-top" alt="" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Foreground content */}
+              <div className="relative z-20 max-w-4xl mx-auto px-6 py-16 min-h-[calc(100vh-180px)] flex flex-col items-center justify-center">
+
+                {/* Header */}
+                <div className="text-center w-full mb-4">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-zinc-900 mb-4">
+                    Create Your AI Photoshoot
+                  </h1>
+                  <p className="text-lg text-zinc-500 font-medium max-w-lg mx-auto mb-2">
+                    Upload your garment to generate premium AI-powered model photos instantly.
+                  </p>
+                </div>
+
+                {/* Upload card */}
+                <div className="w-[600px]  glass-surface rounded-[2rem] p-3 mb-6">
                   <div
-                    className={`w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                      isDragging
-                        ? "bg-gradient-to-br from-violet-600 to-indigo-600 scale-110"
-                        : "bg-[#F9F8F5] group-hover:bg-violet-50"
+                    ref={dropZoneRef}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => dressInputRef.current?.click()}
+                    className={`upload-drop-zone group relative w-full rounded-[1.75rem] p-16 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 overflow-hidden ${
+                      isDragging ? "bg-violet-50/80" : "bg-zinc-50/50 hover:bg-zinc-50/80"
                     }`}
                   >
-                    {isDragging ? (
-                      <Upload className="w-10 h-10 text-white animate-bounce" />
-                    ) : (
-                      <ImageIcon className="w-10 h-10 text-[#9E9893] group-hover:text-violet-500 transition-colors" />
+                    <div className={`absolute inset-0 animated-dashed-border transition-all duration-300 ${isDragging ? "opacity-0" : ""}`} />
+                    {isDragging && (
+                      <div className="absolute inset-0 rounded-[1.75rem] border-2 border-violet-500 bg-violet-50/50" />
                     )}
-                  </div>
-                  <div className="text-center space-y-2">
-                    <p className="text-lg font-bold text-stone-900">
-                      {isDragging ? "Drop your image here" : "Click to upload or drag and drop"}
-                    </p>
-                    <p className="text-[13px] text-[#9E9893]">
-                      {isDragging ? "Release to upload" : "Supported formats: JPG, JPEG, PNG"}
-                    </p>
-                    <p className="text-[11.5px] text-[#9E9893] mt-2">Recommended: High-quality images work best</p>
+                    <div className="relative z-10 flex flex-col items-center text-center">
+                      <div className={`w-20 h-20 rounded-2xl shadow-sm border border-zinc-100 flex items-center justify-center mb-6 transition-all duration-300 ${
+                        isDragging
+                          ? "bg-gradient-to-br from-violet-600 to-indigo-600 scale-110 border-transparent"
+                          : "bg-white group-hover:-translate-y-1 group-hover:shadow-md"
+                      }`}>
+                        {isDragging
+                          ? <Upload className="w-8 h-8 text-white animate-bounce" />
+                          : <ImagePlus className="w-8 h-8 text-zinc-800" />
+                        }
+                      </div>
+                      <h3 className="text-2xl font-bold text-zinc-900 mb-2">
+                        {isDragging ? "Drop your image here" : "Drag & drop garment image"}
+                      </h3>
+                      <p className="text-zinc-500 text-sm mb-8">
+                        {isDragging ? "Release to upload" : "or click to browse your files"}
+                      </p>
+                      <div className="flex items-center gap-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest bg-white px-5 py-2.5 rounded-full border border-zinc-100 shadow-sm">
+                        <span>PNG</span>
+                        <span className="w-1 h-1 rounded-full bg-zinc-300" />
+                        <span>JPG</span>
+                        <span className="w-1 h-1 rounded-full bg-zinc-300" />
+                        <span>WEBP</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
+
+
+                {/* CTA */}
+                <button
+                  onClick={() => dressInputRef.current?.click()}
+                  className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-[0_4px_12px_rgba(99,102,241,0.35)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.45)] group  flex items-center justify-center gap-3 w-full sm:w-auto rounded-full px-12 py-4 text-white"
+                >
+                  <span className="font-bold tracking-wide">Upload to Continue</span>
+                  <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </button>
+
                 <input ref={dressInputRef} type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
-                
-                {/* Tips Card */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-                  <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm">
-                    <p className="font-semibold text-blue-700 mb-1">Pro Tip</p>
-                    <p className="text-blue-600/80 text-[13px]">For best results, use images with a plain background and good lighting. The dress should be clearly visible.</p>
-                  </div>
-                </div>
               </div>
             </div>
           ) : (
@@ -343,7 +456,10 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                       onChange={(e) => setGender(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
                     >
+                      <option value="baby">Baby</option>
+                      <option value="boy">Boy</option>
                       <option value="female">Female</option>
+                      <option value="girl">Girl</option>
                       <option value="male">Male</option>
                     </select>
                   </div>
@@ -699,7 +815,9 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
         onClose={() => setIsGalleryOpen(false)}
         onSelect={(imageUrl) => setModelImage(imageUrl)}
         source="model_faces"
-        initialCategory={gender === "male" ? "male" : "female"}
+        initialCategory={gender}
+        gender={gender as import("../../services/galleryService").GalleryGender}
+        showGenderFilter={true}
       />
     </div>
   )

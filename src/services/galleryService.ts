@@ -3,7 +3,7 @@ import appConstant from "./appConstant";
 import BaseService from "./BaseService";
 
 export type GallerySource = "model_faces" | "visual_portfolio" | "model_gallery";
-export type GalleryGender = "male" | "female";
+export type GalleryGender = "baby" | "boy" | "female" | "girl" | "male";
 
 export interface GallerySourceInfo {
   id: GallerySource;

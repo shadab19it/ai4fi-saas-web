@@ -4,6 +4,16 @@ export default {
   theme: {
     darkMode: "class",
     extend: {
+      keyframes: {
+        'float-up':   { '0%': { transform: 'translateY(0)' }, '100%': { transform: 'translateY(-50%)' } },
+        'float-down': { '0%': { transform: 'translateY(-50%)' }, '100%': { transform: 'translateY(0)' } },
+        'scan':       { '0%': { top: '0%' }, '100%': { top: '100%' } },
+      },
+      animation: {
+        'float-up':   'float-up 20s linear infinite',
+        'float-down': 'float-down 20s linear infinite',
+        'scan':       'scan 2s linear infinite',
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
