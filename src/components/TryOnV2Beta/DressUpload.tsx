@@ -27,7 +27,8 @@ interface DressUploadProps {
     width?: number,
     height?: number,
     segment?: string,
-    garmentCategory?: string
+    garmentCategory?: string,
+    isCustomDimensions?: boolean
   ) => void
 }
 
@@ -111,8 +112,9 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
 
   const handleAspectRatioSelect = (ratio: string) => {
     if (ratio === "custom") {
-      setAspectRatio("")
+      setAspectRatio("custom")
       setEcommercePlatform("")
+      // Keep existing width/height so user can freely edit them
       return
     }
     setAspectRatio(ratio)
@@ -135,7 +137,8 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
 
   const handleWidthChange = (value: string) => {
     setWidth(value)
-    if (isLinked && aspectRatio) {
+    // Don't auto-calculate when in custom mode — user controls both dimensions freely
+    if (isLinked && aspectRatio && aspectRatio !== "custom") {
       const [w, h] = aspectRatio.split(":").map(Number)
       const calculatedHeight = Math.round((parseInt(value) * h) / w)
       setHeight(calculatedHeight.toString())
@@ -144,7 +147,8 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
 
   const handleHeightChange = (value: string) => {
     setHeight(value)
-    if (isLinked && aspectRatio) {
+    // Don't auto-calculate when in custom mode — user controls both dimensions freely
+    if (isLinked && aspectRatio && aspectRatio !== "custom") {
       const [w, h] = aspectRatio.split(":").map(Number)
       const calculatedWidth = Math.round((parseInt(value) * w) / h)
       setWidth(calculatedWidth.toString())
@@ -155,18 +159,22 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
     if (dressImage) {
       // Clear the persisted dress image once user proceeds to generation
       localStorage.removeItem(DRESS_IMAGE_PERSIST_KEY)
+      // For custom aspect ratio, pass the raw w/h but no aspectRatio string
+      const isCustom = aspectRatio === "custom"
+      const effectiveAspectRatio = isCustom ? "1:1" : aspectRatio
       onUploadComplete(
         dressImage,
         gender,
         useCustomPrompt && promptOverride ? promptOverride : undefined,
         modelImage || undefined,
         tier,
-        tier === "professional" ? aspectRatio : undefined,
+        tier === "professional" ? effectiveAspectRatio : undefined,
         tier === "professional" ? resolution : undefined,
         tier === "professional" && width ? parseInt(width) : undefined,
         tier === "professional" && height ? parseInt(height) : undefined,
         tier === "professional" ? segment : undefined,
-        tier === "professional" ? garmentCategory : undefined
+        tier === "professional" ? garmentCategory : undefined,
+        tier === "professional" ? isCustom : undefined
       )
     }
   }
@@ -385,6 +393,62 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                       </button>
                     </div>
 
+
+
+                         {/* Model Face Image Section */}
+                  <div className=" pt-5">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Sparkles className="w-4 h-4 text-violet-500" />
+                      <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
+                       Select Model 
+                        <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
+                        <div className="group relative">
+                          <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
+                            Choose from gallery or generate a new face model
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+
+                    {modelImage ? (
+                      <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
+                        <img
+                          src={modelImage}
+                          alt="Model face"
+                          className="w-full h-32 object-contain"
+                        />
+                        <button
+                          onClick={() => {
+                            setModelImage(null)
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => setIsGalleryOpen(true)}
+                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
+                        >
+                          <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
+                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Select Model</span>
+                        </button>
+                        <Link
+                          to={`/model?mode=face&gender=${gender}`}
+                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
+                        >
+                          <Sparkles className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
+                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Create Model</span>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+
+
                     {/* Professional Tier Options */}
                     {tier === "professional" && (
                       <div className="rounded-xl border border-violet-200 bg-violet-50/50 mt-4">
@@ -549,59 +613,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
 
 
 
-                  {/* Model Face Image Section */}
-                  <div className="border-t border-[#E5E2DA] pt-5">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Sparkles className="w-4 h-4 text-violet-500" />
-                      <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
-                       Select Model 
-                        <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>
-                        <div className="group relative">
-                          <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl z-10">
-                            Choose from gallery or generate a new face model
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-stone-900"></div>
-                          </div>
-                        </div>
-                      </label>
-                    </div>
-
-                    {modelImage ? (
-                      <div className="relative rounded-xl overflow-hidden border border-[#E5E2DA]">
-                        <img
-                          src={modelImage}
-                          alt="Model face"
-                          className="w-full h-32 object-contain"
-                        />
-                        <button
-                          onClick={() => {
-                            setModelImage(null)
-                          }}
-                          className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors shadow-sm"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          onClick={() => setIsGalleryOpen(true)}
-                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
-                        >
-                          <Grid3x3 className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
-                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Select Model</span>
-                        </button>
-                        <Link
-                          to={`/model?mode=face&gender=${gender}`}
-                          className="border-2 border-dashed border-[#E5E2DA] rounded-xl p-4 hover:border-violet-400 hover:bg-violet-50/50 transition-all flex flex-col items-center justify-center gap-2 group"
-                        >
-                          <Sparkles className="w-5 h-5 text-[#9E9893] group-hover:text-violet-500" />
-                          <span className="text-[12px] font-medium text-[#9E9893] group-hover:text-violet-600">Create Model</span>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-
+             
                   {/* Prompt Settings */}
                   <div>
                     <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">

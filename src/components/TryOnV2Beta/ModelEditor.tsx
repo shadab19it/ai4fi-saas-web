@@ -10,7 +10,7 @@ import MultiSelect from "../common/MultiSelect"
 import GroupedSelect from "../common/GroupedSelect"
 import { IOption } from "../ModelGenerator/ModelConfigForm/ModelConfigForm"
 import { toast } from "sonner"
-import { downloadBlob } from "./resizeImage"
+import { downloadBlob, resizeImage } from "./resizeImage"
 import JSZip from "jszip"
 import {
   getGroupedFootwearOptions,
@@ -36,6 +36,7 @@ interface ModelEditorProps {
   height?: number
   segment?: string
   garmentCategory?: string
+  isCustomDimensions?: boolean
 }
 
 let FEMALE_POSES = [
@@ -157,7 +158,8 @@ export default function ModelEditor({
   width: propWidth,
   height: propHeight,
   segment: propSegment,
-  garmentCategory: propGarmentCategory
+  garmentCategory: propGarmentCategory,
+  isCustomDimensions
 }: ModelEditorProps) {
   const { poseLimit, isFeatureAllowed } = usePlanFeatures()
   const bgAllowed = isFeatureAllowed("backgroundLibrary")
@@ -329,7 +331,16 @@ export default function ModelEditor({
     setIsDownloading({ index: imageIndex, isDownloading: true })
     try {
       const image = generatedImages[imageIndex]
-      const blob = await commonService.downloadSingleFile(image)
+      let blob = await commonService.downloadSingleFile(image)
+      // Resize only when the user explicitly chose "Custom" dimensions in Step 1
+      if (isCustomDimensions && propWidth && propHeight) {
+        blob = await resizeImage(image, {
+          width: propWidth,
+          height: propHeight,
+          fit: "contain",
+          mimeType: "image/png",
+        })
+      }
       downloadBlob(blob, `ai4fi-pose-${imageIndex + 1}-${Date.now()}.png`)
     } catch (error: any) {
       console.error("Error downloading pose:", error)
@@ -351,7 +362,21 @@ export default function ModelEditor({
         ...(currentModel ? [{ url: currentModel, name: "ai4fi-source-model.png" }] : []),
         ...generatedImages.map((url, i) => ({ url, name: `ai4fi-pose-${i + 1}.png` })),
       ]
-      const blobs = await Promise.all(allUrls.map(({ url }) => commonService.downloadSingleFile(url)))
+      const blobs = await Promise.all(
+        allUrls.map(async ({ url }) => {
+          const blob = await commonService.downloadSingleFile(url)
+          // Resize only when the user explicitly chose "Custom" dimensions in Step 1
+          if (isCustomDimensions && propWidth && propHeight) {
+            return await resizeImage(url, {
+              width: propWidth,
+              height: propHeight,
+              fit: "contain",
+              mimeType: "image/png",
+            })
+          }
+          return blob
+        })
+      )
       blobs.forEach((blob, index) => {
         zip.file(allUrls[index].name, blob)
       })

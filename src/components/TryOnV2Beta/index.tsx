@@ -23,6 +23,7 @@ export default function Home() {
   const [height, setHeight] = useState<number | undefined>()
   const [segment, setSegment] = useState<string | undefined>()
   const [garmentCategory, setGarmentCategory] = useState<string | undefined>()
+  const [isCustomDimensions, setIsCustomDimensions] = useState<boolean | undefined>()
 
   useEffect(() => {
     const raw = localStorage.getItem(TRIAL_ROOM_HANDOFF_KEY)
@@ -63,7 +64,8 @@ export default function Home() {
     selectedWidth?: number,
     selectedHeight?: number,
     selectedSegment?: string,
-    selectedGarmentCategory?: string
+    selectedGarmentCategory?: string,
+    customDimensions?: boolean
   ) => {
     setDressImage(dress)
     setGender(selectedGender)
@@ -76,6 +78,7 @@ export default function Home() {
     setHeight(selectedHeight)
     setSegment(selectedSegment)
     setGarmentCategory(selectedGarmentCategory)
+    setIsCustomDimensions(customDimensions)
     setStep("selection")
   }
 
@@ -204,6 +207,7 @@ export default function Home() {
           height={height}
           segment={segment}
           garmentCategory={garmentCategory}
+          isCustomDimensions={isCustomDimensions}
         />
       )}
     </main>

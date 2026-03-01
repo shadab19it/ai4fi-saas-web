@@ -28,7 +28,7 @@ export default function ModelGalleryModal({
 }: ModelGalleryModalProps) {
   const [categories, setCategories] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory || "");
-  const [activeGender, setActiveGender] = useState<GalleryGender | undefined>(initialGender);
+  const [activeGender, setActiveGender] = useState<GalleryGender | undefined>(initialGender || "female");
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(false);
