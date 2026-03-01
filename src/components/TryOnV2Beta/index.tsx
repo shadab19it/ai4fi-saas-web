@@ -109,7 +109,7 @@ export default function Home() {
           </Link>
           <div className="h-6 w-px bg-[#E5E2DA]" />
           <div>
-            <h1 className="text-[14px] font-bold text-stone-900">Trial Room</h1>
+            <h1 className="text-[14px] font-bold text-stone-900">StyleLabs</h1>
             <p className="text-[11.5px] text-[#9E9893] font-medium">Virtual Try-On Studio</p>
           </div>
         </div>
@@ -189,6 +189,7 @@ export default function Home() {
           height={height}
           segment={segment}
           garmentCategory={garmentCategory}
+          isCustomDimensions={isCustomDimensions}
           onModelSelected={handleModelSelected}
           onBack={handleBackToDress}
         />

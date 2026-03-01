@@ -10,6 +10,7 @@ import {
 	HelpCircle,
 	ArrowRight,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 /* --- FAQ ITEM COMPONENT --- */
 const FAQItem: FC<{ question: string, answer: string, isOpen: boolean, toggle: () => void }> = ({ question, answer, isOpen, toggle }) => {
@@ -118,10 +119,12 @@ const SupportSection = () => {
 							</div>
 
 							{/* Right: Action Button */}
+							<Link to="/contact">
 							<button className="flex items-center gap-2 px-8 py-4 bg-brand-color  text-white font-bold rounded-xl shadow-lg shadow-blue-200 transition-transform hover:-translate-y-1 w-full md:w-auto justify-center">
 								<MessageCircle size={20} />
 								<span>Contact Us</span>
 							</button>
+							</Link>
 						</div>
 					</div>
 				</div>

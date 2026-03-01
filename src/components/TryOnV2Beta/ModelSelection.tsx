@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
 import ZoomImageModal from "../ui/ZoomImageModal"
+import { resizeImage, downloadBlob } from "./resizeImage"
 
 interface ModelSelectionProps {
   dressImage: string
@@ -22,6 +23,7 @@ interface ModelSelectionProps {
   height?: number
   segment?: string
   garmentCategory?: string
+  isCustomDimensions?: boolean
   onModelSelected: (selectedModel: string) => void
   onBack: () => void
 }
@@ -39,6 +41,7 @@ export default function ModelSelection({
   height,
   segment,
   garmentCategory,
+  isCustomDimensions,
   onModelSelected,
   onBack,
 }: ModelSelectionProps) {
@@ -139,23 +142,23 @@ export default function ModelSelection({
     setIsDownloadingModel(true)
     try {
       if (generatedModel.startsWith("data:")) {
-        const anchor = document.createElement("a")
-        anchor.href = generatedModel
-        anchor.download = `tryon-model-${Date.now()}.png`
-        document.body.appendChild(anchor)
-        anchor.click()
-        document.body.removeChild(anchor)
+        // data URL: encode as blob then optionally resize
+        const res = await fetch(generatedModel)
+        let blob = await res.blob()
+        if (isCustomDimensions && width && height) {
+          // Pass blob directly — no S3 fetch, no CORS issue
+          blob = await resizeImage(blob, { width, height, fit: "contain", mimeType: "image/png" })
+        }
+        downloadBlob(blob, `tryon-model-${Date.now()}.png`)
       } else {
-        const blob = await commonService.downloadSingleFile(generatedModel)
-        const blobUrl = URL.createObjectURL(blob)
+        // Remote URL: download blob first, then optionally resize
+        let blob = await commonService.downloadSingleFile(generatedModel)
+        if (isCustomDimensions && width && height) {
+          // Pass blob — avoids a second S3 request that would be blocked by CORS
+          blob = await resizeImage(blob, { width, height, fit: "contain", mimeType: "image/png" })
+        }
         const ext = blob.type.includes("png") ? "png" : "jpg"
-        const anchor = document.createElement("a")
-        anchor.href = blobUrl
-        anchor.download = `tryon-model-${Date.now()}.${ext}`
-        document.body.appendChild(anchor)
-        anchor.click()
-        document.body.removeChild(anchor)
-        URL.revokeObjectURL(blobUrl)
+        downloadBlob(blob, `tryon-model-${Date.now()}.${ext}`)
       }
       toast.success("Model downloaded")
     } catch (error: any) {

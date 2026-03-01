@@ -20,7 +20,7 @@ interface Stat {
 const features: Feature[] = [
   {
     id: "01",
-    title: "AI Trial Room",
+    title: "StyleLabs",
     desc: "Upload garments and instantly visualize them on photorealistic AI fashion models across multiple poses, angles, and styling variations — ready for e-commerce deployment.",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-7 h-7">

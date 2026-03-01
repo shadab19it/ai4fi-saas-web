@@ -264,7 +264,7 @@ export default function UnstitchedStudioPage() {
         if (data.modelFace) setModelFace(data.modelFace)
         if (data.generatedImages) setGeneratedImages(data.generatedImages)
       } catch (err) {
-        console.error("Failed to restore Fabric Studio state", err)
+        console.error("Failed to restore Stichify state", err)
       }
     }
 
@@ -448,7 +448,7 @@ export default function UnstitchedStudioPage() {
           <div>
             <h1 className="text-[14px] font-bold text-stone-900 flex items-center gap-1.5">
               <Scissors className="w-4 h-4 text-[#2563EB]" />
-              Fabric Studio
+              Stichify
             </h1>
             <p className="text-[11.5px] text-[#9E9893] font-medium">Unstitched → Stitched Try-On</p>
           </div>
@@ -875,7 +875,45 @@ export default function UnstitchedStudioPage() {
             </div>
 
 
-                  {/* ── Model Face Card ── */}
+          
+
+
+                    {/* ── Professional Options ── */}
+            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden">
+              <div className="p-5 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-[#2563EB]" />
+                  <label className="text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
+                    Quality Tier
+                  </label>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setTier("basic")}
+                    className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
+                      tier === "basic"
+                        ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
+                        : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
+                    }`}
+                  >
+                    <div className="text-[13px] font-bold">Basic</div>
+                    <div className="text-[11px] opacity-75 mt-0.5">Standard</div>
+                  </button>
+                  <button
+                    onClick={() => setTier("professional")}
+                    className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
+                      tier === "professional"
+                        ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
+                        : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
+                    }`}
+                  >
+                    <div className="text-[13px] font-bold">Professional</div>
+                    <div className="text-[11px] opacity-75 mt-0.5">High Quality</div>
+                  </button>
+                </div>
+
+
+                        {/* ── Model Face Card ── */}
             <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 space-y-4">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#2563EB]" />
@@ -920,41 +958,6 @@ export default function UnstitchedStudioPage() {
                 </div>
               )}
             </div>
-
-
-                    {/* ── Professional Options ── */}
-            <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden">
-              <div className="p-5 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Crown className="w-4 h-4 text-[#2563EB]" />
-                  <label className="text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
-                    Quality Tier
-                  </label>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => setTier("basic")}
-                    className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
-                      tier === "basic"
-                        ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
-                        : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
-                    }`}
-                  >
-                    <div className="text-[13px] font-bold">Basic</div>
-                    <div className="text-[11px] opacity-75 mt-0.5">Standard</div>
-                  </button>
-                  <button
-                    onClick={() => setTier("professional")}
-                    className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
-                      tier === "professional"
-                        ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
-                        : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
-                    }`}
-                  >
-                    <div className="text-[13px] font-bold">Professional</div>
-                    <div className="text-[11px] opacity-75 mt-0.5">High Quality</div>
-                  </button>
-                </div>
 
                 {tier === "professional" && (
                   <div className="space-y-3 pt-2 border-t border-[#E5E2DA]">

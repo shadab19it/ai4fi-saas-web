@@ -282,13 +282,15 @@ const AiFashionHero: React.FC<AiFashionHeroProps> = ({
 								</button>
 
 								</Link>
-
+								<Link to="/contact">
 								<button
 									type="button"
 									className="px-8 py-3 md:w-fit w-full border border-[var(--border)] rounded-md hover:border-[var(--brand)] transition hover:bg-[var(--secondary)]"
 								>
 									{secondaryCTA}
 								</button>
+
+								</Link>
 							</div>
 						</motion.div>
 					</div>

@@ -316,7 +316,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                   onClick={handleContinue}
                   className="w-full"
                 >
-                  Continue to Next Step
+                  Generate Model
                 </Button>
               </div>
 

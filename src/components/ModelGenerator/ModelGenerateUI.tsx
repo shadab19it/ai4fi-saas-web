@@ -347,7 +347,7 @@ const ModelGeneratorUI: React.FC = () => {
               icon={isSidebarOpen ? <PanelLeftClose className='w-4 h-4' /> : <PanelLeftOpen className='w-4 h-4' />}
             />
             <div>
-              <h1 className='text-[14px] font-bold text-stone-900'>AI4FI — Model Generation</h1>
+              <h1 className='text-[14px] font-bold text-stone-900'>ModelHub</h1>
               <p className='text-[11.5px] text-[#9E9893] font-medium'>
                 Create Photorealistic Fashion Model Images with Custom Attributes
               </p>
@@ -391,8 +391,8 @@ const ModelGeneratorUI: React.FC = () => {
                 {(() => {
                   const source = new URLSearchParams(location.search).get("source");
                   if (source === "product-listing") return "Next Step → Product Studio";
-                  if (source === "fabric-studio") return "Next Step → Fabric Studio";
-                  return "Next Step → Trial Room";
+                  if (source === "fabric-studio") return "Next Step → Stichify";
+                  return "Next Step → StyleLabs";
                 })()}
               </Button>
             )}

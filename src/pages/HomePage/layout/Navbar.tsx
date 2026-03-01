@@ -387,7 +387,7 @@ const Navbar = () => {
 			description: "Try outfits in real-time",
 		},
 		{
-			name: "Trial Room",
+			name: "StyleLabs",
 			href: "/trial-room",
 			icon: <Zap />,
 			description: "Next-gen fitting experience",

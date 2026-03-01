@@ -476,7 +476,7 @@ export default function ProductListingStudioPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F2EE] flex flex-col">
-      <AppHeader title="Product Listing Studio" onLogout={handleLogout} />
+      <AppHeader title="Product Studio" onLogout={handleLogout} />
 
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5">
         {/* ─── TOP: Header Row ─── */}
@@ -490,7 +490,7 @@ export default function ProductListingStudioPage() {
             </button>
             <div>
               <h1 className="text-[18px] font-bold text-stone-900 tracking-tight">
-                Product Listing Studio
+                Product Studio
               </h1>
               <p className="text-[11.5px] text-[#9E9893]">
                 AI-powered eCommerce photography & listing generator

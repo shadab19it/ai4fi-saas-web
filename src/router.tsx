@@ -29,7 +29,6 @@ import UnstitchedStudioPage from "./pages/UnstitchedStudio/UnstitchedStudioPage"
 import PricingPage from "./pages/Pricing/PricingPage";
 import BillingPage from "./pages/Billing/BillingPage";
 import ClientShowcase from "./pages/client-showcase";
-import TestPage from "./TestFile";
 
 export const router = createBrowserRouter([
   {
@@ -73,10 +72,6 @@ export const router = createBrowserRouter([
         element: <InviteAcceptPage />,
       },
     ],
-  },
-  {
-    path: "/test",
-    element: <TestPage />,
   },
   {
 		path: "/client-showcase",

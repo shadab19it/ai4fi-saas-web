@@ -333,8 +333,9 @@ export default function ModelEditor({
       const image = generatedImages[imageIndex]
       let blob = await commonService.downloadSingleFile(image)
       // Resize only when the user explicitly chose "Custom" dimensions in Step 1
+      // Pass the already-downloaded blob — avoids a second S3 request that would be blocked by CORS
       if (isCustomDimensions && propWidth && propHeight) {
-        blob = await resizeImage(image, {
+        blob = await resizeImage(blob, {
           width: propWidth,
           height: propHeight,
           fit: "contain",
@@ -366,8 +367,9 @@ export default function ModelEditor({
         allUrls.map(async ({ url }) => {
           const blob = await commonService.downloadSingleFile(url)
           // Resize only when the user explicitly chose "Custom" dimensions in Step 1
+          // Pass the already-downloaded blob — avoids a second S3 request that would be blocked by CORS
           if (isCustomDimensions && propWidth && propHeight) {
-            return await resizeImage(url, {
+            return await resizeImage(blob, {
               width: propWidth,
               height: propHeight,
               fit: "contain",

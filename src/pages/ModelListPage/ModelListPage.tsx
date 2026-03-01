@@ -427,7 +427,7 @@ const ModelListPage: FC = () => {
                         { id: "pose_variants", label: "Pose Variants" },
                         { id: "product_listing_banner", label: "Banners" },
                         { id: "product_listing", label: "Lifestyle Listing" },
-                        { id: "unstitched_tryon", label: "Fabric Studio" },
+                        { id: "unstitched_tryon", label: "Stichify" },
                         { id: "ads", label: "Ads" },
                     ].map((tab) => (
                         <button
@@ -459,7 +459,7 @@ const ModelListPage: FC = () => {
                     {activeTab === "ads" ? "Ad Campaigns" 
                      : activeTab === "product_listing_banner" ? "Product Banners" 
                      : activeTab === "product_listing" ? "Lifestyle Listings" 
-                     : activeTab === "unstitched_tryon" ? "Fabric Studio" 
+                     : activeTab === "unstitched_tryon" ? "Stichify" 
                      : "Model Gallery"}
                 </h2>
                 
