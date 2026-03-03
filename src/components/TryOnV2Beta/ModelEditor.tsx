@@ -22,6 +22,7 @@ import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
 import ZoomImageModal from "../ui/ZoomImageModal"
 import LoadingOverlay from "../CreateAds/LoadingOverlay"
+import { useLocation, useSearchParams } from "react-router-dom"
 
 interface ModelEditorProps {
   selectedModel: string
@@ -165,6 +166,8 @@ export default function ModelEditor({
   const bgAllowed = isFeatureAllowed("backgroundLibrary")
   const accAllowed = isFeatureAllowed("accessoriesSupport")
   const jewAllowed = isFeatureAllowed("jewellerySupport")
+  const [searchParams] = useSearchParams();
+  const isFromTool = searchParams.get("from")
 
   const [poses, setPoses] = useState<string[]>([])
   const [footwear, setFootwear] = useState<string>("")
@@ -773,7 +776,7 @@ export default function ModelEditor({
         {/* Action Buttons */}
         <div className="mt-6 flex flex-col gap-2">
           <div className="flex gap-3">
-            <Button variant="outline" size="lg" onClick={onBack} className="flex-1">
+            <Button variant="outline" disabled={!!isFromTool} size="lg" onClick={onBack} className="flex-1">
               Back
             </Button>
             <Button

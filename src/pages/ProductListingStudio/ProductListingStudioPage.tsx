@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import {
   Upload,
@@ -72,6 +72,8 @@ const CATEGORIES = [
 const ASPECT_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16"]
 const RESOLUTIONS = ["1K", "2K", "4K"]
 export default function ProductListingStudioPage() {
+    const location = useLocation();
+  const fromSource = new URLSearchParams(location.search).get("from");
   const navigate = useNavigate()
   const { isResolutionAllowed } = usePlanFeatures()
 
@@ -117,7 +119,7 @@ export default function ProductListingStudioPage() {
   useEffect(() => {
     // Restore state from localStorage
     const savedData = localStorage.getItem(PRODUCT_LISTING_PERSIST_KEY)
-    if (savedData) {
+    if (savedData && fromSource) {
       try {
         const data = JSON.parse(savedData)
         setMode(data.mode || "lifestyle")
@@ -476,26 +478,12 @@ export default function ProductListingStudioPage() {
 
   return (
     <div className="min-h-screen bg-[#F4F2EE] flex flex-col">
-      <AppHeader title="Product Studio" onLogout={handleLogout} />
+      <AppHeader title="Product Studio" description=" AI-powered eCommerce photography & listing generator" />
 
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5">
         {/* ─── TOP: Header Row ─── */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/features")}
-              className="p-2 rounded-lg border border-[#E5E2DA] bg-white hover:bg-[#F9F8F5] transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 text-stone-600" />
-            </button>
-            <div>
-              <h1 className="text-[18px] font-bold text-stone-900 tracking-tight">
-                Product Studio
-              </h1>
-              <p className="text-[11.5px] text-[#9E9893]">
-                AI-powered eCommerce photography & listing generator
-              </p>
-            </div>
           </div>
 
           {/* Mode Toggle */}

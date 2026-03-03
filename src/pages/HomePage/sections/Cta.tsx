@@ -33,13 +33,13 @@ const CTASection = () => {
             <button
               onClick={() => {
                 if (authService.isAuthenticated()) {
-                  navigate("/features");
+                  navigate("/trial-room");
                 } else {
                   navigate("/login");
                 }
               }}
-              className='bg-brand-color hover:bg-brand-color/80 text-white px-8 py-4 rounded-lg transition duration-200 text-lg'>
-              Virtual Try Room
+              className='bg-brand-color hover:bg-brand-color/80 text-white px-20 py-4 rounded-lg transition duration-200 text-lg'>
+              StyleLabs
             </button>
           </motion.div>
         </motion.div>

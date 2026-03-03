@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import modelService from "../../services/modelService";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
+import logo from '../../../public/dark-logo2.png';
 import {
   clearSelectedModel,
   setModelList,
@@ -360,9 +361,8 @@ const ModelListPage: FC = () => {
         <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-[#E5E2DA] px-5 py-3">
             <div className="max-w-[1600px] mx-auto w-full flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <Link to="/" className="flex items-center gap-2 group">
-                        {/* <img src={DarkLogo} alt="AI4FI" className="h-6 w-auto opacity-80 group-hover:opacity-100 transition-opacity" /> */}
-                        <span className="font-bold text-stone-900 text-lg tracking-tight">AI4FI Gallery</span>
+                    <Link to='/' className='flex items-center gap-2'>
+                     <img src={logo} alt="AI4FI" className='w-18 h-12 object-contain' />
                     </Link>
                     <div className="h-6 w-px bg-[#E5E2DA] hidden sm:block" />
                     <nav className="hidden sm:flex items-center gap-1">

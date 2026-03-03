@@ -8,7 +8,7 @@ import SectionHeader from "./SectionHeader";
 const testimonials = [
   {
     id: 1,
-    company: "SQUIRE",
+    company: "CHAND",
     quote:
       "Seqtal's AI models consistently deliver clean, intuitive designs that strike the perfect balance between aesthetic and usability. Whether it's for a complex workflow or a lightweight self-service feature, the user experience always feels effortless and refined.",
     name: "Dave Salvant",
@@ -18,7 +18,7 @@ const testimonials = [
   },
   {
     id: 2,
-    company: "NOTION",
+    company: "CHARKHA",
     quote:
       "Working with this team fundamentally changed how we think about onboarding. The designs are not only beautiful — they are deeply intentional. Every micro-interaction has a purpose and our activation rate reflected that immediately.",
     name: "Ivan Zhao",
@@ -28,7 +28,7 @@ const testimonials = [
   },
   {
     id: 3,
-    company: "LINEAR",
+    company: "DHAGA EAWADH",
     quote:
       "The attention to detail is unlike anything we've encountered. From spacing to motion, every decision felt considered. Our team uses these interfaces daily and the quality keeps morale high — good design really does matter.",
     name: "Karri Saarinen",
@@ -38,7 +38,7 @@ const testimonials = [
   },
   {
     id: 4,
-    company: "VERCEL",
+    company: "MRIGNANDINI",
     quote:
       "Speed and elegance rarely coexist — but somehow the dashboard redesign nailed both. Deploy times feel instant, the visual hierarchy guides you naturally, and new developers ramp up in half the time. Remarkable work.",
     name: "Guillermo Rauch",
@@ -103,7 +103,7 @@ export default function TestimonialsStacked() {
         />
 
         {/* Card Stack Container */}
-        <div className="relative w-full max-w-xl h-[450px] md:h-[400px] mt-8">
+        <div className="relative w-full max-w-xl h-[350px] md:h-[300px] mt-8">
           <AnimatePresence mode="popLayout">
             {cards.map((t, i) => {
               const isTop = i === 0;
@@ -127,7 +127,7 @@ export default function TestimonialsStacked() {
                   }}
                   className="absolute inset-0 h-full"
                 >
-                  <div className="bg-background border border-border shadow-2xl rounded-3xl p-8 md:p-10 min-h-[400px] flex flex-col">
+                  <div className="bg-background border border-border shadow-2xl rounded-3xl p-8 md:p-10 min-h-[300px] flex flex-col">
                     {/* Header: Company & Action */}
                     <div className="flex justify-between items-center mb-6">
                       <span className="text-2xl md:text-3xl font-black tracking-tighter text-foreground">
@@ -149,7 +149,7 @@ export default function TestimonialsStacked() {
                     </div>
 
                     {/* Footer: Profile */}
-                    <div className="mt-8 pt-8 border-t border-border flex items-center justify-between">
+                    {/* <div className="mt-8 pt-8 border-t border-border flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className="relative">
                           <img
@@ -179,7 +179,7 @@ export default function TestimonialsStacked() {
                           <Linkedin className="w-5 h-5" fill="currentColor" />
                         </a>
                       )}
-                    </div>
+                    </div> */}
                   </div>
                 </motion.div>
               );

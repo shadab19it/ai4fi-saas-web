@@ -4,13 +4,16 @@ import { useState, useEffect } from "react"
 import DressUpload from "./DressUpload"
 import ModelSelection from "./ModelSelection"
 import ModelEditor from "./ModelEditor"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { DRESS_IMAGE_PERSIST_KEY, TRIAL_ROOM_HANDOFF_KEY } from "../../constants/modelFace"
 import DarkLogo from "../../../public/dark-logo2.png"
 import { CheckCircle2, ArrowLeft } from "lucide-react"
 import Button from "../ui/Button"
+import AppHeader from "../Layout/AppHeader"
 
 export default function Home() {
+  const location = useLocation();
+  const fromSource = new URLSearchParams(location.search).get("from");
   const [step, setStep] = useState<"dress" | "selection" | "editor">("dress")
   const [dressImage, setDressImage] = useState<string | null>(null)
   const [gender, setGender] = useState("female")
@@ -99,41 +102,12 @@ export default function Home() {
     console.log("[v0] Try-on complete!")
   }
 
-  const clearLocalStorage = () => {
-    localStorage.removeItem(TRIAL_ROOM_HANDOFF_KEY)
-    localStorage.removeItem(DRESS_IMAGE_PERSIST_KEY)
-    setStep("dress")
-    setDressImage(null)
-    setSelectedModel(null)
-  }
+ 
 
   return (
     <main className="min-h-screen bg-[#F4F3EF]">
-      {/* Header */}
-      <div className="shrink-0 border-b border-[#E5E2DA] bg-white px-5 py-3 flex justify-between items-center sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src={DarkLogo} className="w-18 h-10 rounded-lg object-cover" alt="AI4FI" />
-          </Link>
-          <div className="h-6 w-px bg-[#E5E2DA]" />
-          <div>
-            <h1 className="text-[14px] font-bold text-stone-900">StyleLabs</h1>
-            <p className="text-[11.5px] text-[#9E9893] font-medium">Virtual Try-On Studio</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link to="/features">
-            <Button variant="outline" onClick={clearLocalStorage} size="md" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              Back
-            </Button>
-          </Link>
-          <Link to="/">
-            <Button variant="outline" size="md">Home</Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Progress Stepper */}
+      <AppHeader title="StyleLabs" description="Virtual Try-On Studio" />
+ 
 
       {
         step !== "dress" && (

@@ -379,11 +379,11 @@ const ModelGeneratorUI: React.FC = () => {
                   }
                   const source = new URLSearchParams(location.search).get("source");
                   if (source === "product-listing") {
-                    navigate("/product-listing-studio");
+                    navigate("/product-listing-studio?from=model-generator");
                   } else if (source === "fabric-studio") {
-                    navigate("/unstitched-studio");
+                    navigate("/unstitched-studio?from=model-generator");
                   } else {
-                    navigate("/trial-room");
+                    navigate("/trial-room?from=model-generator");
                   }
                 }}
                 className='font-bold animate-pulse'

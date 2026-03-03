@@ -1,6 +1,6 @@
 import type React from "react"
 import { useState, useRef, useCallback, useEffect } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import {
   Upload,
   ZoomIn,
@@ -34,6 +34,7 @@ import {
   type EcommercePlatformKey,
 } from "../../constants/ecommercePlatforms"
 import { MODEL_FACE_RETURN_URL_KEY, FABRIC_STUDIO_PERSIST_KEY, TRIAL_ROOM_HANDOFF_KEY } from "../../constants/modelFace"
+import AppHeader from "../../components/Layout/AppHeader"
 
 // ──────────────────────────────────────────────
 // Types
@@ -106,6 +107,8 @@ const GENERATING_MESSAGES = [
 
 export default function UnstitchedStudioPage() {
   const { isResolutionAllowed } = usePlanFeatures()
+  const location = useLocation();
+  const fromSource = new URLSearchParams(location.search).get("from");
   const navigate = useNavigate()
   // Fabric slots
   const [fabrics, setFabrics] = useState<FabricSlot[]>([
@@ -182,7 +185,7 @@ export default function UnstitchedStudioPage() {
   const [regenInfo, setRegenInfo] = useState<{ generationId: string; freeRegensRemaining: number } | null>(null)
   const is4kResolution = (resolution || "").toUpperCase() === "4K"
   const canShowFreeRegen = !!regenInfo && !is4kResolution && regenInfo.freeRegensRemaining > 0
-
+ const [isDesignConfigOpen, setIsDesignConfigOpen] = useState(true)
   // Zoom modal
   const [zoomOpen, setZoomOpen] = useState(false)
   const [zoomImages, setZoomImages] = useState<string[]>([])
@@ -239,7 +242,7 @@ export default function UnstitchedStudioPage() {
   useEffect(() => {
     // Restore state from localStorage
     const savedData = localStorage.getItem(FABRIC_STUDIO_PERSIST_KEY)
-    if (savedData) {
+    if (savedData && fromSource) {
       try {
         const data = JSON.parse(savedData)
         setGender(data.gender || "female")
@@ -372,6 +375,8 @@ export default function UnstitchedStudioPage() {
       const result = await modelService.generateUnstitchedTryon(formData)
       if (result.urls && result.urls.length > 0) {
         setGeneratedImages(result.urls)
+        setIsDesignConfigOpen(true)
+        localStorage.removeItem(FABRIC_STUDIO_PERSIST_KEY) // Clear any old handoff data
       } else {
         setError("No images were generated. Please try again.")
       }
@@ -398,7 +403,7 @@ export default function UnstitchedStudioPage() {
       ...(resolution && { resolution }),
     }
     localStorage.setItem(TRIAL_ROOM_HANDOFF_KEY, JSON.stringify(handoff))
-    navigate("/trial-room")
+    navigate("/trial-room?from=tool&context=unstitched-studio")
   }
 
   const handleReset = () => {
@@ -431,34 +436,12 @@ export default function UnstitchedStudioPage() {
     : fabrics
 
   const hasResults = generatedImages.length > 0
-  const [isDesignConfigOpen, setIsDesignConfigOpen] = useState(true)
+ 
 
   return (
     <div className="min-h-screen bg-[#F4F3EF]">
       {/* ─── Header ─── */}
-      <div className="shrink-0 border-b border-[#E5E2DA] bg-white px-5 py-3 flex justify-between items-center sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
-            <img src={DarkLogo} className="w-18 h-10 rounded-lg object-cover" alt="AI4FI" />
-          </Link>
-          <div className="h-6 w-px bg-[#E5E2DA]" />
-          <div>
-            <h1 className="text-[14px] font-bold text-stone-900 flex items-center gap-1.5">
-              <Scissors className="w-4 h-4 text-[#2563EB]" />
-              Stichify
-            </h1>
-            <p className="text-[11.5px] text-[#9E9893] font-medium">Unstitched → Stitched Try-On</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link to="/features">
-            <Button variant="outline" size="md" icon={<ArrowLeft className="w-3.5 h-3.5" />}>
-              Back
-            </Button>
-          </Link>
-        </div>
-      </div>
-
+      <AppHeader title="Stichify" description="Unstitched → Stitched Try-On" />
       {/* ─── Main Content ─── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Hero Banner */}
@@ -466,16 +449,9 @@ export default function UnstitchedStudioPage() {
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxjaXJjbGUgY3g9IjIwIiBjeT0iMjAiIHI9IjEuNSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9nPjwvc3ZnPg==')] opacity-60" />
           <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1 mb-3">
-                <Sparkles className="w-3.5 h-3.5 text-white" />
-                <span className="text-[11px] font-bold text-white/90 uppercase tracking-wider">AI-Powered</span>
-              </div>
               <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight mb-1">
                 Transform Raw Fabric into Fashion
               </h2>
-              <p className="text-[13px] text-white/75 max-w-lg">
-                Upload unstitched fabric swatches and watch AI create stunning stitched garments on virtual models — perfect for fabric retailers and designers.
-              </p>
             </div>
             {hasResults && (
               <Button
@@ -779,7 +755,7 @@ export default function UnstitchedStudioPage() {
 
               {isDesignConfigOpen && (
               <div className="px-5 pb-5 space-y-5 border-t border-[#E5E2DA]">
-              <div className="pt-4" />
+              <div className="pt-0" />
               {/* Gender */}
               <div>
                 <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
@@ -807,7 +783,7 @@ export default function UnstitchedStudioPage() {
                 <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
                   Dress Style
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {dressTypes.map((d) => (
                     <button
                       key={d.value}
@@ -815,14 +791,14 @@ export default function UnstitchedStudioPage() {
                         setDressName(d.value)
                         if (d.value !== "other") setCustomDressName("")
                       }}
-                      className={`px-3 py-2.5 rounded-xl border-2 text-left transition-all ${
+                      className={`px-2 py-2.5 rounded-xl border-2 text-left transition-all ${
                         dressName === d.value
                           ? "bg-[#2563EB] border-[#2563EB] text-white shadow-sm"
                           : "bg-white border-[#E5E2DA] text-[#6B6560] hover:border-[#9E9893] hover:bg-[#F9F8F5]"
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className={dressName === d.value ? "text-white" : "text-[#9E9893]"}>{d.icon}</span>
+                        {/* <span className={dressName === d.value ? "text-white" : "text-[#9E9893]"}>{d.icon}</span> */}
                         <div>
                           <div className="text-[12px] font-bold">{d.label}</div>
                           <div className={`text-[10px] mt-0.5 ${dressName === d.value ? "text-white/75" : "text-[#9E9893]"}`}>
@@ -870,16 +846,10 @@ export default function UnstitchedStudioPage() {
               </div>
               )}
             </div>
-
-
-          
-
-
                     {/* ── Professional Options ── */}
             <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] overflow-hidden">
               <div className="p-5 space-y-4">
                 <div className="flex items-center gap-2">
-                  <Crown className="w-4 h-4 text-[#2563EB]" />
                   <label className="text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
                     Quality Tier
                   </label>
@@ -913,7 +883,6 @@ export default function UnstitchedStudioPage() {
                         {/* ── Model Face Card ── */}
             <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 space-y-4">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#2563EB]" />
                 <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider">
                   Model Face
                   <span className="text-[#9E9893] text-[10px] font-normal normal-case">(Optional)</span>

@@ -1,6 +1,6 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import { Upload, ZoomIn, X, Info, Sparkles, Grid3x3, Link as LinkIcon, Unlink, ChevronDown, ImagePlus, ArrowRight, SlidersHorizontal } from "lucide-react"
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import { female_model_tryon_prompt, male_model_tryon_prompt } from "../../services/prompt"
@@ -33,6 +33,8 @@ interface DressUploadProps {
 }
 
 export default function DressUpload({ onUploadComplete }: DressUploadProps) {
+    const location = useLocation();
+    const fromSource = new URLSearchParams(location.search).get("from");
   const { isResolutionAllowed, maxUploadSizeBytes } = usePlanFeatures()
   const [dressImage, setDressImage] = useState<string | null>(null)
   const [gender, setGender] = useState("female")
@@ -156,7 +158,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   }
 
   const handleContinue = () => {
-    if (dressImage) {
+    if (dressImage && fromSource) {
       localStorage.removeItem(DRESS_IMAGE_PERSIST_KEY)
       const isCustom = aspectRatio === "custom"
       const effectiveAspectRatio = isCustom ? "1:1" : aspectRatio
@@ -461,6 +463,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                       <option value="female">Female</option>
                       <option value="girl">Girl</option>
                       <option value="male">Male</option>
+                      <option value="obese">Obese</option>
                     </select>
                   </div>
 

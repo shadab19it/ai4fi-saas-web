@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { Menu, X, ChevronRight, Zap, User, ChevronDown, Sparkles, Layers, Clapperboard, GalleryHorizontal, CreditCard, Shield, LogOut } from "lucide-react";
+import { Menu, X, ChevronRight, Zap, User, ChevronDown, Sparkles, Layers, Clapperboard, GalleryHorizontal, CreditCard, Shield, LogOut, Scissors } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -375,28 +375,29 @@ const Navbar = () => {
 
 	const dropdownItems: DropdownItem[] = [
 		{
-			name: "Model Generator",
-			href: "/model",
-			icon: <Sparkles />,
-			description: "AI-powered fashion model creation",
-		},
-		{
-			name: "Virtual Try Room",
-			href: "/virtualtryon",
-			icon: <Layers />,
-			description: "Try outfits in real-time",
-		},
-		{
 			name: "StyleLabs",
 			href: "/trial-room",
 			icon: <Zap />,
 			description: "Next-gen fitting experience",
 		},
 		{
-			name: "Ads Generator",
-			href: "/ads-generator",
+			name: "Product Studio",
+			href: "/product-listing-studio",
+			icon: <Sparkles />,
+			description: "AI-powered eCommerce photography & listing generator",
+		},
+		{
+			name: "Stichify",
+			href: "/unstitched-studio",
+			icon: <Scissors />,
+			description: "Unstitched → Stitched Try-On",
+		},
+	
+		{
+			name: "ModelHub",
+			href: "/model",
 			icon: <Clapperboard />,
-			description: "Create stunning ad visuals",
+			description: "Create Photorealistic Fashion Model Images with Custom Attribute",
 		},
 	];
 
