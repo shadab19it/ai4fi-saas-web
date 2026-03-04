@@ -23,7 +23,7 @@ export const PlanFeatureRow: FC<{
         )}
       >
         <div className="w-2 h-2 rounded-full bg-gradient-to-r from-orange-500 to-purple-500"></div>
-        <div className="text-[18px]">{label}</div>
+        <div className="text-[18px] text-foreground">{label}</div>
       </div>
       <div
         className={cn(
@@ -31,7 +31,7 @@ export const PlanFeatureRow: FC<{
           className,
         )}
       >
-        {(typeof text1 == "string" || typeof text1 == "number") && <div className={cn(className)}>{text1}</div>}
+        {(typeof text1 == "string" || typeof text1 == "number") && <div className={cn(className,"text-foreground")}>{text1}</div>}
         {typeof text1 == "boolean" && text1 && <Check className="w-fit" color="green" size={20} />}
         {typeof text1 == "boolean" && !text1 && <X className="w-fit" color="red" size={20} />}
       </div>
@@ -41,7 +41,7 @@ export const PlanFeatureRow: FC<{
           className,
         )}
       >
-        {(typeof text2 == "string" || typeof text2 == "number") && <div className={cn(className)}>{text2}</div>}
+        {(typeof text2 == "string" || typeof text2 == "number") && <div className={cn(className,"text-foreground")}>{text2}</div>}
         {typeof text2 == "boolean" && text2 && <Check className="w-fit" color="green" size={20} />}
         {typeof text2 == "boolean" && !text2 && <X className="w-fit" color="red" size={20} />}
       </div>
@@ -52,7 +52,7 @@ export const PlanFeatureRow: FC<{
           lastRowBorderRadius ? lastRowBorderRadius : "rounded-[0px]",
         )}
       >
-        {(typeof text3 == "string" || typeof text3 == "number") && <div className={cn(className)}>{text3}</div>}
+        {(typeof text3 == "string" || typeof text3 == "number") && <div className={cn(className,"text-foreground")}>{text3}</div>}
         {typeof text3 == "boolean" && text3 && <Check className="w-fit" color="green" size={20} />}
         {typeof text3 == "boolean" && !text3 && <X className="w-fit" color="red" size={20} />}
       </div>

@@ -105,10 +105,10 @@ export default function HomePageGallery() {
   const trayRef = useRef<HTMLDivElement>(null);
   const cat = CATEGORIES.find((c) => c.id === activeCat) || CATEGORIES[0];
 
-  // Filter images by name search (images are URLs so we filter on index-based label)
-  const filtered = images.filter((_, i) =>
-    search === "" ||
-    `${cat.label} Model ${i + 1}`.toLowerCase().includes(search.toLowerCase())
+  // Build entries that preserve original index so model names stay stable after filtering
+  const entries = images.map((img, idx) => ({ img, idx }));
+  const filtered = entries.filter(({ img, idx }) =>
+    search === "" || getModelName(activeCat, idx).toLowerCase().includes(search.toLowerCase())
   );
 
   const activeTool = AI_FEATURES.find(f => f.id === activeTrayTool) || AI_FEATURES[0];
@@ -310,7 +310,7 @@ export default function HomePageGallery() {
           </div>
 
           {/* Sticky Tray Area */}
-          <div className="tray md:flex-row flex-col sticky top-[80px] z-20 border-b border-[var(--gallery-border)] shadow-sm bg-[var(--gallery-bg)]">
+          {/* <div className="tray md:flex-row flex-col sticky top-[80px] z-20 border-b border-[var(--gallery-border)] shadow-sm bg-[var(--gallery-bg)]">
             <div className="tray-label md:block hidden">Selection</div>
             <div className="tray-slots-container group relative flex-1 min-w-0">
               <div className="tray-slots" ref={trayRef}>
@@ -383,7 +383,7 @@ export default function HomePageGallery() {
                 )}
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Grid Area */}
           <div className="grid-area">
@@ -407,37 +407,37 @@ export default function HomePageGallery() {
             ) : (
               <>
                 <div className="masonry">
-                  {filtered.map((imgUrl, i) => {
-                    const modelName = getModelName(activeCat, i);
+                  {filtered.map(({ img, idx }, i) => {
+                    const modelName = getModelName(activeCat, idx);
                     const isHero = i === 0;
                     return (
                       <div
-                        key={`${activeCat}-${imgUrl}-${i}`}
+                        key={`${activeCat}-${img}-${idx}`}
                         className="card-wrap"
                         style={{ animationDelay: `${Math.min(i * 0.03, 0.5)}s` }}
                       >
                         <div
-                          className={`model-card${selectedModel.includes(imgUrl) ? " sel" : ""}`}
+                          className={`model-card${selectedModel.includes(img) ? " sel" : ""}`}
                           onClick={() => setModalIdx(i)}
                         >
                           <div style={{ paddingTop: "133%", position: "relative" }}>
                             <img
                               className="card-img"
-                              src={imgUrl}
+                              src={img}
                               alt={modelName}
                               loading="lazy"
                               style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
                             />
                             <div className="card-cinematic" />
-                            {(selectedModel.length === 0 || selectedModel.includes(imgUrl)) && (
+                            {(selectedModel.length === 0 || selectedModel.includes(img)) && (
                               <div
                                 className="tick-pill"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  toggle(imgUrl);
+                                  toggle(img);
                                 }}
                               >
-                                {selectedModel.includes(imgUrl) ? <Check size={12} /> : <span>+</span>}
+                                {selectedModel.includes(img) ? <Check size={12} /> : <span>+</span>}
                               </div>
                             )}
                             {isHero && <div className="hero-badge">Featured</div>}
@@ -499,23 +499,23 @@ export default function HomePageGallery() {
               <div className="modal-viewer">
                 <div className="modal-img-wrap">
                   <img
-                    src={filtered[modalIdx]}
-                    alt={`${cat.label} Model ${modalIdx + 1}`}
+                    src={filtered[modalIdx].img}
+                    alt={`${cat.label} Model ${filtered[modalIdx].idx + 1}`}
                     className="modal-img"
                   />
                   <div className="modal-meta">
-                    <h2 className="modal-name">{getModelName(activeCat, modalIdx)}</h2>
+                    <h2 className="modal-name">{getModelName(activeCat, filtered[modalIdx].idx)}</h2>
                     <p className="modal-sub">
                       {cat.label} · AI Generated Collection
                     </p>
                     <button
-                      className={`modal-select-btn${selectedModel.includes(filtered[modalIdx]) ? " selected" : ""}`}
+                      className={`modal-select-btn${selectedModel.includes(filtered[modalIdx].img) ? " selected" : ""}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggle(filtered[modalIdx]);
+                        toggle(filtered[modalIdx].img);
                       }}
                     >
-                      {selectedModel.includes(filtered[modalIdx])
+                      {selectedModel.includes(filtered[modalIdx].img)
                         ? "Remove from Cast"
                         : "Add to Cast"}
                     </button>

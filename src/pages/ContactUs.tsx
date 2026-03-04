@@ -106,8 +106,8 @@ const ContactForm: React.FC = () => {
           <div className='flex items-center space-x-4'>
             <Mail className='text-3xl text-foreground' />
             <div>
-              <a href='mailto:connect@ai4fi.in' className='cursor-pointer text-foreground'>
-                connect@ai4fi.in
+              <a href='mailto:connect@seqtal.com' className='cursor-pointer text-foreground'>
+                connect@seqtal.com
               </a>
             </div>
           </div>

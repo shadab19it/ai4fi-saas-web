@@ -295,13 +295,13 @@ export default function AI4FIAboutUs() {
           <AnimatedSection delay={350}>
             <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-1">
               <a
-                href="https://www.seqtal.com"
+                href="https://www.t@seqtal.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block px-7 text-center py-3 bg-brand-color text-white w-full md:w-fit rounded-lg  font-semibold tracking-widest uppercase transition-opacity"
 
               >
-                Visit Seqtal.com
+                Visit seqtal.com
               </a>
               <span
                 className="hidden sm:block w-full text-center md:w-px h-8 opacity-30"

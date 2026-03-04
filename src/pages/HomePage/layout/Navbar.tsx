@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import authService from "../../../services/authService";
 import { setUser } from "../../../store/userReducer";
+import { ThemeToggle } from "../../../components/ThemeToggle";
 
 
 // ─── Dropdown overlay backdrop blur panel ────────────────────────────────────
@@ -471,7 +472,7 @@ const Navbar = () => {
 
 					{/* Right Actions */}
 					<div className="hidden lg:flex items-center gap-3">
-						{/* <ThemeToggle /> */}
+						<ThemeToggle />
 
 					{authService.isAuthenticated() && user ? (
 						<div className="flex items-center gap-2.5">

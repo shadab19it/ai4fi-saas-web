@@ -110,10 +110,10 @@ const SupportSection = () => {
 										We typically respond within 24 hours.
 									</p>
 									<a
-										href="mailto:connect@ai4fi.in"
+										href="mailto:connect@seqtal.com"
 										className="text-sm font-semibold text-brand mt-1 hover:underline"
 									>
-										connect@ai4fi.in
+										connect@seqtal.com
 									</a>
 								</div>
 							</div>

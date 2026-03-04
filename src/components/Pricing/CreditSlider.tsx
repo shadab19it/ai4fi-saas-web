@@ -27,7 +27,7 @@ export const CreditSlider = ({ value, onChange, onContactSales }: CreditSliderPr
         <span className="inline-flex items-center justify-center min-w-[40px] h-8 px-2 rounded-md bg-[#0891b2] text-white text-sm font-bold">
           {isCustom ? "?" : value}
         </span>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-foreground">
           Adjust your plan based on your business needs.
         </p>
       </div>
@@ -83,14 +83,14 @@ export const CreditSlider = ({ value, onChange, onContactSales }: CreditSliderPr
           className={`text-xs whitespace-nowrap transition-colors mt-[-18px] ${
             isCustom
               ? "text-[#0891b2] font-bold"
-              : "text-gray-400 hover:text-gray-600"
+              : "text-foreground hover:text-gray-600"
           }`}
         >
           Contact Sales
         </button>
       </div>
 
-      <p className="text-center text-sm text-gray-500 font-medium">
+      <p className="text-center text-sm text-foreground font-medium">
         1 image = 1 credits
       </p>
     </div>

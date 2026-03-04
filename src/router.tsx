@@ -39,10 +39,10 @@ export const router = createBrowserRouter([
         index: true,
         element: <HomePage />,
       },
-      {
-        path: "seed",
-        element: <SeedPage />,
-      },
+      // {
+      //   path: "seed",
+      //   element: <SeedPage />,
+      // },
       {
         path: "pricing",
         element: <PricingPage />,

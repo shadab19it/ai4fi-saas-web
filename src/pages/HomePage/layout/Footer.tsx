@@ -94,16 +94,10 @@ const Footer = () => {
               <FileText className='h-5 w-5 shrink-0 text-sky-400' />
               <p className='text-muted-foreground text-sm'>CIN: U62011UP2026PTC242415</p>
             </div>
-            {/* <div className='flex items-center gap-3'>
-              <Mail className='h-5 w-5 shrink-0 text-sky-400' />
-              <a href='mailto:info@seqtal.com' className='text-muted-foreground text-sm hover:text-foreground transition-colors'>
-                info@seqtal.com
-              </a>
-            </div> */}
             <div className='flex items-center gap-3'>
-              <Phone className='h-5 w-5 shrink-0 text-sky-400' />
-              <a href='tel:9580907024' className='text-muted-foreground hover:text-foreground transition-colors'>
-                9580907024
+              <Mail className='h-5 w-5 shrink-0 text-sky-400' />
+              <a href='mailto:connect@seqtal.com' className='text-muted-foreground text-sm hover:text-foreground transition-colors'>
+                connect@seqtal.com
               </a>
             </div>
           </div>
@@ -115,7 +109,7 @@ const Footer = () => {
           <p className='text-foreground'>© {new Date().getFullYear()} AI4FI. All rights reserved.</p>
           <span className='hidden md:block text-muted-foreground'>|</span>
           <span className='text-muted-foreground'>Powered by</span>
-          <a href='https://www.seqtal.com' target='_blank' className='text-muted-foreground hover:text-foreground transition-colors'>
+          <a href='https://www.t@seqtal.com' target='_blank' className='text-muted-foreground hover:text-foreground transition-colors'>
             SEQTAL AI PRIVATE LIMITED
           </a>
         </div>
