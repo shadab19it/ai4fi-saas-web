@@ -5,9 +5,10 @@ const CREDIT_STEPS = [10, 30, 50, 70, 90, 110, 130];
 interface CreditSliderProps {
   value: number;
   onChange: (credits: number) => void;
+  onContactSales?: () => void;
 }
 
-export const CreditSlider = ({ value, onChange }: CreditSliderProps) => {
+export const CreditSlider = ({ value, onChange, onContactSales }: CreditSliderProps) => {
   const [isCustom, setIsCustom] = useState(false);
   const stepIndex = CREDIT_STEPS.indexOf(value);
   const sliderIndex = stepIndex >= 0 ? stepIndex : 0;
@@ -75,7 +76,10 @@ export const CreditSlider = ({ value, onChange }: CreditSliderProps) => {
 
         {/* Custom Plan sits outside the slider track */}
         <button
-          onClick={() => setIsCustom(true)}
+          onClick={() => {
+            setIsCustom(true);
+            onContactSales?.();
+          }}
           className={`text-xs whitespace-nowrap transition-colors mt-[-18px] ${
             isCustom
               ? "text-[#0891b2] font-bold"

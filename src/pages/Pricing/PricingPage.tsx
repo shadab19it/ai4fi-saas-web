@@ -27,6 +27,7 @@ const PricingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [purchasingPlanId, setPurchasingPlanId] = useState<string | null>(null);
   const [payuData, setPayuData] = useState<PayUData | null>(null);
+  const [isCustomMode, setIsCustomMode] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,7 +105,11 @@ const PricingPage = () => {
       </div>
 
       <div className="px-4">
-        <CreditSlider value={selectedCredits} onChange={setSelectedCredits} />
+        <CreditSlider
+          value={selectedCredits}
+          onChange={(credits) => { setSelectedCredits(credits); setIsCustomMode(false); }}
+          onContactSales={() => setIsCustomMode(true)}
+        />
       </div>
 
       <div className="flex flex-col items-center gap-16">
@@ -118,6 +123,7 @@ const PricingPage = () => {
               creditCount={selectedCredits}
               onPurchase={handlePurchase}
               isPurchasing={purchasingPlanId === plan._id}
+              isCustomMode={isCustomMode}
             />
           ))}
         </div>

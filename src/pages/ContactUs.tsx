@@ -1,6 +1,7 @@
 import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Mail } from "lucide-react";
+import { Mail, Sparkles } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import commonService from "../services/commonService";
 import { toast } from "sonner";
 import { LoadingSpinner } from "../components/ModelGenerator/ModelConfigForm/ModelConfigForm";
@@ -18,14 +19,27 @@ export interface IEmailConfig {
 }
 
 const ContactForm: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const planParam = searchParams.get("plan");
+  const creditsParam = searchParams.get("credits");
+  const displayNameParam = searchParams.get("displayName");
+
+  const fromPricing = Boolean(planParam && creditsParam);
+  const autoSubject = fromPricing
+    ? `Interested in ${displayNameParam || planParam} Plan — ${creditsParam}+ credits`
+    : "";
+  const autoMessage = fromPricing
+    ? `Hi, I'm interested in the ${displayNameParam || planParam} plan with ${creditsParam}+ credits. Please share custom pricing details.`
+    : "";
+
   const [loading, setLoading] = useState<boolean>(false);
   const [formData, setFormData] = useState<IEmailConfig>({
     name: "",
     company: "",
     phone: "",
     email: "",
-    subject: "",
-    message: "",
+    subject: autoSubject,
+    message: autoMessage,
     defineYourSelf: "",
     howYouFoundUs: "",
     alreadyPhotoshoot: "",
@@ -106,6 +120,21 @@ const ContactForm: React.FC = () => {
           animate={{ x: 0, opacity: 1, transition: { duration: 0.7 } }}>
           <h4 className='text-cyan-600 text-2xl font-semibold mb-6'>Send us a message</h4>
           <form onSubmit={handleSubmit} className='space-y-4'>
+
+            {fromPricing && (
+              <div className='flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-orange-50 to-purple-50 border border-purple-200'>
+                <Sparkles className='w-5 h-5 text-purple-500 shrink-0 mt-0.5' />
+                <div>
+                  <p className='text-sm font-semibold text-purple-700'>
+                    {displayNameParam || planParam} Plan — {creditsParam}+ credits
+                  </p>
+                  <p className='text-xs text-gray-500 mt-0.5'>
+                    Our team will get back to you with custom pricing tailored to your needs.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <input
                 type='text'

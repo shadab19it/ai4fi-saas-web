@@ -1,5 +1,5 @@
 "use client";
-import { Instagram, LinkedinIcon, Youtube } from "lucide-react";
+import { Instagram, LinkedinIcon, Youtube, MapPin, FileText, Mail, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "../../../services/utils";
 import { useTheme } from "../../../context/ThemeContext";
@@ -26,7 +26,7 @@ const Footer = () => {
   return (
     <footer className={cn("relative bg-secondary text-gray-400 pt-20 pb-8 px-6 z-[10]", theme == 'dark' && "bg-gradient-to-tr to-black from-cyan-950")}>
 
-      <div className='max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12'>
+      <div className='max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6'>
         <div>
           <h3 className=' text-sky-400 mb-4'>
             <img src='./light-logo.png' className='w-auto h-[80px]' />
@@ -82,20 +82,52 @@ const Footer = () => {
             </div>
           </div>
         </div>
+
+        <div>
+          <h4 className='text-lg font-semibold mb-4 text-foreground'>Contact Us</h4>
+          <div className='space-y-4 text-sm'>
+            <div className='flex gap-3'>
+              <MapPin className='h-5 w-5 shrink-0 text-sky-400' />
+              <p className='text-muted-foreground text-sm'>Plot No.22, Kh No. 334 Mi, Faizullaganj, Triveni Nagar, Lucknow, Uttar Pradesh, India, 226020</p>
+            </div>
+            <div className='flex items-center gap-3'>
+              <FileText className='h-5 w-5 shrink-0 text-sky-400' />
+              <p className='text-muted-foreground text-sm'>CIN: U62011UP2026PTC242415</p>
+            </div>
+            {/* <div className='flex items-center gap-3'>
+              <Mail className='h-5 w-5 shrink-0 text-sky-400' />
+              <a href='mailto:info@seqtal.com' className='text-muted-foreground text-sm hover:text-foreground transition-colors'>
+                info@seqtal.com
+              </a>
+            </div> */}
+            <div className='flex items-center gap-3'>
+              <Phone className='h-5 w-5 shrink-0 text-sky-400' />
+              <a href='tel:9580907024' className='text-muted-foreground hover:text-foreground transition-colors'>
+                9580907024
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className='mt-12 border-t border-border text-foreground pt-6 flex flex-col md:flex-row justify-between items-center'>
-        <p className='text-sm'>© {new Date().getFullYear()} AI4FI. All rights reserved.</p>
-        <div>
-          Powered bY SECTAL
+      <div className='mt-12 border-t border-border pt-6 flex flex-col md:flex-row justify-between items-center'>
+        <div className='flex flex-col md:flex-row items-center gap-2 text-sm'>
+          <p className='text-foreground'>© {new Date().getFullYear()} AI4FI. All rights reserved.</p>
+          <span className='hidden md:block text-muted-foreground'>|</span>
+          <span className='text-muted-foreground'>Powered by</span>
+          <a href='https://www.seqtal.com' target='_blank' className='text-muted-foreground hover:text-foreground transition-colors'>
+            SEQTAL AI PRIVATE LIMITED
+          </a>
         </div>
         <div className='flex space-x-6 mt-4 md:mt-0'>
-          <Link to='/terms-of-service' className='text-sm hover:text-primary text-foreground transition-colors duration-200'>
+          <Link to='/terms-of-service' className='text-sm hover:text-foreground text-muted-foreground transition-colors duration-200'>
             Terms of Service
           </Link>
-
-          <Link to='/privacy-policy' className='text-sm hover:text-primary text-foreground transition-colors duration-200'>
+          <Link to='/privacy-policy' className='text-sm hover:text-foreground text-muted-foreground transition-colors duration-200'>
             Privacy Policy
+          </Link>
+          <Link to='/refund-policy' className='text-sm hover:text-foreground text-muted-foreground transition-colors duration-200'>
+            Refund Policy
           </Link>
         </div>
       </div>

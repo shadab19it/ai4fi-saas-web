@@ -403,13 +403,13 @@ const Navbar = () => {
 
 	const showcaseItems: DropdownItem[] = [
 		{
-			name: "Portfolio",
+			name: "Model Gallery",
 			href: "/model-gallery",
 			icon: <GalleryHorizontal />,
 			description: "Browse our model portfolio",
 		},
 		{
-			name: "Client Showcase",
+			name: "Result Showcase",
 			href: "/client-showcase",
 			icon: <User />,
 			description: "See real client results",
@@ -463,7 +463,7 @@ const Navbar = () => {
 						))}
 
 						{/* Gallery hover dropdown */}
-						<HoverDropdown label="Gallery" active={activeLink === "model-gallery"} items={showcaseItems} />
+						<HoverDropdown label="Portfolio" active={activeLink === "model-gallery"} items={showcaseItems} />
 
 						{/* Our Offerings hover dropdown */}
 						<HoverDropdown label="Our Offerings" active={activeLink === "our-offerings"} items={dropdownItems} />
@@ -627,7 +627,7 @@ const Navbar = () => {
 									onClick={() => setMobileGalleryOpen(!mobileGalleryOpen)}
 									className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold text-foreground hover:text-foreground hover:bg-secondary transition-all"
 								>
-									Gallery
+									Portfolio
 									<motion.span animate={{ rotate: mobileGalleryOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
 										<ChevronDown size={14} />
 									</motion.span>
