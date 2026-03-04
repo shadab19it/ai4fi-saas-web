@@ -82,7 +82,7 @@ export const CreditSlider = ({ value, onChange }: CreditSliderProps) => {
               : "text-gray-400 hover:text-gray-600"
           }`}
         >
-          Contact Us
+          Contact Sales
         </button>
       </div>
 
