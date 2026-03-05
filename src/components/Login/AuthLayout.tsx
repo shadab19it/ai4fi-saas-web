@@ -175,7 +175,7 @@ const AuthLayout: FC<{
 					<div className="relative flex items-center h-screen justify-center ">
 						<video
 							ref={videoRef}
-							src="/hero-right-video.mp4"
+							src="https://ai4fi.s3.ap-south-1.amazonaws.com/hero-right-video.mp4"
 
 							autoPlay
 							muted

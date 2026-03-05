@@ -134,23 +134,24 @@ const FEATURE_GROUPS: FeatureGroup[] = [
 				items: [
 					{
 						type: "image",
-						src: "./Archive/product_photography/2/raw.JPG",
+						src: "https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/product_photography/2/IMG_3706.JPG",
+
 						alt: "Studio shot 1",
 						badge: "raw",
 					},
 					{
 						type: "image",
-						src: "./Archive/product_photography/2/first.jpeg",
+						src: "https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/product_photography/2/0feb16bd62e74213a1174d761fd75b2a.jpeg",
 						alt: "Studio shot 2",
 					},
 					{
 						type: "image",
-						src: "./Archive/product_photography/2/second.jpeg",
+						src: "https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/product_photography/2/2a2e5315b9164b409cd9a7ee190f1d19.jpeg",
 						alt: "Studio shot 2",
 					},
 					{
 						type: "image",
-						src: "./Archive/product_photography/2/third.jpeg",
+						src: "https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/product_photography/2/e035323ae4bb445a9b2c80d204002636.jpeg",
 						alt: "Studio shot 4",
 					},
 
