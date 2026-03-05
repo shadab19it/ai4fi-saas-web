@@ -80,18 +80,7 @@ const AiFashionHero: React.FC<AiFashionHeroProps> = ({
 	secondaryCTA = "Book a Demo",
 }) => {
 	const { theme } = useTheme();
-	const [currentTick, setCurrentTick] = useState(0);
 
-	useEffect(() => {
-		const timeout = setTimeout(() => {
-			const interval = setInterval(() => {
-				setCurrentTick((prev) => prev + 1);
-			}, 2000);
-			return () => clearInterval(interval);
-		}, 2500);
-
-		return () => clearTimeout(timeout);
-	}, []);
 
 	const partners = [
 		"./partners/chand.png",
@@ -181,27 +170,30 @@ const AiFashionHero: React.FC<AiFashionHeroProps> = ({
 	}, []);
 
 	useEffect(() => {
-		const interval = setInterval(() => {
-			setDirection("out");
+		let shuffleInterval: ReturnType<typeof setInterval> | null = null;
 
-			setTimeout(() => {
-				// Move first card to end while it's offscreen
-				setCards((prev) => {
-					if (prev.length === 0) return prev;
-					const [first, ...rest] = prev;
-					return [...rest, first];
-				});
-
-				setDirection("in");
-
+		const runShuffle = () => {
+			shuffleInterval = setInterval(() => {
+				if (document.hidden) return; // skip when tab invisible
+				setDirection("out");
 				setTimeout(() => {
-					setDirection("idle");
-				}, 500);
-			}, 250); // matches first animation duration
-		}, 1000);
+					setCards((prev) => {
+						if (prev.length === 0) return prev;
+						const [first, ...rest] = prev;
+						return [...rest, first];
+					});
+					setDirection("in");
+					setTimeout(() => setDirection("idle"), 500);
+				}, 250);
+			}, 3000); // slowed from 1000ms → 3000ms to reduce repaints
+		};
 
-		return () => clearInterval(interval);
+		runShuffle();
+		return () => {
+			if (shuffleInterval) clearInterval(shuffleInterval);
+		};
 	}, []);
+
 
 	return (
 		<div className="relative overflow-hidden w-full">

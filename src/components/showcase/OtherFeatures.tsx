@@ -77,7 +77,7 @@ const FEATURE_GROUPS: FeatureGroup[] = [
 					},
 					{
 						type: "video",
-						src: "./Archive/ad/1/generated_video (5).mp4",
+						src: "https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/ad/1/generated_video+(5).mp4",
 
 					},
 				],
@@ -93,7 +93,7 @@ const FEATURE_GROUPS: FeatureGroup[] = [
 					},
 					{
 						type: "video",
-						src: "./Archive/ad/2/generated_video (7).mp4",
+						src: "https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/ad/2/generated_video+(7).mp4",
 
 					},
 				],

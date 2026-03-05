@@ -1,64 +1,33 @@
-import { FC } from "react";
-import CTASection from "./sections/Cta";
-import DemoSection from "./sections/Demo";
-import FeaturedGallery from "./sections/FeaturedGallery";
-import Features from "./sections/Features";
-
-import AboutUs from "./sections/AboutUs";
-// import HeroSection2 from "./sections/HeroSection2";
-import KeyFeatures from "./sections/KeyFeatures";
+import { FC, lazy, Suspense } from "react";
 import AiFashionHero from "./sections/AiFashionHero";
-import SayGoodBySection from "./sections/SayGoodBy";
-import TestimonialsStacked from "./sections/Testimonial";
 
-import { motion } from "motion/react";
-import SvgIcons from "../../components/SvgIcons";
-
-
+// Below-fold sections — code-split so they don't block initial paint
+const SayGoodBySection    = lazy(() => import("./sections/SayGoodBy"));
+const KeyFeatures         = lazy(() => import("./sections/KeyFeatures"));
+const DemoSection         = lazy(() => import("./sections/Demo"));
+const Features            = lazy(() => import("./sections/Features"));
+const FeaturedGallery     = lazy(() => import("./sections/FeaturedGallery"));
+const TestimonialsStacked = lazy(() => import("./sections/Testimonial"));
+const AboutUs             = lazy(() => import("./sections/AboutUs"));
+const CTASection          = lazy(() => import("./sections/Cta"));
 
 const HomePage: FC = () => {
-	const partners = [
-		SvgIcons.amazone,
-		SvgIcons.google,
-		SvgIcons.netflix,
-		SvgIcons.shopify,
-		SvgIcons.youtube,
-	];
-
 	return (
 		<div>
+			{/* Hero is always eager-loaded (above the fold) */}
 			<AiFashionHero />
-			<SayGoodBySection />
-			<KeyFeatures />
-			<DemoSection />
-			<Features />
-			<div className="max-w-[100vw] mx-auto">
-				<div className=" px-4 sm:px-6 lg:px-8  z-10 py-8 md:pb-8 pt-16">
-					<h4 className="text-center  mb-5 font-bold leading-tight">
-						Our Technology Partners
-					</h4>
-					<div className="md:grid flex flex-wrap items-center justify-between md:place-items-center md:grid-cols-5 gap-6 md:gap-8">
-						{partners.map((partner, index) => (
-							<motion.div
-								key={index}
-								initial={{ opacity: 0, y: 0 }}
-								whileInView={{ opacity: 1, y: 0 }}
-								transition={{ duration: 0.8, delay: index * 0.2 }}
-								className="group"
-							>
-								<i className="leading-0 text-[7rem] text-muted-foreground">
-									{" "}
-									{partner}
-								</i>
-							</motion.div>
-						))}
-					</div>
-				</div>
-			</div>
-			<FeaturedGallery />
-			<TestimonialsStacked />
-			<AboutUs />
-			<CTASection />
+
+			{/* Everything below is lazy — only fetched when the browser is idle / user scrolls */}
+			<Suspense fallback={null}>
+				<SayGoodBySection />
+				<KeyFeatures />
+				<DemoSection />
+				<Features />
+				<FeaturedGallery />
+				<TestimonialsStacked />
+				<AboutUs />
+				<CTASection />
+			</Suspense>
 		</div>
 	);
 };

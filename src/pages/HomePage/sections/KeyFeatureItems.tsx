@@ -467,12 +467,22 @@ export const PhotoStudio = () => (
 export const Advertisement = () => {
 	const videoRef = useRef<HTMLVideoElement>(null);
 
+	// Only play the video when it actually enters the viewport
 	useEffect(() => {
-		if (videoRef.current) {
-			videoRef.current.play().catch(error => {
-				console.log("Video autoplay failed:", error);
-			});
-		}
+		const el = videoRef.current;
+		if (!el) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					el.play().catch(() => {});
+				} else {
+					el.pause();
+				}
+			},
+			{ threshold: 0.25 },
+		);
+		observer.observe(el);
+		return () => observer.disconnect();
 	}, []);
 
 	return (
@@ -620,9 +630,8 @@ export const Advertisement = () => {
 										{/* Video Content */}
 										<video
 											ref={videoRef}
-											src="/Archive/ad/1/generated_video (5).mp4"
+											src="https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/ad/1/generated_video+(5).mp4"
 											className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
-											autoPlay
 											loop
 											muted
 											playsInline

@@ -56,54 +56,54 @@ import SectionHeader from "./SectionHeader";
 // Generating 15 standard models
 
 const GallerySetOne = [
-	{ id: 1, img: "./gallery/gallery_1.png", alt: "AI Model 1", type: "Commercial" },
-	{ id: 2, img: "./gallery/gallery_2.png", alt: "AI Model 2", type: "Commercial" },
-	{ id: 3, img: "./gallery/gallery_3.png", alt: "AI Model 3", type: "Commercial" },
-	{ id: 4, img: "./gallery/gallery_4.png", alt: "AI Model 4", type: "Commercial" },
-	{ id: 5, img: "./gallery/gallery_5.jpeg", alt: "AI Model 5", type: "Commercial" },
-	{ id: 6, img: "./gallery/gallery_6.jpeg", alt: "AI Model 6", type: "Commercial" },
-	{ id: 7, img: "./gallery/gallery_7.jpeg", alt: "AI Model 7", type: "Commercial" },
-	{ id: 8, img: "./gallery/gallery_8.jpeg", alt: "AI Model 8", type: "Commercial" },
-	{ id: 9, img: "./gallery/gallery_9.jpeg", alt: "AI Model 9", type: "Commercial" },
-	{ id: 10, img: "./gallery/gallery_10.jpeg", alt: "AI Model 10", type: "Commercial" },
-	{ id: 11, img: "./gallery/gallery_11.jpeg", alt: "AI Model 11", type: "Commercial" },
-	{ id: 12, img: "./gallery/gallery_12.jpeg", alt: "AI Model 12", type: "Commercial" },
-	{ id: 13, img: "./gallery/gallery_13.jpeg", alt: "AI Model 13", type: "Commercial" },
-	{ id: 14, img: "./gallery/gallery_14.jpeg", alt: "AI Model 14", type: "Commercial" },
-	{ id: 15, img: "./gallery/gallery_15.jpeg", alt: "AI Model 15", type: "Commercial" },
-	{ id: 16, img: "./gallery/gallery_16.jpeg", alt: "AI Model 16", type: "Commercial" },
-	{ id: 17, img: "./gallery/gallery_39.jpeg", alt: "AI Model 16", type: "Commercial" },
-	{ id: 18, img: "./gallery/gallery_40.jpeg", alt: "AI Model 16", type: "Commercial" },
-	{ id: 19, img: "./gallery/gallery_41.jpeg", alt: "AI Model 16", type: "Commercial" },
-	{ id: 20, img: "./gallery/gallery_42.jpeg", alt: "AI Model 16", type: "Commercial" },
+	{ id: 1, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_1.png", alt: "AI Model 1", type: "Commercial" },
+	{ id: 2, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_2.png", alt: "AI Model 2", type: "Commercial" },
+	{ id: 3, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_3.png", alt: "AI Model 3", type: "Commercial" },
+	{ id: 4, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_4.png", alt: "AI Model 4", type: "Commercial" },
+	{ id: 5, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_5.jpeg", alt: "AI Model 5", type: "Commercial" },
+	{ id: 6, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_6.jpeg", alt: "AI Model 6", type: "Commercial" },
+	{ id: 7, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_7.jpeg", alt: "AI Model 7", type: "Commercial" },
+	{ id: 8, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_8.jpeg", alt: "AI Model 8", type: "Commercial" },
+	{ id: 9, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_9.jpeg", alt: "AI Model 9", type: "Commercial" },
+	{ id: 10, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_10.jpeg", alt: "AI Model 10", type: "Commercial" },
+	{ id: 11, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_11.jpeg", alt: "AI Model 11", type: "Commercial" },
+	{ id: 12, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_12.jpeg", alt: "AI Model 12", type: "Commercial" },
+	{ id: 13, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_13.jpeg", alt: "AI Model 13", type: "Commercial" },
+	{ id: 14, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_14.jpeg", alt: "AI Model 14", type: "Commercial" },
+	{ id: 15, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_15.jpeg", alt: "AI Model 15", type: "Commercial" },
+	{ id: 16, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_16.jpeg", alt: "AI Model 16", type: "Commercial" },
+	{ id: 17, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_39.jpeg", alt: "AI Model 16", type: "Commercial" },
+	{ id: 18, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_40.jpeg", alt: "AI Model 16", type: "Commercial" },
+	{ id: 19, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_41.jpeg", alt: "AI Model 16", type: "Commercial" },
+	{ id: 20, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_42.jpeg", alt: "AI Model 16", type: "Commercial" },
 ];
 
 const GallerySetTwo = [
-	{ id: 17, img: "./gallery/gallery_17.jpeg", alt: "AI Model 17", type: "Commercial" },
-	{ id: 32, img: "./gallery/gallery_32.png", alt: "AI Model 32", type: "Commercial" },
+	{ id: 17, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_17.jpeg", alt: "AI Model 17", type: "Commercial" },
+	{ id: 32, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_32.png", alt: "AI Model 32", type: "Commercial" },
 
-	{ id: 18, img: "./gallery/gallery_18.jpeg", alt: "AI Model 18", type: "Commercial" },
-	{ id: 19, img: "./gallery/gallery_19.png", alt: "AI Model 19", type: "Commercial" },
-	{ id: 20, img: "./gallery/gallery_20.png", alt: "AI Model 20", type: "Commercial" },
-	{ id: 26, img: "./gallery/gallery_26.png", alt: "AI Model 26", type: "Commercial" },
+	{ id: 18, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_18.jpeg", alt: "AI Model 18", type: "Commercial" },
+	{ id: 19, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_19.png", alt: "AI Model 19", type: "Commercial" },
+	{ id: 20, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_20.png", alt: "AI Model 20", type: "Commercial" },
+	{ id: 26, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_26.png", alt: "AI Model 26", type: "Commercial" },
 
-	{ id: 21, img: "./gallery/gallery_21.png", alt: "AI Model 21", type: "Commercial" },
-	{ id: 30, img: "./gallery/gallery_30.jpeg", alt: "AI Model 30", type: "Commercial" },
-	{ id: 29, img: "./gallery/gallery_29.png", alt: "AI Model 29", type: "Commercial" },
+	{ id: 21, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_21.png", alt: "AI Model 21", type: "Commercial" },
+	{ id: 30, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_30.jpeg", alt: "AI Model 30", type: "Commercial" },
+	{ id: 29, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_29.png", alt: "AI Model 29", type: "Commercial" },
 
-	{ id: 22, img: "./gallery/gallery_22.png", alt: "AI Model 22", type: "Commercial" },
-	{ id: 23, img: "./gallery/gallery_23.png", alt: "AI Model 23", type: "Commercial" },
-	{ id: 24, img: "./gallery/gallery_24.png", alt: "AI Model 24", type: "Commercial" },
-	{ id: 25, img: "./gallery/gallery_25.png", alt: "AI Model 25", type: "Commercial" },
-	{ id: 27, img: "./gallery/gallery_27.png", alt: "AI Model 27", type: "Commercial" },
-	{ id: 28, img: "./gallery/gallery_28.png", alt: "AI Model 28", type: "Commercial" },
-	{ id: 31, img: "./gallery/gallery_31.jpeg", alt: "AI Model 31", type: "Commercial" },
-	{ id: 33, img: "./gallery/gallery_33.jpeg", alt: "AI Model 33", type: "Commercial" },
-	{ id: 34, img: "./gallery/gallery_34.jpeg", alt: "AI Model 33", type: "Commercial" },
-	{ id: 35, img: "./gallery/gallery_35.jpeg", alt: "AI Model 33", type: "Commercial" },
-	{ id: 36, img: "./gallery/gallery_36.jpeg", alt: "AI Model 33", type: "Commercial" },
-	{ id: 37, img: "./gallery/gallery_37.jpeg", alt: "AI Model 33", type: "Commercial" },
-	{ id: 38, img: "./gallery/gallery_38.jpeg", alt: "AI Model 33", type: "Commercial" },
+	{ id: 22, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_22.png", alt: "AI Model 22", type: "Commercial" },
+	{ id: 23, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_23.png", alt: "AI Model 23", type: "Commercial" },
+	{ id: 24, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_24.png", alt: "AI Model 24", type: "Commercial" },
+	{ id: 25, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_25.png", alt: "AI Model 25", type: "Commercial" },
+	{ id: 27, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_27.png", alt: "AI Model 27", type: "Commercial" },
+	{ id: 28, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_28.png", alt: "AI Model 28", type: "Commercial" },
+	{ id: 31, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_31.jpeg", alt: "AI Model 31", type: "Commercial" },
+	{ id: 33, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_33.jpeg", alt: "AI Model 33", type: "Commercial" },
+	{ id: 34, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_34.jpeg", alt: "AI Model 33", type: "Commercial" },
+	{ id: 35, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_35.jpeg", alt: "AI Model 33", type: "Commercial" },
+	{ id: 36, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_36.jpeg", alt: "AI Model 33", type: "Commercial" },
+	{ id: 37, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_37.jpeg", alt: "AI Model 33", type: "Commercial" },
+	{ id: 38, img: "https://ai4fi.s3.ap-south-1.amazonaws.com/gallery/gallery_38.jpeg", alt: "AI Model 33", type: "Commercial" },
 ];
 const ObeseModels = [
 	{
@@ -129,12 +129,6 @@ const ObeseModels = [
 		img: "https://ai4fi-bucket.s3.amazonaws.com/PlusSize/female/female_model_030.png",
 		alt: "AI Model 10",
 		type: "Editorial",
-	},
-	{
-		id: 29,
-		img: "https://ai4fi-bucket.s3.amazonaws.com/PlusSize/male/male_model_013.png",
-		alt: "AI Model 29",
-		type: "Commercial",
 	},
 	{
 		id: 5,
@@ -341,9 +335,10 @@ const ModelCard: FC<{ model: any; isDark?: boolean }> = ({ model, isDark = false
 	>
 		<img
 			src={model.img}
-			alt={model.name}
+			alt={model.alt ?? model.name}
 			className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
 			loading="lazy"
+			decoding="async"
 		/>
 
 		{/* Gradient Overlay */}
@@ -379,6 +374,21 @@ const InfiniteShowcase = () => {
 	const marquee1Ref = useRef<HTMLDivElement>(null);
 	const marquee2Ref = useRef<HTMLDivElement>(null);
 	const [isPaused, setIsPaused] = useState(false);
+
+	// Pause marquee animations when the tab is hidden
+	useEffect(() => {
+		const handleVisibility = () => {
+			const hidden = document.hidden;
+			[marquee1Ref, marquee2Ref].forEach((ref) => {
+				if (ref.current) {
+					const el = ref.current.querySelector<HTMLDivElement>(".animate-marquee, .animate-marquee-reverse");
+					if (el) el.style.animationPlayState = hidden ? "paused" : "running";
+				}
+			});
+		};
+		document.addEventListener("visibilitychange", handleVisibility);
+		return () => document.removeEventListener("visibilitychange", handleVisibility);
+	}, []);
 
 	const scroll = (direction: "left" | "right", ref?: React.RefObject<HTMLDivElement>) => {
 		const targetRef = ref || scrollRef;
@@ -444,7 +454,7 @@ const InfiniteShowcase = () => {
 					ref={marquee1Ref}
 					className="flex overflow-x-auto scrollbar-hide snap-none"
 				>
-					<div className="flex w-max animate-marquee pause-hover">
+					<div className="flex w-max animate-marquee pause-hover" style={{ willChange: "transform" }}>
 						{/* Double the array to create seamless loop */}
 						{[...GallerySetOne, ...GallerySetTwo].map((model, idx) => (
 							<ModelCard key={`row1-${idx}`} model={model} />
@@ -479,7 +489,7 @@ const InfiniteShowcase = () => {
 					ref={marquee2Ref}
 					className="flex overflow-x-auto scrollbar-hide snap-none"
 				>
-					<div className="flex w-max animate-marquee-reverse pause-hover">
+					<div className="flex w-max animate-marquee-reverse pause-hover" style={{ willChange: "transform" }}>
 						{[...[...GallerySetTwo].reverse(), ...GallerySetTwo].map(
 							(model, idx) => (
 								<ModelCard key={`row2-${idx}`} model={model} />

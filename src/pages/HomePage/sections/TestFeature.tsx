@@ -559,7 +559,7 @@ export const AdGeneratorSection = () => {
 								{/* Simulated Video Content */}
 								<video
 									ref={videoRef}
-									src="/Archive/ad/1/generated_video (5).mp4"
+									src="https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/ad/1/generated_video+(5).mp4"
 									className="w-full h-full object-cover opacity-90"
 									autoPlay
 									loop
