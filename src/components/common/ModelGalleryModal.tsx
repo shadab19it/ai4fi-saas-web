@@ -35,6 +35,7 @@ export default function ModelGalleryModal({
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [totalImages, setTotalImages] = useState(0);
 
   const fetchCategories = useCallback(async () => {
     setLoadingCategories(true);
@@ -62,12 +63,13 @@ export default function ModelGalleryModal({
         category: categoryToFetch,
         gender: genderFilter,
         page: pageNum,
-        limit: 20,
+        limit: 40,
       });
       if (response.success) {
         setImages(response.images);
         setTotalPages(response.pagination.totalPages);
         setHasMore(response.pagination.hasMore);
+        setTotalImages(response.pagination.totalImages);
       }
     } catch (error) {
       console.error("Failed to fetch images:", error);
@@ -141,6 +143,7 @@ export default function ModelGalleryModal({
           <Button variant="outline" size="icon" onClick={onClose} aria-label="Close" icon={<X className="w-4 h-4" />} />
         </div>
 
+
         {showGenderFilter && (
           <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2 flex-wrap">
             {(["baby", "boy", "female", "girl", "male"] as const).map((g) => (
@@ -158,6 +161,9 @@ export default function ModelGalleryModal({
             ))}
           </div>
         )}
+
+  
+   
 
         {!showGenderFilter && (
           <div className="px-6 pt-3 pb-3 border-b border-[#E5E2DA] flex gap-2 flex-wrap">
@@ -221,7 +227,7 @@ export default function ModelGalleryModal({
         {totalPages > 1 && (
           <div className="px-6 py-3 border-t border-[#E5E2DA] flex items-center justify-between">
             <span className="text-[12px] text-[#9E9893]">
-              Page {page} of {totalPages}
+            Total Images: {totalImages} |  Page {page} of {totalPages}
             </span>
             <div className="flex items-center gap-2">
               <Button

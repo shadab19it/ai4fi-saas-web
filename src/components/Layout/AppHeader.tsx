@@ -65,7 +65,11 @@ const AppHeader: FC<AppHeaderProps> = ({ title, description = null }) => {
     localStorage.removeItem(TRIAL_ROOM_HANDOFF_KEY)
     localStorage.removeItem(FABRIC_STUDIO_PERSIST_KEY)
     localStorage.removeItem(PRODUCT_LISTING_PERSIST_KEY)
-    navigate("/features")
+    if(window.location.pathname === "/features"){
+      navigate('/')
+    }else{
+      navigate("/features")
+    }
   }
 
   return (

@@ -332,6 +332,10 @@ export default function UnstitchedStudioPage() {
 
   const handleGenerate = async (parentId?: string) => {
     if (!canGenerate) return
+    if(tier === "professional" && !ecommercePlatform){
+      toast.error("Please select an ecommerce platform")
+      return
+    }
     setIsGenerating(true)
     setError(null)
     setGeneratedImages([])

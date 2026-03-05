@@ -14,6 +14,7 @@ import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
 import ZoomImageModal from "../ui/ZoomImageModal"
 import ModelGalleryModal from "../common/ModelGalleryModal"
+import { toast } from "sonner"
 
 interface DressUploadProps {
   onUploadComplete: (
@@ -170,6 +171,12 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   }
 
   const handleContinue = () => {
+
+    if(tier === "professional" && !ecommercePlatform){
+      toast.error("Please select an ecommerce platform")
+      return
+    }
+
     if (dressImage) {
       localStorage.removeItem(DRESS_IMAGE_PERSIST_KEY)
       const isCustom = aspectRatio === "custom"

@@ -109,7 +109,7 @@ export default function GroupedSelect({
       </div>
 
       {isOpen && (
-        <div className="absolute z-[100] w-full mt-2 bg-white rounded-xl border border-[#E5E2DA] shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute z-[100] w-full bottom-full mb-2 bg-white rounded-xl border border-[#E5E2DA] shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1),0_8px_10px_-6px_rgba(0,0,0,0.1)] overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
           <div className="p-2 border-b border-[#E5E2DA] bg-[#F9F8F5]/50">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9E9893]" />

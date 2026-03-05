@@ -101,7 +101,7 @@ export default function ProductListingStudioPage() {
   const [count, setCount] = useState(4)
   const [modelImageCount, setModelImageCount] = useState(0)
   const [tier, setTier] = useState<Tier>("basic")
-  const [marketplace, setMarketplace] = useState<ProductListingMarketplace>("amazon")
+  const [marketplace, setMarketplace] = useState<ProductListingMarketplace | null>(null)
 
   // Results
   const [resultImages, setResultImages] = useState<string[]>([])
@@ -286,6 +286,11 @@ export default function ProductListingStudioPage() {
     }
     if (!shortDescription.trim()) {
       toast.error("Please enter a short description")
+      return
+    }
+
+    if (!marketplace) {
+      toast.error("Please select a marketplace")
       return
     }
 
