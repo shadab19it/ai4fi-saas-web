@@ -72,10 +72,10 @@ const CATEGORIES = [
 const ASPECT_RATIOS = ["1:1", "4:3", "3:4", "16:9", "9:16"]
 const RESOLUTIONS = ["1K", "2K", "4K"]
 export default function ProductListingStudioPage() {
-    const location = useLocation();
+  const location = useLocation();
   const fromSource = new URLSearchParams(location.search).get("from");
   const navigate = useNavigate()
-  const { isResolutionAllowed } = usePlanFeatures()
+  const { isResolutionAllowed, maxUploadSizeBytes } = usePlanFeatures()
 
   // ─── State ──────────────────────────────────────
   const [mode, setMode] = useState<GenerationMode>("lifestyle")
@@ -197,6 +197,20 @@ export default function ProductListingStudioPage() {
   // ─── Handlers ─────────────────────────────────────
   const handleImageUpload = useCallback(
     (file: File, type: "product" | "model") => {
+      if (!file) return
+
+      const mime = file.type || ""
+      const isImage = mime.startsWith("image/") || /\.(jpe?g|png|gif|webp|bmp|tiff|svg)$/i.test(file.name)
+
+      if (!isImage) {
+        toast.error("Unsupported file type. Please upload an image (jpg, png, webp...).")
+        // clear inputs if applicable
+        if (type === "product" && productInputRef.current) productInputRef.current.value = ""
+        if (type === "model" && modelInputRef.current) modelInputRef.current.value = ""
+        return
+      }
+
+
       const reader = new FileReader()
       reader.onload = (e) => {
         const url = e.target?.result as string

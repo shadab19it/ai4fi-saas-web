@@ -45,6 +45,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [fileSize, setFileSize] = useState<string>("")
   const [modelImage, setModelImage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
   const [tier, setTier] = useState<"basic" | "professional">("basic")
   const [aspectRatio, setAspectRatio] = useState<string>("")
@@ -61,15 +62,25 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   const dropZoneRef = useRef<HTMLDivElement>(null)
 
   const handleImageUpload = (file: File) => {
-    if (!file.type.startsWith("image/")) {
+    if (!file) return
+
+    const mime = file.type || ""
+    const isImage = mime.startsWith("image/") || /\.(jpe?g|png|gif|webp|bmp|tiff|svg)$/i.test(file.name)
+
+    if (!isImage) {
+      setError("Unsupported file type. Please upload an image (jpg, png, webp...).")
+      if (dressInputRef.current) dressInputRef.current.value = ""
+      setTimeout(() => setError(null), 4000)
       return
     }
 
     if (file.size > maxUploadSizeBytes) {
-      alert(`File too large. Maximum upload size is ${Math.round(maxUploadSizeBytes / (1024 * 1024))} MB.`)
+      setError(`File too large. Maximum upload size is ${Math.round(maxUploadSizeBytes / (1024 * 1024))} MB.`)
+      if (dressInputRef.current) dressInputRef.current.value = ""
+      setTimeout(() => setError(null), 4000)
       return
     }
-    
+
     const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
     setFileSize(`${fileSizeMB} MB`)
 
@@ -78,6 +89,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
       const result = event.target?.result as string
       setDressImage(result)
       localStorage.setItem(DRESS_IMAGE_PERSIST_KEY, result)
+      setError(null)
     }
     reader.readAsDataURL(file)
   }
@@ -158,7 +170,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   }
 
   const handleContinue = () => {
-    if (dressImage && fromSource) {
+    if (dressImage) {
       localStorage.removeItem(DRESS_IMAGE_PERSIST_KEY)
       const isCustom = aspectRatio === "custom"
       const effectiveAspectRatio = isCustom ? "1:1" : aspectRatio
@@ -313,8 +325,12 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                   <p className="text-lg text-zinc-500 font-medium max-w-lg mx-auto mb-2">
                     Upload your garment to generate premium AI-powered model photos instantly.
                   </p>
+                {error && (
+                  <div className="mt-4 w-full max-w-2xl text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-2 text-center">
+                    {error}
+                  </div>
+                )}
                 </div>
-
                 {/* Upload card */}
                 <div className="w-[600px]  glass-surface rounded-[2rem] p-3 mb-6">
                   <div

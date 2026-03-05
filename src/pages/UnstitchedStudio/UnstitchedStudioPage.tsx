@@ -35,6 +35,7 @@ import {
 } from "../../constants/ecommercePlatforms"
 import { MODEL_FACE_RETURN_URL_KEY, FABRIC_STUDIO_PERSIST_KEY, TRIAL_ROOM_HANDOFF_KEY } from "../../constants/modelFace"
 import AppHeader from "../../components/Layout/AppHeader"
+import { toast } from "sonner"
 
 // ──────────────────────────────────────────────
 // Types
@@ -201,7 +202,22 @@ export default function UnstitchedStudioPage() {
   // ─── Handlers ───
 
   const handleFabricUpload = useCallback((slotId: string, file: File) => {
-    if (!file.type.startsWith("image/")) return
+    if (!file) return
+
+    const mime = file.type || ""
+    const isImage =
+      mime.startsWith("image/") || /\.(jpe?g|png|gif|webp|bmp|tiff|svg)$/i.test(file.name)
+
+    if (!isImage) {
+      setError("Unsupported file type. Please upload an image (jpg, png, webp...).")
+      // Clear the file input so it doesn't remain selected
+      const input = fabricRefs.current[slotId]
+      if (input) input.value = ""
+      toast.info("Please upload an image file (jpg, png, webp, etc.)")
+      setTimeout(() => setError(null), 4000)
+      return
+    }
+
     const reader = new FileReader()
     reader.onload = (e) => {
       setFabrics((prev) =>
@@ -762,7 +778,7 @@ export default function UnstitchedStudioPage() {
                   Gender
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {["baby", "boy", "female", "girl", "male"].map((g) => (
+                  {["female", "male"].map((g) => (
                     <button
                       key={g}
                       onClick={() => handleGenderChange(g)}

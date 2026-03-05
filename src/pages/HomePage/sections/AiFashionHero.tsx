@@ -100,6 +100,8 @@ const AiFashionHero: React.FC<AiFashionHeroProps> = ({
 		"./partners/mrignandani.png",
 		"./partners/zuni.png",
 		"./partners/novelty.png",
+		"./partners/alviaura_logo.png",
+		"./partners/azad_dairy_logo.png",
 	];
 	// const partners = [
 	// 	SvgIcons.amazone,
@@ -338,7 +340,7 @@ const AiFashionHero: React.FC<AiFashionHeroProps> = ({
 					<h4 className="text-center  mb-5 font-bold leading-tight">
 						Our Trusted Partners
 					</h4>
-					<div className="md:grid flex flex-wrap items-center justify-between md:place-items-center md:grid-cols-6 gap-6 md:gap-8">
+					<div className="md:grid flex flex-wrap items-center justify-between md:place-items-center md:grid-cols-8 gap-6 md:gap-8">
 						{partners.map((partner, index) => (
 							<motion.div
 								key={index}
