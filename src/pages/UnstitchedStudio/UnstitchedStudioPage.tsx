@@ -704,13 +704,15 @@ export default function UnstitchedStudioPage() {
                         </div>
                       </div>
                       <div className="p-2 border-t border-[#E5E2DA]">
-                        <button
+                        <Button
+                          variant="gradient"
+                          size="md"
                           onClick={() => handleGeneratePoses(url)}
-                          className="w-full flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition-colors"
+                          icon={<Sparkles className="w-3.5 h-3.5" />}
+                          className="w-full"
                         >
-                          <Sparkles className="w-3.5 h-3.5" />
                           Generate Poses
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ))}

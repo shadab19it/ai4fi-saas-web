@@ -6,6 +6,7 @@ import {
   Download,
   DownloadIcon,
   Share2,
+  Sparkles,
   Trash2,
   ZoomIn,
   PanelLeftOpen,
@@ -26,7 +27,7 @@ import commonService from "../../services/commonService";
 import { useMediaQuery } from "../useMediaQuery";
 import Button from "../ui/Button";
 import ZoomImageModal from "../ui/ZoomImageModal";
-import { MODEL_FACE_RETURN_URL_KEY } from "../../constants/modelFace";
+import { MODEL_FACE_RETURN_URL_KEY, TRIAL_ROOM_HANDOFF_KEY } from "../../constants/modelFace";
 
 export interface ModifiedModelData {
   url: string;
@@ -119,6 +120,7 @@ const ModelGeneratorUI: React.FC = () => {
   const isTeamUser = !!user?.teamId;
   const canShowFreeRegen = !!regenInfo && !is4kResolution && regenInfo.freeRegensRemaining > 0;
   const effectiveCredits = user?.teamId ? (team?.credits ?? 0) : (user?.credits ?? 0);
+  const source = new URLSearchParams(location.search).get("source");
 
   const calculateSecondsDifference = (time1: number, time2: number): number =>
     (time2 - time1) / 1000;
@@ -216,8 +218,10 @@ const ModelGeneratorUI: React.FC = () => {
         const updatedImages: ModifiedModelData[] = data.image_urls.map((url: string) => ({ url }));
         setGeneratedImages(updatedImages);
         dispatch(setGeneratedModelList(updatedImages));
-        // Save latest generated face/model URL so tool pages can auto-prefill Model Face on return.
-        localStorage.setItem(MODEL_FACE_RETURN_URL_KEY, data.image_urls[0]);
+        if(source){
+          // Save latest generated face/model URL so tool pages can auto-prefill Model Face on return.
+          localStorage.setItem(MODEL_FACE_RETURN_URL_KEY, data.image_urls[0]);
+        }
       }
       if ((data as any).regeneration) {
         setRegenInfo((data as any).regeneration);
@@ -282,6 +286,19 @@ const ModelGeneratorUI: React.FC = () => {
     navigator
       .share({ title: "Generated Image", text: "Check out this AI-generated model!", url })
       .catch(() => {});
+  };
+
+  const handleGeneratePoses = (imageUrl: string) => {
+    const handoff = {
+      dressImage: imageUrl,
+      selectedModel: imageUrl,
+      gender,
+      tier,
+      ...(aspectRatio && { aspectRatio }),
+      ...(resolution && { resolution }),
+    };
+    localStorage.setItem(TRIAL_ROOM_HANDOFF_KEY, JSON.stringify(handoff));
+    navigate("/trial-room?from=tool&context=model-hub");
   };
 
   return (
@@ -390,7 +407,6 @@ const ModelGeneratorUI: React.FC = () => {
                   if (generatedImages[0]?.url) {
                     localStorage.setItem(MODEL_FACE_RETURN_URL_KEY, generatedImages[0].url);
                   }
-                  const source = new URLSearchParams(location.search).get("source");
                   if (source === "product-listing") {
                     navigate("/product-listing-studio?from=model-generator");
                   } else if (source === "fabric-studio") {
@@ -576,8 +592,25 @@ const ModelGeneratorUI: React.FC = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Generate Poses CTA */}
+                  {isModelGenerated && (
+                    <div className='mt-2'>
+                      <Button
+                        variant='gradient'
+                        size='md'
+                        onClick={() => handleGeneratePoses(image.url)}
+                        icon={<Sparkles className='w-3.5 h-3.5' />}
+                        className='w-full'
+                      >
+                        Generate Poses
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
+
+              
             </div>
           )}
         </div>

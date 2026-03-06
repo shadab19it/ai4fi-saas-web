@@ -75,8 +75,10 @@ export function usePlanFeatures() {
 
   const isResolutionAllowed = useCallback(
     (resolution: string): boolean => {
-      if (!resolution || !features) return true;
+      if (!resolution) return true;
       const upper = resolution.toUpperCase();
+      // No plan = free tier (Silver-level): HD only
+      if (!features) return upper !== "2K" && upper !== "4K";
       if (upper === "4K" && !features.fourKUpscale) return false;
       const name = planName?.toLowerCase();
       if (name === "silver" && (upper === "2K" || upper === "4K")) return false;
@@ -98,7 +100,8 @@ export function usePlanFeatures() {
 
   const isFeatureAllowed = useCallback(
     (key: keyof PlanFeatures): boolean => {
-      if (!features) return true;
+      // No plan = free tier: premium features disabled
+      if (!features) return false;
       const val = features[key];
       return val !== false && val !== "" && val !== null && val !== undefined && val !== 0;
     },
