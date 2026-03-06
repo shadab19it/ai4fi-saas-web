@@ -35,7 +35,6 @@ import {
   aspectRatioOptions,
   resolutionOptions,
 } from "./optionInput";
-import Logo from "../../../../public/dark-logo2.png";
 import { Link } from "react-router-dom";
 
 
@@ -189,7 +188,7 @@ const ModelConfigForm: FC<any> = ({
       <div className='px-4 py-3 border-b border-[#E5E2DA] flex items-center justify-between shrink-0'>
         <div className='flex items-center gap-2.5'>
           <Link to='/'>
-            <img src={Logo} className='w-18 h-10 rounded-lg object-cover' alt='AI4FI' />
+            <img src={"/public/dark-logo2.png"} className='w-18 h-10 rounded-lg object-cover' alt='AI4FI' />
           </Link>
         </div>
         <Button

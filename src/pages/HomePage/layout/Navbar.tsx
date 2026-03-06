@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Menu, X, ChevronRight, Zap, User, ChevronDown, Sparkles, Layers, Clapperboard, GalleryHorizontal, CreditCard, Shield, LogOut, Scissors } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import authService from "../../../services/authService";
@@ -350,22 +350,23 @@ const Navbar = () => {
 	const [activeLink, setActiveLink] = useState("home");
 	const [mobileOfferingsOpen, setMobileOfferingsOpen] = useState(false);
 	const [mobileGalleryOpen, setMobileGalleryOpen] = useState(false);
+	const location = useLocation();
 
 	useEffect(() => {
-		if (typeof window !== "undefined") {
-			const path = window.location.pathname;
-			if (path === "/") setActiveLink("home");
-			else if (path === "/about") setActiveLink("about");
-			else if (path === "/model-gallery") setActiveLink("gallery");
-			else if (path === "/contact") setActiveLink("contact");
-			else if (path === "/pricing") setActiveLink("pricing");
-			else if (path === "/model-gallery") setActiveLink("model-gallery");
-			else if (path === "/client-showcase") setActiveLink("client-showcase");
-		}
+		const path = location.pathname;
+		if (path === "/") setActiveLink("home");
+		else if (path === "/about") setActiveLink("about");
+		else if (path === "/model-gallery") setActiveLink("gallery");
+		else if (path === "/contact") setActiveLink("contact");
+		else if (path === "/pricing") setActiveLink("pricing");
+		else if (path === "/client-showcase") setActiveLink("client-showcase");
+	}, [location.pathname]);
+
+	useEffect(() => {
 		const handleScroll = () => setIsScrolled(window.scrollY > 20);
 		window.addEventListener("scroll", handleScroll);
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, [window.location.pathname]);
+	}, []);
 
 	const navLinks = [
 		{ name: "Home", link: "/", isLink: true },

@@ -1,12 +1,76 @@
-import { motion, useScroll, useTransform, useSpring } from "motion/react";
+import { motion, useScroll, useTransform, useSpring, MotionValue } from "motion/react";
 import { useRef } from "react";
-import {
-	Advertisement,
-	PhotoStudio,
-	VirtualTrialRoom,
-} from "./KeyFeatureItems";
 
-const IMAGES = [
+type ImageData = {
+	id: number;
+	src: string;
+	alt: string;
+	fromX: number;
+	fromY: number;
+	rotate: number;
+	bg: string;
+	size: number;
+	z: number;
+};
+
+// Each card gets its own component so useTransform is called at the top level (Rules of Hooks)
+const ImageCard = ({
+	img,
+	smoothProgress,
+	stagger,
+}: {
+	img: ImageData;
+	smoothProgress: MotionValue<number>;
+	stagger: number;
+}) => {
+	const range = [0.1 + stagger, 0.35 + stagger] as [number, number];
+	const x = useTransform(smoothProgress, range, [`${img.fromX}vw`, "0vw"]);
+	const y = useTransform(smoothProgress, range, [`${img.fromY}vh`, "0vh"]);
+	const rotate = useTransform(smoothProgress, range, [img.rotate * 2, img.rotate]);
+	const scale = useTransform(smoothProgress, range, [0.5, 1]);
+	const opacity = useTransform(smoothProgress, [0.05 + stagger, 0.2 + stagger], [0, 1]);
+
+	return (
+		<motion.div
+			className="absolute w-[160px] md:w-[200px] lg:w-[15%] rounded-xl overflow-hidden bg-background/50 backdrop-blur-sm"
+			style={{
+				aspectRatio: "3/4",
+				x,
+				y,
+				rotate,
+				opacity,
+				scale,
+				zIndex: img.z,
+				boxShadow: "0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08)",
+			}}
+		>
+			<div className={`absolute inset-0 bg-gradient-to-br ${img.bg} opacity-10`} />
+			<img
+				src={img.src}
+				alt={img.alt}
+				className="w-full h-full object-cover block relative z-10"
+				style={{ padding: "4px" }}
+			/>
+			<div
+				className={`absolute inset-0 bg-gradient-to-br ${img.bg} z-20 pointer-events-none`}
+				style={{ opacity: 0.15, mixBlendMode: "overlay" }}
+			/>
+			<div
+				className="absolute bottom-0 left-0 right-0 z-30 px-4 pb-4 pt-10"
+				style={{ background: "linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)" }}
+			>
+				<p
+					className="text-white/80 uppercase tracking-[0.2em] m-0 font-medium"
+					style={{ fontSize: 10, fontFamily: "'Courier New', monospace" }}
+				>
+					{img.alt}
+				</p>
+			</div>
+		</motion.div>
+	);
+};
+
+const IMAGES: ImageData[] = [
 	{
 		id: 1,
 		// src: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=600&q=80",
@@ -65,34 +129,25 @@ export default function SayGoodBySection() {
 		offset: ["start start", "end end"],
 	});
 
-	// Smooth out the scroll progress
 	const smoothProgress = useSpring(scrollYProgress, {
 		stiffness: 100,
 		damping: 30,
 		restDelta: 0.001,
 	});
 
-	// Transitions for Hero
-	const heroOpacity = useTransform(
-		smoothProgress,
-		[0, 0.45, 0.55, 0.6],
-		[1, 1, 0, 0],
-	);
+	// Hero transitions
+	const heroOpacity = useTransform(smoothProgress, [0, 0.45, 0.55, 0.6], [1, 1, 0, 0]);
 	const heroScale = useTransform(smoothProgress, [0, 0.45, 0.55], [1, 1, 0.9]);
 	const heroY = useTransform(smoothProgress, [0.45, 0.55], ["0%", "-10%"]);
 
-	// Transitions for Welcome Section
-	const welcomeOpacity = useTransform(
-		smoothProgress,
-		[0.55, 0.65, 0.9, 1],
-		[0, 1, 1, 0],
-	);
+	// Hanging thread scaleY — extracted from JSX to satisfy Rules of Hooks
+	const threadScaleY = useTransform(smoothProgress, [0, 0.2], [0, 1]);
+
+	// Welcome section transitions
+	const welcomeOpacity = useTransform(smoothProgress, [0.55, 0.65, 0.9, 1], [0, 1, 1, 0]);
 	const welcomeScale = useTransform(smoothProgress, [0.55, 0.65], [0.95, 1]);
 	const welcomeY = useTransform(smoothProgress, [0.55, 0.65], ["40px", "0px"]);
 
-	// Transitions for Next Panels
-
-	// Scroll indicator visibility
 	const indicatorOpacity = useTransform(smoothProgress, [0, 0.1], [1, 0]);
 	return (
 		<div
@@ -124,9 +179,9 @@ export default function SayGoodBySection() {
 					<motion.div
 						className="absolute top-0 w-[1px] bg-gradient-to-b from-transparent via-brand-color/50 to-brand-color/80"
 						style={{
-							height: "42vh", // Length of the thread to the title center
+							height: "42vh",
 							opacity: heroOpacity,
-							scaleY: useTransform(smoothProgress, [0, 0.2], [0, 1]),
+							scaleY: threadScaleY,
 							originY: 0,
 						}}
 					/>
@@ -158,82 +213,15 @@ export default function SayGoodBySection() {
 						<div className="w-16 h-[2px] bg-brand-color/60 mx-auto mt-12 shadow-[0_0_15px_rgba(var(--brand-rgb),0.5)]" />
 					</div>
 
-					{/* Scattered Images */}
-					{IMAGES.map((img, i) => {
-						const stagger = i * 0.05;
-						// Images start flying in as headline is focused
-						const range = [0.1 + stagger, 0.35 + stagger];
-
-						const x = useTransform(smoothProgress, range, [
-							`${img.fromX}vw`,
-							"0vw",
-						]);
-						const y = useTransform(smoothProgress, range, [
-							`${img.fromY}vh`,
-							"0vh",
-						]);
-						const rotate = useTransform(smoothProgress, range, [
-							img.rotate * 2,
-							img.rotate,
-						]);
-						const scale = useTransform(smoothProgress, range, [0.5, 1]);
-						const opacity = useTransform(
-							smoothProgress,
-							[0.05 + stagger, 0.2 + stagger],
-							[0, 1],
-						);
-
-						return (
-							<motion.div
-								key={img.id}
-								className="absolute w-[160px] md:w-[200px] lg:w-[15%] rounded-xl overflow-hidden bg-background/50 backdrop-blur-sm"
-								style={{
-									// width: `clamp(120px, 18vw, ${img.size}px)`,
-
-									aspectRatio: "3/4", // Common portrait ratio
-									x,
-									y,
-									rotate,
-									opacity,
-									scale,
-									zIndex: img.z,
-									boxShadow:
-										"0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08)",
-								}}
-							>
-								<div
-									className={`absolute inset-0 bg-gradient-to-br ${img.bg} opacity-10`}
-								/>
-								<img
-									src={img.src}
-									alt={img.alt}
-									className="w-full h-full object-cover block relative z-10"
-									style={{ padding: "4px" }} // Padding ensures edges are never cut
-								/>
-								<div
-									className={`absolute inset-0 bg-gradient-to-br ${img.bg} z-20 pointer-events-none`}
-									style={{ opacity: 0.15, mixBlendMode: "overlay" }}
-								/>
-								<div
-									className="absolute bottom-0 left-0 right-0 z-30 px-4 pb-4 pt-10"
-									style={{
-										background:
-											"linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)",
-									}}
-								>
-									<p
-										className="text-white/80 uppercase tracking-[0.2em] m-0 font-medium"
-										style={{
-											fontSize: 10,
-											fontFamily: "'Courier New', monospace",
-										}}
-									>
-										{img.alt}
-									</p>
-								</div>
-							</motion.div>
-						);
-					})}
+				{/* Scattered Images */}
+				{IMAGES.map((img, i) => (
+						<ImageCard
+							key={img.id}
+							img={img}
+							smoothProgress={smoothProgress}
+							stagger={i * 0.05}
+						/>
+					))}
 				</motion.div>
 
 				{/* ── WELCOME VIEW ── */}

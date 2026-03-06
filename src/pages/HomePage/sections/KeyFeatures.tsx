@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, Fragment } from "react";
+import { useState, useRef, useEffect, useMemo, Fragment } from "react";
 import { TrendingUp } from "lucide-react";
 import { useTheme } from "../../../context/ThemeContext";
 import { motion } from "motion/react";
@@ -14,7 +14,8 @@ const KeyFeatures = () => {
 	const { theme } = useTheme();
 	const isMobile = useMediaQuery("(max-width: 768px)");
 
-	const features = [
+	// Memoized so JSX children aren't recreated on every render
+	const features = useMemo(() => [
 		{
 			title: "StyleLabs",
 			children: <VirtualTrialHighlight />,
@@ -30,45 +31,41 @@ const KeyFeatures = () => {
 			children: <AdGeneratorSection />,
 			accentColor: "from-orange-500 to-red-500",
 		},
-	];
+	], []);
 
 	const [activeIndex, setActiveIndex] = useState(0);
 	const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
 	const isScrolling = useRef(false);
+	// Track activeIndex in a ref so the scroll listener never needs to re-subscribe
+	const activeIndexRef = useRef(activeIndex);
+	useEffect(() => { activeIndexRef.current = activeIndex; }, [activeIndex]);
 
-	// ✅ Fixed Scroll Sync Logic (Sticky Stack Behavior)
 	useEffect(() => {
 		if (isMobile) return;
 
 		const handleScroll = () => {
 			if (isScrolling.current) return;
 
-			const STICKY_POINT = 120; // matches sticky top-[120px]
+			const STICKY_POINT = 120;
 			let newActiveIndex = 0;
 
 			sectionRefs.current.forEach((section, index) => {
 				if (!section) return;
-
 				const rect = section.getBoundingClientRect();
-
-				// When section reaches sticky zone
 				if (rect.top <= STICKY_POINT + 5) {
 					newActiveIndex = index;
 				}
 			});
 
-			// Lock to last section once fully visible
 			const lastSection = sectionRefs.current[sectionRefs.current.length - 1];
-
 			if (lastSection) {
 				const lastRect = lastSection.getBoundingClientRect();
-
 				if (lastRect.bottom <= window.innerHeight) {
 					newActiveIndex = sectionRefs.current.length - 1;
 				}
 			}
 
-			if (newActiveIndex !== activeIndex) {
+			if (newActiveIndex !== activeIndexRef.current) {
 				setActiveIndex(newActiveIndex);
 			}
 		};
@@ -77,7 +74,7 @@ const KeyFeatures = () => {
 		handleScroll();
 
 		return () => window.removeEventListener("scroll", handleScroll);
-	}, [activeIndex, isMobile]);
+	}, [isMobile]); // no longer depends on activeIndex
 
 	const handleTabClick = (index: number) => {
 		const targetElement = sectionRefs.current[index];

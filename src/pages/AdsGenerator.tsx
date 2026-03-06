@@ -3,7 +3,6 @@
 import { FC, useState } from "react"
 import ProductImage from "../assets/ads-product-img.png"
 import ProductWithModel from "../assets/ads-with-model.jpeg"
-import ProductWithModelVideo from "../assets/ads_generated_video.mp4"
 import { Link, useNavigate } from "react-router-dom"
 import DarkLogo from "../../public/dark-logo.png"
 import { Sparkles } from "lucide-react"
@@ -168,7 +167,7 @@ const AdsGenerator: FC = () => {
                     />
                     {/* Video, fades in on hover */}
                     <video
-                      src={ProductWithModelVideo}
+                      src={"https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/ad/1/generated_video+(5).mp4"}
                       className="w-full h-full object-cover rounded-xl transition-opacity duration-500 absolute top-0 left-0 z-20 opacity-0 group-hover:opacity-100"
                       
                       loop

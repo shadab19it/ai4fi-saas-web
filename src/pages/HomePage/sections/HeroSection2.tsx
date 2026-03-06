@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 
 import BorderBeamAnimation from '../../../components/common/AnimatedBorder'
 import { useTheme } from '../../../context/ThemeContext'
@@ -11,38 +11,54 @@ import { motion } from 'motion/react'
 const HeroSection2 = () => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const { theme } = useTheme()
-  const partners = [
+  const partners = useMemo(() => [
     SvgIcons.amazone,
     SvgIcons.google,
     SvgIcons.netflix,
     SvgIcons.shopify,
     SvgIcons.youtube,
-  ];
+  ], []);
 
+  // Compute star positions once — Math.random() in render causes layout thrash on every re-render
+  const stars = useMemo(
+    () => [...Array(80)].map((_, i) => ({
+      id: i,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      duration: 2 + Math.random() * 3,
+      delay: Math.random() * 2,
+    })),
+    []
+  );
+
+  // Play video only when it enters the viewport
   useEffect(() => {
-    const video = videoRef.current
-    if (video) {
-      // Set webkit-playsinline for older iOS versions
-      video.setAttribute('webkit-playsinline', 'true')
-      video.setAttribute('playsinline', 'true')
+    const video = videoRef.current;
+    if (!video) return;
 
-      // Force play on iOS devices
-      const playPromise = video.play()
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Auto-play was prevented, try again on user interaction
-          const handleUserInteraction = () => {
-            video.play().catch(() => {
-              // Silently handle if still prevented
-            })
-            document.removeEventListener('touchstart', handleUserInteraction)
-            document.removeEventListener('click', handleUserInteraction)
-          }
-          document.addEventListener('touchstart', handleUserInteraction, { once: true })
-          document.addEventListener('click', handleUserInteraction, { once: true })
-        })
-      }
-    }
+    video.setAttribute('webkit-playsinline', 'true');
+    video.setAttribute('playsinline', 'true');
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {
+            const handleUserInteraction = () => {
+              video.play().catch(() => {});
+              document.removeEventListener('touchstart', handleUserInteraction);
+              document.removeEventListener('click', handleUserInteraction);
+            };
+            document.addEventListener('touchstart', handleUserInteraction, { once: true });
+            document.addEventListener('click', handleUserInteraction, { once: true });
+          });
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
   }, [])
 
   return (
@@ -54,16 +70,16 @@ const HeroSection2 = () => {
       )} */}
 
       {theme == 'dark' &&
-        <div className="fixed inset-0 z-0">
-          {[...Array(80)].map((_, i) => (
+        <div className="absolute inset-0 z-0">
+          {stars.map((star) => (
             <div
-              key={i}
+              key={star.id}
               className="absolute w-1 h-1 bg-white rounded-full"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animation: `twinkle ${2 + Math.random() * 3}s infinite`,
-                animationDelay: `${Math.random() * 2}s`,
+                left: `${star.left}%`,
+                top: `${star.top}%`,
+                animation: `twinkle ${star.duration}s infinite`,
+                animationDelay: `${star.delay}s`,
               }}
             />
           ))}
@@ -114,18 +130,11 @@ const HeroSection2 = () => {
               <video
                 ref={videoRef}
                 src="/herovideo.MP4"
-                autoPlay
                 muted
                 loop
                 playsInline
-                preload="auto"
-                onLoadedMetadata={(e) => {
-                  const video = e.currentTarget
-                  video.play().catch(() => {
-                    // Silently handle autoplay prevention
-                  })
-                }}
-                className="w-full  h-96 md:h-[620px]  object-contain "
+                preload="none"
+                className="w-full h-96 md:h-[620px] object-contain"
               />
             </div>
           </div>

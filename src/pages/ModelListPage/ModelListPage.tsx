@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import modelService from "../../services/modelService";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import logo from '../../../public/dark-logo2.png';
 import {
   clearSelectedModel,
   setModelList,
@@ -362,7 +361,7 @@ const ModelListPage: FC = () => {
             <div className="max-w-[1600px] mx-auto w-full flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Link to='/' className='flex items-center gap-2'>
-                     <img src={logo} alt="AI4FI" className='w-18 h-12 object-contain' />
+                     <img src={"/public/dark-logo2.png"} alt="AI4FI" className='w-18 h-12 object-contain' />
                     </Link>
                     <div className="h-6 w-px bg-[#E5E2DA] hidden sm:block" />
                     <nav className="hidden sm:flex items-center gap-1">

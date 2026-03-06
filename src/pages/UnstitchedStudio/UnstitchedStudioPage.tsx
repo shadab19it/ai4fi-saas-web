@@ -26,7 +26,6 @@ import ModelGalleryModal from "../../components/common/ModelGalleryModal"
 import LoadingOverlay from "../../components/CreateAds/LoadingOverlay"
 import modelService from "../../services/modelService"
 import commonService from "../../services/commonService"
-import DarkLogo from "../../../public/dark-logo2.png"
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import {
   ECOMMERCE_PLATFORM_OPTIONS,

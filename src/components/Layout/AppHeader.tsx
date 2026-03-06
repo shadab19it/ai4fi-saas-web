@@ -5,7 +5,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/store';
 import { setUser } from '../../store/userReducer';
 import authService from '../../services/authService';
-import logo from '../../../public/dark-logo2.png';
 import Button from '../ui/Button';
 import { DRESS_IMAGE_PERSIST_KEY, FABRIC_STUDIO_PERSIST_KEY, PRODUCT_LISTING_PERSIST_KEY, TRIAL_ROOM_HANDOFF_KEY } from '../../constants/modelFace';
 
@@ -78,7 +77,7 @@ const AppHeader: FC<AppHeaderProps> = ({ title, description = null }) => {
         {/* Logo */}
         <div className='flex items-center gap-5'>
           <Link to='/' className='flex items-center gap-2'>
-           <img src={logo} alt="AI4FI" className='w-18 h-12 object-contain' />
+           <img src={"/public/dark-logo2.png"} alt="AI4FI" className='w-18 h-12 object-contain' />
           </Link>
           {title && (
             <>

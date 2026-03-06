@@ -1,4 +1,4 @@
-import React, { FC, ReactNode, useEffect, useRef } from "react";
+import React, { FC, ReactNode, useEffect, useRef, useMemo } from "react";
 import {
 	Camera,
 	Image as ImageIcon,
@@ -54,6 +54,25 @@ const ProcessStep: FC<{
 
 /* --- MAIN COMPONENT --- */
 export const VirtualTrialHighlight = () => {
+	const videoRef = useRef<HTMLVideoElement>(null);
+
+	useEffect(() => {
+		const video = videoRef.current;
+		if (!video) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					video.play().catch(() => {});
+				} else {
+					video.pause();
+				}
+			},
+			{ threshold: 0.3 }
+		);
+		observer.observe(video);
+		return () => observer.disconnect();
+	}, []);
+
 	return (
 		<section className="py-10 h-full md:h-[85vh] flex flex-col justify-center items-center px-6 bg-background">
 			<div className="max-w-full mx-auto">
@@ -134,14 +153,15 @@ export const VirtualTrialHighlight = () => {
 
 							{/* Video Placeholder Content */}
 							<div className="relative aspect-[4/5] bg-slate-100 rounded-xl overflow-hidden group cursor-pointer">
-								<video
-									src="https://ai4fi.s3.ap-south-1.amazonaws.com/WhatsApp+Video+2026-03-06+at+12.57.47+AM.mp4"
-									className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
-									autoPlay
-									loop
-									muted
-									playsInline
-								/>
+							<video
+								ref={videoRef}
+								src="https://ai4fi.s3.ap-south-1.amazonaws.com/WhatsApp+Video+2026-03-06+at+12.57.47+AM.mp4"
+								className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+								loop
+								muted
+								playsInline
+								preload="none"
+							/>
 
 								{/* Play Button Overlay */}
 								<div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors flex items-center justify-center">
@@ -470,12 +490,28 @@ const AdStep: FC<{
 export const AdGeneratorSection = () => {
 	const videoRef = useRef<HTMLVideoElement>(null);
 
+	// Compute waveform bar heights once — Math.random() in render causes new values every re-render
+	const waveformBars = useMemo(
+		() => [...Array(30)].map((_, i) => ({ id: i, height: Math.random() * 100 })),
+		[]
+	);
+
+	// Play video only when visible in viewport
 	useEffect(() => {
-		if (videoRef.current) {
-			videoRef.current.play().catch(error => {
-				console.log("Video autoplay failed:", error);
-			});
-		}
+		const video = videoRef.current;
+		if (!video) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					video.play().catch(() => {});
+				} else {
+					video.pause();
+				}
+			},
+			{ threshold: 0.3 }
+		);
+		observer.observe(video);
+		return () => observer.disconnect();
 	}, []);
 
 	return (
@@ -567,10 +603,10 @@ export const AdGeneratorSection = () => {
 									ref={videoRef}
 									src="https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/ad/1/generated_video+(5).mp4"
 									className="w-full h-full object-cover opacity-90"
-									autoPlay
 									loop
 									muted
 									playsInline
+									preload="none"
 								/>
 
 								{/* Floating "Raw Input" Card */}
@@ -624,13 +660,13 @@ export const AdGeneratorSection = () => {
 
 								{/* Audio Track Visual (Waveform Animation) */}
 								<div className="h-6 bg-pink-50 rounded border border-pink-100 flex items-center justify-center gap-0.5 px-2 overflow-hidden">
-									{[...Array(30)].map((_, i) => (
+									{waveformBars.map((bar) => (
 										<div
-											key={i}
+											key={bar.id}
 											className="w-1 bg-pink-400 rounded-full animate-wave"
 											style={{
-												height: `${Math.random() * 100}%`,
-												animationDelay: `${i * 0.05}s`,
+												height: `${bar.height}%`,
+												animationDelay: `${bar.id * 0.05}s`,
 											}}
 										></div>
 									))}
