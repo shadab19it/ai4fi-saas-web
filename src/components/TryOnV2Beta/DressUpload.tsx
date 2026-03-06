@@ -750,76 +750,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                         )}
                       </div>
                     )}
-                  </div>
-
-
-
-
-             
-                  {/* Prompt Settings */}
-                  <div>
-                    <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
-                      Prompt Settings
-                      <div className="group relative">
-                        <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                          Choose between AI-recommended prompts or customize your own
-                        </div>
-                      </div>
-                    </label>
-                    <div className="space-y-2">
-                      <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-colors ${
-                        !useCustomPrompt
-                          ? "border-violet-300 bg-violet-50"
-                          : "border-[#E5E2DA] hover:bg-[#F9F8F5]"
-                      }`}>
-                        <input
-                          type="radio"
-                          name="promptType"
-                          checked={!useCustomPrompt}
-                          onChange={() => {
-                            setUseCustomPrompt(false)
-                            setPromptOverride("")
-                          }}
-                          className="w-4 h-4 text-violet-600 border-[#E5E2DA] focus:ring-violet-500 focus:ring-2"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <span className="block text-[13px] font-semibold text-stone-900">AI Recommended</span>
-                          <p className="text-[11.5px] text-[#9E9893] mt-0.5">Optimized prompts for best results</p>
-                        </div>
-                      </label>
-                      <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-colors ${
-                        useCustomPrompt
-                          ? "border-violet-300 bg-violet-50"
-                          : "border-[#E5E2DA] hover:bg-[#F9F8F5]"
-                      }`}>
-                        <input
-                          type="radio"
-                          name="promptType"
-                          checked={useCustomPrompt}
-                          onChange={() => setUseCustomPrompt(true)}
-                          className="w-4 h-4 text-violet-600 border-[#E5E2DA] focus:ring-violet-500 focus:ring-2"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <span className="block text-[13px] font-semibold text-stone-900">Custom Prompt</span>
-                          <p className="text-[11.5px] text-[#9E9893] mt-0.5">Define your own styling preferences</p>
-                        </div>
-                      </label>
-                    </div>
-                    {useCustomPrompt && (
-                      <div className="mt-3">
-                        <textarea
-                          rows={5}
-                          value={promptOverride}
-                          onChange={(e) => setPromptOverride(e.target.value)}
-                          placeholder="e.g., 'wearing a red dress, professional look, studio lighting'"
-                          className="w-full px-3.5 py-3 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] placeholder-[#9E9893] focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all resize-none"
-                        />
-                      </div>
-                    )}
-                  </div>
-
-             
+                  </div>        
             
                 </div>
               </CollapsibleSidebar>

@@ -16,7 +16,7 @@ const KeyFeatures = () => {
 
 	const features = [
 		{
-			title: "Virtual Trial Room",
+			title: "StyleLabs",
 			children: <VirtualTrialHighlight />,
 			accentColor: "from-blue-500 to-cyan-500",
 		},
@@ -26,7 +26,7 @@ const KeyFeatures = () => {
 			accentColor: "from-purple-500 to-pink-500",
 		},
 		{
-			title: "Advertisement",
+			title: "MotionLab",
 			children: <AdGeneratorSection />,
 			accentColor: "from-orange-500 to-red-500",
 		},

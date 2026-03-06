@@ -19,6 +19,7 @@ import {
 	Layers,
 	CheckCircle2,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 /* --- SUB-COMPONENT: PROCESS STEP --- */
 const ProcessStep: FC<{
@@ -104,9 +105,11 @@ export const VirtualTrialHighlight = () => {
 
 						{/* CTA */}
 						<div>
-							<button className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-lg shadow-lg shadow-slate-200 transition-all hover:-translate-y-0.5">
-								Try Virtual Studio <ArrowRight size={16} />
+							<Link to="/trial-room">
+							<button  className="flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-lg shadow-lg shadow-slate-200 transition-all hover:-translate-y-0.5">
+								StyleLabs <ArrowRight size={16} />
 							</button>
+							</Link>
 						</div>
 					</div>
 
@@ -131,10 +134,13 @@ export const VirtualTrialHighlight = () => {
 
 							{/* Video Placeholder Content */}
 							<div className="relative aspect-[4/5] bg-slate-100 rounded-xl overflow-hidden group cursor-pointer">
-								<img
-									src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80"
-									alt="Virtual Try On Demo"
-									className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+								<video
+									src="https://ai4fi.s3.ap-south-1.amazonaws.com/WhatsApp+Video+2026-03-06+at+12.57.47+AM.mp4"
+									className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+									autoPlay
+									loop
+									muted
+									playsInline
 								/>
 
 								{/* Play Button Overlay */}
@@ -189,19 +195,19 @@ const generatedAssets = [
 	{
 		type: "Model - Studio",
 		tag: "Amazon Ready",
-		img: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=600&q=80", // Woman holding bag studio
+		img: "https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/product_photography/2/e035323ae4bb445a9b2c80d204002636.jpeg", // Woman holding bag studio
 		span: "col-span-2 row-span-2",
 	},
 	{
 		type: "Lifestyle - Urban",
 		tag: "Social",
-		img: "https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?auto=format&fit=crop&w=400&q=80", // Bag on street/table
+		img: "https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/product_photography/2/2a2e5315b9164b409cd9a7ee190f1d19.jpeg", // Bag on street/table
 		span: "col-span-1 row-span-1",
 	},
 	{
 		type: "Detail Shot",
 		tag: "Zoom",
-		img: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80", // Close up texture
+		img: "https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/product_photography/2/0feb16bd62e74213a1174d761fd75b2a.jpeg", // Close up texture
 		span: "col-span-1 row-span-1",
 	},
 ];
@@ -310,7 +316,7 @@ export const ProductPhotographySection = () => {
 										<div className="relative w-full h-32 mb-2">
 											{/* Mock Raw Image (Transparent BG) */}
 											<img
-												src="https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80"
+												src="https://ai4fi.s3.ap-south-1.amazonaws.com/Visual+Portfolio/product_photography/2/IMG_3706.JPG"
 												className="w-full h-full object-contain mix-blend-multiply opacity-80"
 												alt="Raw Bag"
 											/>
