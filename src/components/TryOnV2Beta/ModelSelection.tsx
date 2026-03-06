@@ -62,11 +62,6 @@ export default function ModelSelection({
       return
     }
 
-    if(tier === "professional" && !isCustomDimensions){
-      toast.error("Please select ecommerce platform")
-      return
-    }
-
     setIsGenerating(true)
     try {
       const dressFile = dataURLtoFile(dressImage, "dress-image.jpg")
