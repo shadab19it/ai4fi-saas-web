@@ -37,9 +37,9 @@ export default function GroupedSelect({
   useEffect(() => {
     if (isOpen) {
       const firstGroup = Object.keys(groupedOptions)[0];
-      if (firstGroup) {
-        setExpandedGroups(new Set([firstGroup]));
-      }
+      // if (firstGroup) {
+      //   setExpandedGroups(new Set([firstGroup]));
+      // }
     }
   }, [isOpen, groupedOptions]);
 

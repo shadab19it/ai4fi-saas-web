@@ -465,30 +465,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                 expandedWidthClass="xl:w-[360px]"
               >
                 <div className="rounded-2xl border border-[#E5E2DA] bg-white shadow-[0_1px_3px_rgba(28,25,23,0.06)] p-5 flex flex-col gap-5">
-                  {/* Gender */}
-                  <div>
-                    <label className="flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
-                      Gender
-                      <div className="group relative">
-                        <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                          Select the gender for the model
-                        </div>
-                      </div>
-                    </label>
-                    <select
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
-                    >
-                      <option value="baby">Baby</option>
-                      <option value="boy">Boy</option>
-                      <option value="female">Female</option>
-                      <option value="girl">Girl</option>
-                      <option value="male">Male</option>
-                      <option value="obese">Obese</option>
-                    </select>
-                  </div>
+             
 
 
                          {/* Quality Tier Selection */}
@@ -534,6 +511,31 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                         <div className="text-[11px] opacity-75 mt-0.5">High Quality</div>
                       </button>
                     </div>
+
+                         {/* Gender */}
+                  <div>
+                    <label className="flex mt-5 items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
+                      Gender
+                      <div className="group relative">
+                        <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                          Select the gender for the model
+                        </div>
+                      </div>
+                    </label>
+                    <select
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#E5E2DA] text-stone-900 text-[13px] font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-400 transition-all appearance-none cursor-pointer"
+                    >
+                      <option value="baby">Baby</option>
+                      <option value="boy">Boy</option>
+                      <option value="female">Female</option>
+                      <option value="girl">Girl</option>
+                      <option value="male">Male</option>
+                      <option value="obese">Obese</option>
+                    </select>
+                  </div>
 
 
 

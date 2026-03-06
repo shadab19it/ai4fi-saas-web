@@ -662,7 +662,7 @@ const CreditsPage = () => {
                 {canManageTeam || !team ? (
                   <div className='p-[14px_18px]'>
                     <p className='text-[12.5px] text-[#6B6560] mb-3 leading-relaxed'>
-                      Send an invitation to add a new member.
+                      Send an invitation to add a new member. {user?.subscription?.status !== "active" ? "You need to buy credits to invite members" : ""}
                     </p>
                     <form onSubmit={handleInviteSubmit} className='space-y-2'>
                       <div className='relative'>
@@ -680,7 +680,7 @@ const CreditsPage = () => {
                         size='md'
                         type='submit'
                         loading={isSendingInvite}
-                        disabled={!inviteEmail.trim()}
+                        disabled={!inviteEmail.trim() || isSendingInvite || user?.subscription?.status !== "active"}
                         icon={!isSendingInvite ? <Send className='h-3 w-3' /> : undefined}
                         className='w-full h-9'
                       >

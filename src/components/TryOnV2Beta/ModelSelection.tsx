@@ -25,7 +25,8 @@ interface ModelSelectionProps {
   garmentCategory?: string
   isCustomDimensions?: boolean
   onModelSelected: (selectedModel: string) => void
-  onBack: () => void
+  onBack: () => void,
+  startGenerate:boolean
 }
 
 
@@ -44,6 +45,7 @@ export default function ModelSelection({
   isCustomDimensions,
   onModelSelected,
   onBack,
+  startGenerate
 }: ModelSelectionProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedModel, setGeneratedModel] = useState<string | null>(null)
@@ -170,12 +172,12 @@ export default function ModelSelection({
   }
 
   useEffect(() => {
-    if (dressImage && !generatedModel) {
+    if (dressImage && !generatedModel && startGenerate) {
       setGeneratedModel(null)
       handleGenerateModel()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dressImage])
+  }, [dressImage,startGenerate])
 
   return (
     <div className="min-h-[calc(100vh-180px)] px-4 pb-8 pt-6">

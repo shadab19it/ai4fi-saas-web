@@ -27,6 +27,7 @@ export default function Home() {
   const [segment, setSegment] = useState<string | undefined>()
   const [garmentCategory, setGarmentCategory] = useState<string | undefined>()
   const [isCustomDimensions, setIsCustomDimensions] = useState<boolean | undefined>()
+  const [startGenerate,setStartGenerate] = useState<boolean>(false)
 
   useEffect(() => {
     const raw = localStorage.getItem(TRIAL_ROOM_HANDOFF_KEY)
@@ -82,6 +83,7 @@ export default function Home() {
     setSegment(selectedSegment)
     setGarmentCategory(selectedGarmentCategory)
     setIsCustomDimensions(customDimensions)
+    setStartGenerate(true)
     setStep("selection")
   }
 
@@ -90,7 +92,10 @@ export default function Home() {
     setStep("editor")
   }
 
-  const handleBackToSelection = () => setStep("selection")
+  const handleBackToSelection = () => {
+    setStep("selection")
+    setStartGenerate(false)
+  }
 
   const handleBackToDress = () => {
     setStep("dress")
@@ -102,7 +107,9 @@ export default function Home() {
     console.log("[v0] Try-on complete!")
   }
 
- 
+  
+
+ console.log("st", step)
 
   return (
     <main className="min-h-screen bg-[#F4F3EF]">
@@ -166,6 +173,7 @@ export default function Home() {
       {step === "selection" && dressImage && (
         <ModelSelection
           dressImage={dressImage}
+          startGenerate={startGenerate}
           gender={gender}
           promptOverride={promptOverride}
           modelImage={modelImage}

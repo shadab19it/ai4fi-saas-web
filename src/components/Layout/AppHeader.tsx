@@ -1,6 +1,6 @@
 import { FC, useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, LogOut, ChevronDown, User, ShieldCheck, Coins, Database, ArrowLeft } from 'lucide-react';
+import { Home, LogOut, ChevronDown, User, ShieldCheck, Coins, Database, ArrowLeft, Wallet } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../store/store';
 import { setUser } from '../../store/userReducer';
@@ -142,6 +142,14 @@ const AppHeader: FC<AppHeaderProps> = ({ title, description = null }) => {
                   >
                     <Home className='h-4 w-4' />
                     <span>Home</span>
+                  </Link>
+                  <Link to="/credits" onClick={() => setIsDropdownOpen(false)} className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#6B6560] transition-colors hover:bg-[#F9F8F5] hover:text-stone-900'>
+                    <Coins className='h-4 w-4' />
+                    <span>Credits</span>
+                  </Link>
+                  <Link to="/billing" onClick={() => setIsDropdownOpen(false)} className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#6B6560] transition-colors hover:bg-[#F9F8F5] hover:text-stone-900'>
+                    <Wallet className='h-4 w-4' />
+                    <span>Billing</span>
                   </Link>
                   <Link to="/generated-model" onClick={() => setIsDropdownOpen(false)} className='flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#6B6560] transition-colors hover:bg-[#F9F8F5] hover:text-stone-900'>
                     <Database className='h-4 w-4' />

@@ -12,6 +12,7 @@ import {
   PanelLeftClose,
   ImageIcon,
   RefreshCw,
+  Coins,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import modelService from "../../services/modelService";
@@ -75,6 +76,7 @@ export interface IFastGenModelGenerateConfig {
 
 const ModelGeneratorUI: React.FC = () => {
   const { selectedModel } = useSelector((state: RootState) => state.modelList);
+    const user = useSelector((state: RootState) => state.user.user);
   const isMobile = useMediaQuery("(max-width: 440px)");
   const dispatch = useDispatch();
   const location = useLocation();
@@ -113,7 +115,10 @@ const ModelGeneratorUI: React.FC = () => {
   const [regenInfo, setRegenInfo] = useState<RegenInfo | null>(null);
   const [isModeLocked, setIsModeLocked] = useState<boolean>(false);
   const is4kResolution = (resolution || "").toUpperCase() === "4K";
+  const { team } = useSelector((state: RootState) => state.team);
+  const isTeamUser = !!user?.teamId;
   const canShowFreeRegen = !!regenInfo && !is4kResolution && regenInfo.freeRegensRemaining > 0;
+  const effectiveCredits = user?.teamId ? (team?.credits ?? 0) : (user?.credits ?? 0);
 
   const calculateSecondsDifference = (time1: number, time2: number): number =>
     (time2 - time1) / 1000;
@@ -353,8 +358,16 @@ const ModelGeneratorUI: React.FC = () => {
               </p>
             </div>
           </div>
-
           <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-1.5 rounded-lg border border-[#E5E2DA] px-3 py-1.5 bg-gradient-to-r from-emerald-50 to-green-50'>
+            <Coins className='h-4 w-4 text-emerald-600' />
+            <span className='text-sm font-bold text-emerald-700 font-mono'>
+              {effectiveCredits}
+            </span>
+            <span className='text-[10px] text-emerald-600/70 hidden sm:inline'>
+              {isTeamUser ? "team credits" : "credits"}
+            </span>
+          </div>
             <Link
               to='/features'
               className='hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#E5E2DA] bg-white text-[12px] font-semibold text-[#6B6560] hover:bg-[#F9F8F5] hover:text-stone-900 transition-all'
