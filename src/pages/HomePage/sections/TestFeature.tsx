@@ -54,25 +54,6 @@ const ProcessStep: FC<{
 
 /* --- MAIN COMPONENT --- */
 export const VirtualTrialHighlight = () => {
-	const videoRef = useRef<HTMLVideoElement>(null);
-
-	useEffect(() => {
-		const video = videoRef.current;
-		if (!video) return;
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				if (entry.isIntersecting) {
-					video.play().catch(() => {});
-				} else {
-					video.pause();
-				}
-			},
-			{ threshold: 0.3 }
-		);
-		observer.observe(video);
-		return () => observer.disconnect();
-	}, []);
-
 	return (
 		<section className="py-10 h-full md:h-[85vh] flex flex-col justify-center items-center px-6 bg-background">
 			<div className="max-w-full mx-auto">
@@ -153,15 +134,14 @@ export const VirtualTrialHighlight = () => {
 
 							{/* Video Placeholder Content */}
 							<div className="relative aspect-[4/5] bg-slate-100 rounded-xl overflow-hidden group cursor-pointer">
-							<video
-								ref={videoRef}
-								src="https://ai4fi.s3.ap-south-1.amazonaws.com/WhatsApp+Video+2026-03-06+at+12.57.47+AM.mp4"
-								className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
-								loop
-								muted
-								playsInline
-								preload="none"
-							/>
+								<video
+									src="https://ai4fi.s3.ap-south-1.amazonaws.com/WhatsApp+Video+2026-03-06+at+12.57.47+AM.mp4"
+									className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+									autoPlay
+									loop
+									muted
+									playsInline
+								/>
 
 								{/* Play Button Overlay */}
 								<div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors flex items-center justify-center">

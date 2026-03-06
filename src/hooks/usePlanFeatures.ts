@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useContext } from "react";
+import { ReactReduxContext } from "react-redux";
+import { RootState } from "../store/store";
 import subscriptionService, { PlanFeatures } from "../services/subscriptionService";
 
 const CACHE_KEY = "ai4fi_plan_cache";
@@ -36,11 +38,22 @@ export const invalidatePlanCache = () => sessionStorage.removeItem(CACHE_KEY);
 const RESOLUTION_RANK: Record<string, number> = { "1K": 1, "2K": 2, "4K": 3 };
 
 export function usePlanFeatures() {
+  // Use context directly so this hook is safe even when rendered outside a Redux Provider
+  const reduxContext = useContext(ReactReduxContext);
+  const userRole = (reduxContext?.store?.getState() as RootState | undefined)?.user?.user?.role;
+  const isAdmin = userRole === "admin";
+
   const [planName, setPlanName] = useState<string | null>(null);
   const [features, setFeatures] = useState<PlanFeatures | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Admins bypass all plan checks — skip the API call entirely
+    if (isAdmin) {
+      setLoading(false);
+      return;
+    }
+
     const cached = readCache();
     if (cached) {
       setPlanName(cached.planName);
@@ -71,11 +84,11 @@ export function usePlanFeatures() {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, []);
+  }, [isAdmin]);
 
   const isResolutionAllowed = useCallback(
     (resolution: string): boolean => {
-      if (!resolution) return true;
+      if (isAdmin || !resolution) return true;
       const upper = resolution.toUpperCase();
       // No plan = free tier (Silver-level): HD only
       if (!features) return upper !== "2K" && upper !== "4K";
@@ -84,42 +97,49 @@ export function usePlanFeatures() {
       if (name === "silver" && (upper === "2K" || upper === "4K")) return false;
       return true;
     },
-    [features, planName],
+    [isAdmin, features, planName],
   );
 
   const maxUploadSizeMB = useMemo(() => {
+    if (isAdmin) return 100;
     if (!features?.maxUploadFileSize) return 15;
     const match = features.maxUploadFileSize.match(/(\d+)/);
     return match ? parseInt(match[1], 10) : 15;
-  }, [features]);
+  }, [isAdmin, features]);
 
   const allowedResolutions = useMemo(() => {
-    if (!features) return ["1K", "2K", "4K"];
+    if (isAdmin) return ["1K", "2K", "4K"];
+    if (!features) return ["1K"];
     return ["1K", "2K", "4K"].filter((r) => isResolutionAllowed(r));
-  }, [features, isResolutionAllowed]);
+  }, [isAdmin, features, isResolutionAllowed]);
 
   const isFeatureAllowed = useCallback(
     (key: keyof PlanFeatures): boolean => {
+      if (isAdmin) return true;
       // No plan = free tier: premium features disabled
       if (!features) return false;
       const val = features[key];
       return val !== false && val !== "" && val !== null && val !== undefined && val !== 0;
     },
-    [features],
+    [isAdmin, features],
   );
 
-  const poseLimit = useMemo(() => features?.poseCreationLimit ?? 8, [features]);
+  const poseLimit = useMemo(() => {
+    if (isAdmin) return Infinity;
+    return features?.poseCreationLimit ?? 8;
+  }, [isAdmin, features]);
 
   return {
     planName,
     features,
     loading,
+    isAdmin,
     isResolutionAllowed,
     isFeatureAllowed,
     maxUploadSizeMB,
     maxUploadSizeBytes: maxUploadSizeMB * 1024 * 1024,
     allowedResolutions,
     poseLimit,
-    hasPlan: !!planName,
+    hasPlan: isAdmin || !!planName,
   };
 }

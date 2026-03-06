@@ -1,5 +1,7 @@
 // Options for TryOnV2Beta components based on PhotoShoot_Studio JSON files
 
+import { backgroundGrouped } from "../ModelGenerator/ModelConfigForm/optionInput"
+
 export const footwearOptions = {
   male: {
     traditional: [
@@ -108,6 +110,33 @@ export const footwearOptions = {
       "mirror finish shoes",
       "gold finish shoes",
       "silver finish shoes"
+    ],
+    other: [
+      "snow boots",
+      "rain boots",
+      "work boots",
+      "steel toe boots",
+      "tactical boots",
+      "military boots",
+      "safety shoes",
+      "construction shoes",
+      "factory shoes",
+      "warehouse shoes",
+      "house slippers",
+      "bedroom slippers",
+      "spa slippers",
+      "hotel slippers",
+      "beach slippers",
+      "pool slides",
+      "shower sandals",
+      "orthopedic shoes",
+      "diabetic shoes",
+      "medical shoes",
+      "rehab shoes",
+      "post-surgery shoes",
+      "anti-slip shoes",
+      "firefighter boots",
+      "industrial boots"
     ]
   },
   female: {
@@ -221,174 +250,31 @@ export const footwearOptions = {
       "statement heels",
       "party boots",
       "high shine heels"
+    ],
+    other: [
+      "snow boots",
+      "rain boots",
+      "house slippers",
+      "bedroom slippers",
+      "spa slippers",
+      "hotel slippers",
+      "beach slippers",
+      "pool slides",
+      "shower sandals",
+      "orthopedic shoes",
+      "diabetic shoes",
+      "medical shoes",
+      "comfort shoes",
+      "rehab shoes",
+      "post-surgery shoes",
+      "anti-slip shoes",
+      "safety sandals",
+      "factory shoes",
+      "warehouse shoes"
     ]
   }
 }
 
-export const backgroundOptions = {
-  studio_backgrounds: [
-    "plain white studio",
-    "light grey studio",
-    "beige studio",
-    "cream studio",
-    "off-white studio",
-    "pastel pink studio",
-    "pastel blue studio",
-    "pastel green studio",
-    "matte black studio",
-    "charcoal grey studio",
-    "textured concrete wall",
-    "subtle marble wall",
-    "light wooden panel wall",
-    "dark wooden panel wall",
-    "brick wall studio",
-    "white brick wall",
-    "fabric drape backdrop",
-    "linen curtain backdrop",
-    "sheer white curtain backdrop",
-    "soft gradient backdrop",
-    "neutral wallpaper",
-    "muted floral wallpaper",
-    "minimal patterned wallpaper",
-    "hand-painted studio wall",
-    "subtle geometric wall"
-  ],
-  luxury_interiors: [
-    "luxury hotel lobby",
-    "modern hotel corridor",
-    "boutique hotel interior",
-    "hotel suite interior",
-    "marble hallway",
-    "designer showroom",
-    "fashion studio interior",
-    "high-end shopping mall",
-    "luxury penthouse interior",
-    "modern apartment living room",
-    "stylish cafe interior",
-    "fine dining restaurant",
-    "executive lounge",
-    "business class lobby",
-    "art deco interior",
-    "glass atrium lobby",
-    "royal banquet hall",
-    "heritage hotel interior",
-    "antique mansion interior",
-    "luxury villa interior",
-    "private club interior",
-    "premium spa interior",
-    "crystal chandelier hall",
-    "gold accented hallway",
-    "velvet lounge interior"
-  ],
-  office_corporate: [
-    "corporate office lobby",
-    "office corridor",
-    "conference room",
-    "glass building interior",
-    "co-working space",
-    "startup office interior",
-    "business lounge",
-    "executive office",
-    "boardroom interior",
-    "corporate reception area",
-    "training room",
-    "seminar hall",
-    "IT office workspace",
-    "open plan office",
-    "corner office",
-    "office cafeteria",
-    "corporate hallway",
-    "office waiting area",
-    "management cabin",
-    "strategy room",
-    "presentation room",
-    "innovation lab",
-    "design studio office",
-    "tech hub interior",
-    "corporate library"
-  ],
-  urban_outdoor: [
-    "urban street",
-    "city sidewalk",
-    "business district street",
-    "pedestrian street",
-    "brick wall street",
-    "art district street",
-    "market street",
-    "heritage street",
-    "residential street",
-    "old town lane",
-    "city square",
-    "metro station exterior",
-    "subway entrance",
-    "bus stop street",
-    "crosswalk street",
-    "bridge walkway",
-    "riverfront promenade",
-    "lakeside promenade",
-    "harbor walkway",
-    "boardwalk street",
-    "skyscraper plaza",
-    "downtown crossing",
-    "urban park entrance",
-    "shopping street",
-    "street cafe exterior"
-  ],
-  nature_garden: [
-    "garden pathway",
-    "park lawn",
-    "flower garden",
-    "courtyard with plants",
-    "villa garden",
-    "hotel garden",
-    "resort garden",
-    "heritage courtyard",
-    "palace garden",
-    "sunlit lawn",
-    "botanical garden",
-    "greenhouse garden",
-    "terrace garden",
-    "balcony garden",
-    "courtyard fountain",
-    "palm tree walkway",
-    "rose garden",
-    "tropical garden",
-    "zen garden",
-    "forest garden",
-    "riverbank greenery",
-    "lake garden",
-    "hill garden",
-    "sunset garden",
-    "misty garden"
-  ],
-  beach_resort: [
-    "beach resort walkway",
-    "poolside resort",
-    "wooden deck",
-    "seaside cafe",
-    "sunset beach",
-    "outdoor patio",
-    "rooftop terrace",
-    "balcony city view",
-    "hill resort balcony",
-    "tropical beach resort",
-    "cliffside terrace",
-    "lake house exterior",
-    "riverbank walkway",
-    "waterfront deck",
-    "marina boardwalk",
-    "beach boardwalk",
-    "coastal road",
-    "island resort path",
-    "seaside villa terrace",
-    "sunrise beach",
-    "beach lounge",
-    "palm beach walkway",
-    "ocean view balcony",
-    "shoreline path",
-    "beach cabana"
-  ]
-}
 
 export const accessoryOptions = {
   male: {
@@ -743,7 +629,7 @@ export const getGroupedFootwearOptions = (gender: string) => {
 }
 
 export const getGroupedBackgroundOptions = () => {
-  return backgroundOptions
+  return backgroundGrouped
 }
 
 export const getGroupedAccessoryOptions = (gender: string) => {

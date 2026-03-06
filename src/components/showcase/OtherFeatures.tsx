@@ -34,7 +34,7 @@ const FEATURE_GROUPS: FeatureGroup[] = [
 					},
 					{
 						type: "image",
-						src: "./Archive/unstrich_tryon/1/stiched_cloth.jpeg",
+						src: "https://ai4fi.s3.ap-south-1.amazonaws.com/unstiched_tryon/stiched_cloth.jpeg",
 						alt: "Stitched cloth male 1",
 					},
 				],
@@ -56,7 +56,7 @@ const FEATURE_GROUPS: FeatureGroup[] = [
 					},
 					{
 						type: "image",
-						src: "./Archive/unstrich_tryon/2/stiched_cloth.jpeg",
+						src: "https://ai4fi.s3.ap-south-1.amazonaws.com/unstiched_tryon/stiched_cloth.jpeg",
 						alt: "Stitched cloth female 1",
 					},
 				],

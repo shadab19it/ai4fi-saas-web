@@ -23,6 +23,8 @@ import Button from "../ui/Button"
 import ZoomImageModal from "../ui/ZoomImageModal"
 import LoadingOverlay from "../CreateAds/LoadingOverlay"
 import { useLocation, useSearchParams } from "react-router-dom"
+import { RootState } from "../../store/store"
+import { useSelector } from "react-redux"
 
 interface ModelEditorProps {
   selectedModel: string
@@ -162,10 +164,11 @@ export default function ModelEditor({
   garmentCategory: propGarmentCategory,
   isCustomDimensions
 }: ModelEditorProps) {
+  const user = useSelector((state: RootState) => state.user)
   const { poseLimit, isFeatureAllowed } = usePlanFeatures()
-  const bgAllowed = isFeatureAllowed("backgroundLibrary")
-  const accAllowed = isFeatureAllowed("accessoriesSupport")
-  const jewAllowed = isFeatureAllowed("jewellerySupport")
+  const bgAllowed = user.user?.role === "admin" ? true : isFeatureAllowed("backgroundLibrary")
+  const accAllowed = user.user?.role === "admin" ? true : isFeatureAllowed("accessoriesSupport")
+  const jewAllowed = user.user?.role === "admin" ? true : isFeatureAllowed("jewellerySupport")
   const [searchParams] = useSearchParams();
   const isFromTool = searchParams.get("from")
 

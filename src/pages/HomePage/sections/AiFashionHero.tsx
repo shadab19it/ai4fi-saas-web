@@ -83,14 +83,14 @@ const AiFashionHero: React.FC<AiFashionHeroProps> = ({
 
 
 	const partners = [
-		"./partners/chand.png",
-		"./partners/charkha_tales.webp",
-		"./partners/dhaga.png",
-		"./partners/mrignandani.png",
-		"./partners/zuni.png",
-		"./partners/novelty.png",
-		"./partners/alviaura_logo.png",
-		"./partners/azad_dairy_logo.png",
+		"https://ai4fi.s3.ap-south-1.amazonaws.com/partners-logo/chand.png",
+		"https://ai4fi.s3.ap-south-1.amazonaws.com/partners-logo/charkha_tales.webp",
+		"https://ai4fi.s3.ap-south-1.amazonaws.com/partners-logo/dhaga.png",
+		"https://ai4fi.s3.ap-south-1.amazonaws.com/partners-logo/mrignandani.png",
+		"https://ai4fi.s3.ap-south-1.amazonaws.com/partners-logo/zuni.png",
+		"https://ai4fi.s3.ap-south-1.amazonaws.com/partners-logo/novelty.png",
+		"https://ai4fi.s3.ap-south-1.amazonaws.com/partners-logo/alviaura_logo.png",
+		"https://ai4fi.s3.ap-south-1.amazonaws.com/partners-logo/azad_dairy_logo.png",
 	];
 	// const partners = [
 	// 	SvgIcons.amazone,

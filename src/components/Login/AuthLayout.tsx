@@ -35,7 +35,7 @@ const AuthLayout: FC<{
 			description: "Upload, Generate, Inspire",
 		},
 		{
-			image: "/login_2.png",
+			image: "",
 			label: "",
 			title: "Virtual Photo Studio",
 			description: "Visualize, Innovate, Launch",
