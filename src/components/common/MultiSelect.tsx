@@ -50,13 +50,10 @@ export default function MultiSelect({ options, onChange, noOfposes = 10000, sele
   };
 
   useEffect(() => {
-    if(selectedPoses.length > 0){
-      setSelectedOptions(selectedPoses.map((pose) => ({
-        value: pose.toLowerCase(),
-        label: `${pose}`
-      })));
-    }
-  }, [selectedPoses]);
+    setSelectedOptions(
+      selectedPoses.map((pose) => ({ value: pose, label: pose }))
+    )
+  }, [JSON.stringify(selectedPoses)]);
 
   return (
     <div className='relative w-full' ref={dropdownRef}>

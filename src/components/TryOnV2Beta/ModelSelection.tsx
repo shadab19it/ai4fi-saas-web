@@ -10,6 +10,8 @@ import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
 import ZoomImageModal from "../ui/ZoomImageModal"
 import { resizeImage, downloadBlob } from "./resizeImage"
+import { setUserRefresh } from "../../store/userReducer"
+import { useDispatch } from "react-redux"
 
 interface ModelSelectionProps {
   dressImage: string
@@ -47,6 +49,7 @@ export default function ModelSelection({
   onBack,
   startGenerate
 }: ModelSelectionProps) {
+  const dispatch = useDispatch();
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedModel, setGeneratedModel] = useState<string | null>(null)
   const [isHoveringGenerated, setIsHoveringGenerated] = useState(false)
@@ -121,6 +124,7 @@ export default function ModelSelection({
         const r = response.data.regeneration
         setRegenInfo({ generationId: r.generationId, freeRegensRemaining: r.freeRegensRemaining })
       }
+      dispatch(setUserRefresh());
       if (!response.data?.urls?.length) {
         throw new Error("No image URL returned from API")
       }

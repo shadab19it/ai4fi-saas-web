@@ -36,6 +36,8 @@ import {
   type ProductListingMarketplace,
 } from "../../constants/ecommercePlatforms"
 import { PRODUCT_LISTING_PERSIST_KEY } from "../../constants/modelFace"
+import { setUserRefresh } from "../../store/userReducer"
+import { useDispatch } from "react-redux"
 
 // ─── Types ──────────────────────────────────────────
 type GenerationMode = "banner" | "lifestyle"
@@ -95,7 +97,7 @@ export default function ProductListingStudioPage() {
 
   // Banner-specific
   const [aspectRatio, setAspectRatio] = useState("1:1")
-  const [resolution, setResolution] = useState("2K")
+  const [resolution, setResolution] = useState("1K")
 
   // Lifestyle-specific
   const [count, setCount] = useState(4)
@@ -110,6 +112,7 @@ export default function ProductListingStudioPage() {
   const [generationTime, setGenerationTime] = useState(0)
   const [copiedField, setCopiedField] = useState<string | null>(null)
   const [downloadAllLoading, setDownloadAllLoading] = useState(false)
+  const dispatch = useDispatch();
 
   // Refs
   const productInputRef = useRef<HTMLInputElement>(null)
@@ -128,7 +131,7 @@ export default function ProductListingStudioPage() {
         setShortDescription(data.shortDescription || "")
         setTagline(data.tagline || "")
         setAspectRatio(data.aspectRatio || "1:1")
-        setResolution(data.resolution || "2K")
+        setResolution(data.resolution || "1K")
         setCount(data.count || 4)
         setModelImageCount(data.modelImageCount || 0)
         setTier(data.tier || "basic")
@@ -343,6 +346,7 @@ export default function ProductListingStudioPage() {
         setListingData(res.listing_data)
         setGenerationTime(res.generation_time_seconds)
         toast.success("Lifestyle listing generated successfully!")
+        dispatch(setUserRefresh());
       }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Generation failed. Please try again.")

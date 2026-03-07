@@ -36,6 +36,9 @@ export default function ModelGalleryModal({
   const [totalPages, setTotalPages] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [totalImages, setTotalImages] = useState(0);
+  // Incremented each time the modal opens; forces Effect 2 to re-run even when
+  // category/gender haven't changed (avoids blank re-open after same-state close).
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const fetchCategories = useCallback(async () => {
     setLoadingCategories(true);
@@ -43,16 +46,15 @@ export default function ModelGalleryModal({
       const response = await galleryService.getCategories(source);
       if (response.success && response.categories.length > 0) {
         setCategories(response.categories);
-        if (!activeCategory) {
-          setActiveCategory(response.categories[0]);
-        }
+        // Functional update: only set if still empty (reset happened in Effect 1)
+        setActiveCategory(prev => prev || response.categories[0]);
       }
     } catch (error) {
       console.error("Failed to fetch categories:", error);
     } finally {
       setLoadingCategories(false);
     }
-  }, [source, activeCategory]);
+  }, [source]); // removed activeCategory dep — no longer causes recreation on category change
 
   const fetchImages = useCallback(async (categoryToFetch: string, pageNum: number, genderFilter?: GalleryGender) => {
     if (!categoryToFetch) return;
@@ -79,25 +81,31 @@ export default function ModelGalleryModal({
     }
   }, [source]);
 
+  // Effect 1: Initialise state when modal opens. Increments refreshKey to guarantee
+  // Effect 2 re-runs even when category/gender are identical to the previous open.
   useEffect(() => {
-    if (isOpen) {
-      if (showGenderFilter) {
-        const g = initialGender || "female";
-        setActiveGender(g);
-        setActiveCategory(g);
-      } else {
-        setActiveGender(initialGender);
-        fetchCategories();
-      }
+    if (!isOpen) return;
+    setRefreshKey(k => k + 1);
+    if (showGenderFilter) {
+      const g = initialGender || "female";
+      setActiveGender(g);
+      setActiveCategory(g);
+    } else {
+      setActiveGender(initialGender);
+      setActiveCategory(""); // reset so fetchCategories sets it fresh
+      fetchCategories();
     }
-  }, [isOpen, initialGender, showGenderFilter, fetchCategories]);
+  }, [isOpen, showGenderFilter, initialGender, fetchCategories]);
 
+  // Effect 2: Fetch images when data deps change.
+  // refreshKey is NOT isOpen — it is only incremented after Effect 1 commits its
+  // state updates, so activeGender is always the correct committed value here.
+  // Guard !refreshKey prevents any fetch before the modal has ever been opened.
   useEffect(() => {
-    if (isOpen && activeCategory) {
-      setPage(1);
-      fetchImages(activeCategory, 1, showGenderFilter ? undefined : activeGender);
-    }
-  }, [isOpen, activeCategory, activeGender, showGenderFilter, fetchImages]);
+    if (!refreshKey || !activeCategory) return;
+    setPage(1);
+    fetchImages(activeCategory, 1, showGenderFilter ? undefined : activeGender);
+  }, [refreshKey, activeCategory, activeGender, showGenderFilter, fetchImages]);
 
   const handleCategoryChange = (category: string) => {
     setActiveCategory(category);

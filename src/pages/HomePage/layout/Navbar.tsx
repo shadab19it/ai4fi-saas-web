@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { Menu, X, ChevronRight, Zap, User, ChevronDown, Sparkles, Layers, Clapperboard, GalleryHorizontal, CreditCard, Shield, LogOut, Scissors } from "lucide-react";
+import { Menu, X, ChevronRight, Zap, User, ChevronDown, Sparkles, Layers, Clapperboard, GalleryHorizontal, CreditCard, Shield, LogOut, Scissors, Database } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -201,6 +201,7 @@ const ProfileDropdown = ({ user, effectiveCredits, onLogout }: { user: any, effe
 	const items = [
 		{ name: "Credits", href: "/credits", icon: <Zap /> },
 		{ name: "Billing", href: "/billing", icon: <CreditCard /> },
+		{ name: "Generated Models", href: "/generated-model", icon: <Database /> },
 	];
 
 	if (user?.role === "admin") {
@@ -688,6 +689,14 @@ const Navbar = () => {
 										>
 											<CreditCard size={14} className="text-cyan-400" />
 											Billing
+										</Link>
+										<Link
+											to="/generated-model"
+											onClick={() => setIsMobileMenuOpen(false)}
+											className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-secondary-foreground hover:text-foreground hover:bg-secondary transition-all"
+										>
+											<Database size={14} className="text-cyan-400" />
+											Generated Models
 										</Link>
 										{user?.role === "admin" && (
 											<Link

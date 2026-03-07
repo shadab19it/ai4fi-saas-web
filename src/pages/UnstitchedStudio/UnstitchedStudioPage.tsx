@@ -35,6 +35,8 @@ import {
 import { MODEL_FACE_RETURN_URL_KEY, FABRIC_STUDIO_PERSIST_KEY, TRIAL_ROOM_HANDOFF_KEY } from "../../constants/modelFace"
 import AppHeader from "../../components/Layout/AppHeader"
 import { toast } from "sonner"
+import { setUserRefresh } from "../../store/userReducer"
+import { useDispatch } from "react-redux"
 
 // ──────────────────────────────────────────────
 // Types
@@ -110,6 +112,7 @@ export default function UnstitchedStudioPage() {
   const location = useLocation();
   const fromSource = new URLSearchParams(location.search).get("from");
   const navigate = useNavigate()
+  const dispatch = useDispatch();
   // Fabric slots
   const [fabrics, setFabrics] = useState<FabricSlot[]>([
     {
@@ -391,6 +394,11 @@ export default function UnstitchedStudioPage() {
       if (resolution) formData.append("resolution", resolution)
       if (parentId && typeof parentId === "string") formData.append("parentGenerationId", parentId)
 
+      if(tier === "basic"){
+        formData.append("aspect_ratio", "1:1")
+        formData.append("resolution", "1K")
+      }
+
       const result = await modelService.generateUnstitchedTryon(formData)
       if (result.urls && result.urls.length > 0) {
         setGeneratedImages(result.urls)
@@ -405,6 +413,7 @@ export default function UnstitchedStudioPage() {
           freeRegensRemaining: result.regeneration.freeRegensRemaining,
         })
       }
+      dispatch(setUserRefresh());
     } catch (err: any) {
       setError(err.message || "Failed to generate. Please try again.")
     } finally {
@@ -422,7 +431,7 @@ export default function UnstitchedStudioPage() {
       ...(resolution && { resolution }),
     }
     localStorage.setItem(TRIAL_ROOM_HANDOFF_KEY, JSON.stringify(handoff))
-    navigate("/trial-room?from=tool&context=unstitched-studio")
+    navigate("/trial-room?from=tool&context=unstitched-studio&gender=" + gender)
   }
 
   const handleReset = () => {

@@ -18,6 +18,8 @@ import {
   getGroupedAccessoryOptions,
   getGroupedJewelryOptions
 } from "./optionInputs"
+import malePosesData from "../../data/poses/male_poses.json"
+import femalePosesData from "../../data/poses/female_poses.json"
 import CollapsibleSidebar from "./layout/CollapsibleSidebar"
 import Button from "../ui/Button"
 import ZoomImageModal from "../ui/ZoomImageModal"
@@ -25,6 +27,7 @@ import LoadingOverlay from "../CreateAds/LoadingOverlay"
 import { useLocation, useSearchParams } from "react-router-dom"
 import { RootState } from "../../store/store"
 import { useSelector } from "react-redux"
+import { setUserRefresh } from "../../store/userReducer"
 
 interface ModelEditorProps {
   selectedModel: string
@@ -42,119 +45,22 @@ interface ModelEditorProps {
   isCustomDimensions?: boolean
 }
 
-let FEMALE_POSES = [
-  { id: "female-front-straight-arms", label: "Straight-On Arms Relaxed", description: "Female - Neutral and clean" },
-  { id: "female-front-hands-hips", label: "Hands on Hips", description: "Female - Showcase garment fit" },
-  { id: "female-front-crossed-arms", label: "Crossed Arms", description: "Female - Confident, structured look" },
-  { id: "female-front-arms-lean", label: "Arms Down Slight Lean Forward", description: "Female - Focus on fabric and posture" },
-  { id: "female-front-hand-waist-arm", label: "One Hand on Waist One Arm Relaxed", description: "Female - Gently angled pose" },
-  { id: "female-front-smile-neutral", label: "Soft Smile Neutral Hands by Side", description: "Female - Subtle elegance" },
-  { id: "female-front-hands-pockets", label: "Hands in Pockets", description: "Female - Casual, relaxed vibe" },
-  { id: "female-front-leg-crossed", label: "Straight-On with One Leg Crossed", description: "Female - Dynamic stance" },
-  { id: "female-front-hands-thighs", label: "Hands Resting on Thighs", description: "Female - Showcase lower garments like pants or skirts" },
-  { id: "female-front-arm-across-chest", label: "One Arm Across Chest Other Arm Relaxed", description: "Female - Soft contrast" },
-  { id: "female-front-lifting-leg", label: "Lifting One Leg Slightly", description: "Female - Focus on shoes or pants" },
-  { id: "female-front-hip-shift", label: "Subtle Hip Shift", description: "Female - Slightly relaxed posture to emphasize clothing flow" },
-  { id: "female-front-lean-side", label: "Slight Lean to One Side", description: "Female - Elegance with movement" },
-  { id: "female-front-foot-forward", label: "Standing with One Foot Forward", description: "Female - Creates depth" },
-  { id: "female-front-head-tilt", label: "Arms Hanging Slight Head Tilt", description: "Female - Casual, soft look" },
-  { id: "female-front-hand-hair", label: "Hand in Hair Head Slightly Turned", description: "Female - Gives a feminine touch" },
-  { id: "female-front-hands-thighs-legs", label: "Hands on Thighs Legs Together", description: "Female - Classic fashion model pose" },
-  { id: "female-front-hand-hat-glasses", label: "Playful Hand on Hat or Glasses", description: "Female - Stylish accessory highlight" },
-  { id: "female-front-smile-hands-waist", label: "Soft Smile with Hands Resting on Waist", description: "Female - Casual elegance" },
-  { id: "female-front-arms-behind-head", label: "Arms Behind Head Relaxed", description: "Female - For showing dress or top length" },
-  { id: "female-side-leg-forward", label: "Straight-On to Side One Leg Forward", description: "Female - Lean into the side, perfect for dresses" },
-  { id: "female-side-hand-waist", label: "Profile with Hand on Waist", description: "Female - Emphasize silhouette" },
-  { id: "female-side-arms-crossed", label: "Profile with Arms Crossed", description: "Female - Structured and confident" },
-  { id: "female-side-hand-hip-shoulder", label: "Hand on Hip Look Over Shoulder", description: "Female - Creates depth and shape" },
-  { id: "female-side-foot-forward", label: "Side Lean with One Foot Forward", description: "Female - Creates lines in pants/skirts" },
-  { id: "female-side-hand-hair-shoulder", label: "One Hand in Hair Looking Over Shoulder", description: "Female - Feminine, soft look" },
-  { id: "female-side-tilted-head-forward", label: "Body Slightly Tilted Head Facing Forward", description: "Female - Emphasizes garment details" },
-  { id: "female-side-hand-neck-tilt", label: "Hand on Neck Head Slightly Tilted", description: "Female - Creates graceful posture" },
-  { id: "female-side-lean-back-hands", label: "Lean Back Hands on Lower Back", description: "Female - Bold, strong silhouette" },
-  { id: "female-side-leg-crossed", label: "Leg Crossed Over the Other", description: "Female - Gives posture and emphasizes dress length" },
-  { id: "female-side-arm-raised", label: "One Arm Raised Over Head Looking Away", description: "Female - Power pose" },
-  { id: "female-side-leg-forward-pocket", label: "Profile One Leg Forward with Arm in Pocket", description: "Female - Casual chic look" },
-  { id: "female-side-crossed-arms-tilt", label: "Crossed Arms with Slight Head Tilt", description: "Female - Relaxed, confident stance" },
-  { id: "female-side-full-side-hands", label: "Full Side Both Hands Relaxed by Sides", description: "Female - Straightforward, relaxed" },
-  { id: "female-side-arm-waist-hip", label: "Side Profile One Arm Resting on Waist Slight Hip Out", description: "Female - Dynamic, bold" },
-  { id: "female-side-hands-behind-shoulder", label: "Hands Resting Behind Looking Over Shoulder", description: "Female - Relaxed yet refined" },
-  { id: "female-side-leaning-wall", label: "Leaning on Wall or Surface Looking Forward", description: "Female - Casual and stylish" },
-  { id: "female-side-hand-chest-tilt", label: "Hand Resting on Chest Head Tilted", description: "Female - Graceful pose" },
-  { id: "female-side-hand-hip-tilt", label: "One Hand on Hip Slight Tilt to the Side", description: "Female - Dynamic, accentuating shape" },
-  { id: "female-side-hand-face", label: "Side Profile with Soft Hand on Face", description: "Female - Subtle elegance" },
-  { id: "female-back-full-arms", label: "Full Back Arms Relaxed by Sides", description: "Female - Neutral, minimalist" },
-  { id: "female-back-hands-hips-tall", label: "Hands on Hips Standing Tall", description: "Female - Emphasize back details, like dress/train" },
-  { id: "female-back-head-over-shoulder", label: "Back to Camera Looking Over Shoulder", description: "Female - Adds a soft allure" },
-  { id: "female-back-hands-behind-head", label: "Straight Back Hands Behind Head", description: "Female - Powerful and structured" },
-  { id: "female-back-arms-behind-tilt", label: "Arms Behind Back Head Slightly Tilted", description: "Female - Graceful and poised" },
-  { id: "female-back-arms-sides", label: "Back View Arms Resting by Sides", description: "Female - Simple, highlights garment flow" },
-  { id: "female-back-foot-forward", label: "Standing Tall with One Foot Slightly Forward", description: "Female - Creates shape and flow" },
-  { id: "female-back-shoulder-hands-behind", label: "Looking Over Shoulder with Hands Resting Behind", description: "Female - Gentle movement" },
-  { id: "female-back-arm-raised", label: "Back View with One Arm Raised", description: "Female - For showing sleeve or shoulder detail" },
-  { id: "female-back-hands-hips", label: "Full Back with Hands on Hips", description: "Female - Bold and powerful posture" },
-]
+type PoseItem = { id: number; description: string }
+type PosesData = { gender: string; poses: Record<string, PoseItem[]> }
 
-
-let MALE_POSES = [
-  { id: "male-front-straight-hands-sides", label: "Straight-On Hands by Sides", description: "Male - Clean and neutral" },
-  { id: "male-front-hands-pockets-lean", label: "Hands in Pockets Slight Lean", description: "Male - Casual yet structured" },
-  { id: "male-front-crossed-arms", label: "Crossed Arms", description: "Male - Confident, strong look" },
-  { id: "male-front-hand-hip-relaxed", label: "One Hand on Hip Other Relaxed", description: "Male - Shows fit and silhouette" },
-  { id: "male-front-standing-tall", label: "Standing Tall Shoulders Back", description: "Male - Bold and confident" },
-  { id: "male-front-legs-apart-pockets", label: "Legs Slightly Apart Hands in Pockets", description: "Male - Relaxed stance" },
-  { id: "male-front-hand-chest-tilt", label: "Hand on Chest Slight Head Tilt", description: "Male - Soft, introspective look" },
-  { id: "male-front-leg-forward-hands", label: "One Leg Slightly Forward Hands by Sides", description: "Male - Dynamic, flattering angle" },
-  { id: "male-front-arms-relaxed-lean", label: "Arms Relaxed Slight Lean Forward", description: "Male - Casual, approachable vibe" },
-  { id: "male-front-straight-hip-out", label: "Straight-On with Slight Hip Out", description: "Male - Casual and confident" },
-  { id: "male-front-hands-thighs", label: "Hands Resting on Thighs", description: "Male - Showcase lower garment details" },
-  { id: "male-front-relaxed-hip-shift", label: "Relaxed Pose with Slight Hip Shift", description: "Male - Emphasizes fit and flow" },
-  { id: "male-front-hand-collar-smile", label: "One Hand on Shirt Collar Soft Smile", description: "Male - Chic and relaxed" },
-  { id: "male-front-arm-across-chest", label: "One Arm Across Chest Other Hanging", description: "Male - Balanced, relaxed posture" },
-  { id: "male-front-hand-hair-tilt", label: "One Hand in Hair Slight Head Tilt", description: "Male - Stylish, relaxed vibe" },
-  { id: "male-front-lean-forward", label: "Lean Forward Slightly Hands by Sides", description: "Male - Active and dynamic" },
-  { id: "male-front-pockets-lean-side", label: "Hands in Pockets Slight Lean to One Side", description: "Male - Chill yet polished" },
-  { id: "male-front-arms-relaxed-side", label: "Arms Relaxed Looking to the Side", description: "Male - Slightly neutral but confident" },
-  { id: "male-front-arms-behind-lean", label: "Arms Behind Back Slightly Leaned", description: "Male - Elegant and composed" },
-  { id: "male-front-hands-thighs-shoulders", label: "Hands Resting on Thighs Shoulders Back", description: "Male - Strong stance" },
-  { id: "male-side-full-pockets", label: "Full Side Hands in Pockets", description: "Male - Casual, sleek look" },
-  { id: "male-side-lean-leg-forward", label: "Side Lean with One Leg Forward", description: "Male - Stylized, focus on fit" },
-  { id: "male-side-arm-across-chest", label: "One Arm Across Chest Other Relaxed", description: "Male - Strong yet balanced" },
-  { id: "male-side-hand-hair", label: "Side Profile with Hand in Hair", description: "Male - Stylish and youthful" },
-  { id: "male-side-foot-forward", label: "Side View One Foot Forward", description: "Male - Dynamic, emphasizing lines" },
-  { id: "male-side-hand-neck-tilt", label: "Hand on Neck Head Tilted", description: "Male - Soft, natural vibe" },
-  { id: "male-side-hand-waist-lean", label: "One Hand on Waist Side Lean", description: "Male - Powerful and confident" },
-  { id: "male-side-head-turned", label: "Side Profile Head Slightly Turned Looking Forward", description: "Male - Gives a clean, polished feel" },
-  { id: "male-side-relaxed-hands", label: "Relaxed Side Hands by Sides", description: "Male - Simple, clean lines" },
-  { id: "male-side-hand-pocket", label: "One Hand Resting on Pocket Other Relaxed", description: "Male - Casual and approachable" },
-  { id: "male-side-head-turned-smile", label: "Side Head Slightly Turned with Soft Smile", description: "Male - Friendly, approachable look" },
-  { id: "male-side-hand-lower-back", label: "Hand Resting on Lower Back Slight Lean", description: "Male - Elegant, flowing pose" },
-  { id: "male-side-crossed-arms", label: "Side Profile with Softly Crossed Arms", description: "Male - Structured and calm" },
-  { id: "male-side-legs-crossed", label: "Legs Crossed at the Ankle Hands Relaxed", description: "Male - Casual and strong" },
-  { id: "male-side-head-forward-hands", label: "Head Facing Forward Hands Relaxed by Sides", description: "Male - Neutral, balanced stance" },
-  { id: "male-side-pocket-lean-back", label: "Hand Resting on Pocket Lean Back Slightly", description: "Male - Relaxed, confident stance" },
-  { id: "male-side-foot-forward-arms-back", label: "One Foot Forward Arms Behind Back", description: "Male - Elegant, structured" },
-  { id: "male-side-arched-back", label: "Relaxed Side Slightly Arched Back", description: "Male - Creates an appealing silhouette" },
-  { id: "male-side-hands-waist", label: "Side Profile with Hands Resting on Waist", description: "Male - Strong, confident stance" },
-  { id: "male-side-lean-distance", label: "Slight Lean Looking Off into Distance", description: "Male - Contemplative, stylish" },
-  { id: "male-back-full-arms-relaxed", label: "Full Back Arms Relaxed by Sides", description: "Male - Neutral and clean" },
-  { id: "male-back-hand-waist", label: "Back to Camera One Hand on Waist", description: "Male - Emphasizes body shape" },
-  { id: "male-back-arms-behind", label: "Standing Tall with Arms Behind Back", description: "Male - Strong and composed" },
-  { id: "male-back-leg-forward", label: "One Leg Slightly Forward Hands Relaxed by Sides", description: "Male - Dynamic and bold" },
-  { id: "male-back-hands-lower-back", label: "Back View Hands on Lower Back", description: "Male - Elegant and poised" },
-  { id: "male-back-head-over-shoulder", label: "Back to Camera Head Over Shoulder", description: "Male - Gives a soft yet confident look" },
-  { id: "male-back-hands-pockets", label: "Full Back with Hands in Pockets", description: "Male - Relaxed yet confident" },
-  { id: "male-back-arms-behind-head", label: "Arms Behind Head Slight Lean", description: "Male - Powerful, showcasing garment details" },
-  { id: "male-back-arm-raised", label: "Back to Camera One Arm Raised", description: "Male - For showing jacket sleeve or detailing" },
-  { id: "male-back-hand-collar", label: "Straight Back One Hand Resting on Collar or Neck", description: "Male - Casual elegance" },
-]
+const getAllPredefinedDescriptions = (gender: string): Set<string> => {
+  const data = (gender === "female" ? femalePosesData : malePosesData) as PosesData
+  const set = new Set<string>()
+  Object.values(data.poses).forEach((group) => group.forEach((p) => set.add(p.description)))
+  return set
+}
 
 export default function ModelEditor({ 
   selectedModel, 
   dressImage: _dressImage, 
   onBack, 
   onComplete: _onComplete, 
-  gender,
+  gender:propGender,
   tier: propTier = "basic",
   aspectRatio: propAspectRatio,
   resolution: propResolution,
@@ -171,8 +77,10 @@ export default function ModelEditor({
   const jewAllowed = user.user?.role === "admin" ? true : isFeatureAllowed("jewellerySupport")
   const [searchParams] = useSearchParams();
   const isFromTool = searchParams.get("from")
-
+  const genderFromUrl = searchParams.get("gender")
+  const gender = genderFromUrl || propGender
   const [poses, setPoses] = useState<string[]>([])
+  const [customPoseItems, setCustomPoseItems] = useState<string[]>([])
   const [footwear, setFootwear] = useState<string>("")
   const [background, setBackground] = useState<string>("")
   const [accessory, setAccessory] = useState<string>("")
@@ -200,21 +108,15 @@ export default function ModelEditor({
       toast.info(`Maximum ${poseLimit} poses reached on your plan`)
       return
     }
-    if (newPose.trim()) {
-      const normalized = newPose.trim().toLowerCase()
-      if (!poses.includes(normalized)) {
-        setPoses([...poses, normalized])
-        setNewPose("")
-      } else {
-        toast.info("Pose already exists")
-      }
+    if (!newPose.trim()) return
+    const normalized = newPose.trim()
+    if (poses.includes(normalized)) {
+      toast.info("Pose already exists")
+      return
     }
-
-    if (gender === "female") {
-      FEMALE_POSES.push({ id: `${new Date().getTime()}`, label: newPose, description: newPose })
-    } else {
-      MALE_POSES.push({ id: `${new Date().getTime()}`, label: newPose, description: newPose })
-    }
+    setPoses([...poses, normalized])
+    setCustomPoseItems((prev) => [...prev, normalized])
+    setNewPose("")
   }
 
   const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,6 +218,7 @@ export default function ModelEditor({
         const r = response.data.regeneration
         setRegenInfo({ generationId: r.generationId, freeRegensRemaining: r.freeRegensRemaining })
       }
+      setUserRefresh()
       if (!response.data?.urls?.length) {
         throw new Error("No image URLs returned from API")
       }
@@ -398,16 +301,30 @@ export default function ModelEditor({
     }
   }
 
-  const getPoses = () => {
-    return gender === "female" ? FEMALE_POSES : MALE_POSES
-  }
-
   const footwearOptionsList = useMemo(() => getGroupedFootwearOptions(gender), [gender])
   const backgroundOptionsList = useMemo(() => getGroupedBackgroundOptions(), [])
   const accessoryOptionsList = useMemo(() => getGroupedAccessoryOptions(gender), [gender])
   const jewelryOptionsList = useMemo(() => getGroupedJewelryOptions(gender), [gender])
+  const predefinedDescriptions = useMemo(() => getAllPredefinedDescriptions(gender), [gender])
+  const flatPosesOptions = useMemo((): IOption[] => {
+    const data = (gender === "female" ? femalePosesData : malePosesData) as PosesData
+    const result: IOption[] = []
+    Object.entries(data.poses).forEach(([category, items]) => {
+      result.push({ value: "divider", label: category.replace(/_/g, " ").toUpperCase() })
+      items.forEach((p) => result.push({ value: p.description, label: p.description }))
+    })
+    if (customPoseItems.length > 0) {
+      result.push({ value: "divider", label: "CUSTOM" })
+      customPoseItems.forEach((desc) => result.push({ value: desc, label: desc }))
+    }
+    return result
+  }, [gender, customPoseItems])
 
-  // Helper for select styling
+  const selectedPredefinedPoses = useMemo(
+    () => poses.filter((p) => predefinedDescriptions.has(p)),
+    [poses, predefinedDescriptions]
+  )
+
   const labelClass = "flex items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] mb-2"
 
   const GENERATING_MESSAGES = [
@@ -532,21 +449,14 @@ export default function ModelEditor({
                     Select Predefined Poses
                   </label>
                   <MultiSelect
-                    options={[...getPoses().map((pose) => ({
-                      value: pose.label.toLowerCase(),
-                      label: `${pose.label}`
-                    }))]}
-                    noOfposes={poseLimit - poses.filter((pose) =>
-                      !getPoses().some((p) => p.label.toLowerCase() === pose)
-                    ).length}
+                    options={flatPosesOptions}
+                    noOfposes={poseLimit - poses.filter((p) => !predefinedDescriptions.has(p)).length}
                     onChange={(selectedOptions: IOption[]) => {
-                      const selectedPredefinedPoses = selectedOptions.map((option: IOption) => option.value)
-                      const customPoses = poses.filter((pose) =>
-                        !getPoses().some((p) => p.label.toLowerCase() === pose)
-                      )
-                      setPoses([...customPoses, ...selectedPredefinedPoses].slice(0, poseLimit))
+                      const selectedPredefined = selectedOptions.map((o) => o.value)
+                      const customPoses = poses.filter((p) => !predefinedDescriptions.has(p))
+                      setPoses([...customPoses, ...selectedPredefined].slice(0, poseLimit))
                     }}
-                    selectedPoses={poses}
+                    selectedPoses={selectedPredefinedPoses}
                   />
                 </div>
 
@@ -571,6 +481,28 @@ export default function ModelEditor({
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
+                  {customPoseItems.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {customPoseItems.map((pose) => (
+                        <span
+                          key={pose}
+                          className="flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium bg-violet-50 text-violet-700 border border-violet-200 rounded-full"
+                        >
+                          {pose}
+                          <button
+                            onClick={() => {
+                              setCustomPoseItems((prev) => prev.filter((p) => p !== pose))
+                              setPoses((prev) => prev.filter((p) => p !== pose))
+                            }}
+                            className="text-violet-400 hover:text-violet-700 transition-colors"
+                            aria-label={`Remove ${pose}`}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

@@ -77,7 +77,7 @@ const AppHeader: FC<AppHeaderProps> = ({ title, description = null }) => {
         {/* Logo */}
         <div className='flex items-center gap-5'>
           <Link to='/' className='flex items-center gap-2'>
-           <img src={"/public/dark-logo2.png"} alt="AI4FI" className='w-18 h-12 object-contain' />
+           <img src={"./light-logo.png"} alt="AI4FI" className='w-18 h-12 object-contain' />
           </Link>
           {title && (
             <>

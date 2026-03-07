@@ -361,7 +361,7 @@ const ModelListPage: FC = () => {
             <div className="max-w-[1600px] mx-auto w-full flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Link to='/' className='flex items-center gap-2'>
-                     <img src={"/public/dark-logo2.png"} alt="AI4FI" className='w-18 h-12 object-contain' />
+                     <img src={"./light-logo.png"} alt="AI4FI" className='w-18 h-12 object-contain' />
                     </Link>
                     <div className="h-6 w-px bg-[#E5E2DA] hidden sm:block" />
                     <nav className="hidden sm:flex items-center gap-1">
@@ -420,9 +420,9 @@ const ModelListPage: FC = () => {
                 <div className="flex items-center gap-6">
                     {[
                         { id: "existingModels", label: "Generated Models" },
-                        { id: "ownModels", label: "Custom Models" },
+                        // { id: "ownModels", label: "Custom Models" },
                         // { id: "tryon", label: "Virtual Try On" }, // Removed as per user request
-                        { id: "tryon_beta", label: "Try On Beta" },
+                        { id: "tryon_beta", label: "Trial Room" },
                         { id: "pose_variants", label: "Pose Variants" },
                         { id: "product_listing_banner", label: "Banners" },
                         { id: "product_listing", label: "Lifestyle Listing" },
