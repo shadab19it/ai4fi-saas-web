@@ -6,9 +6,7 @@ import appConstant from "../../services/appConstant"
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import { dataURLtoFile } from "../../services/utils"
 import commonService from "../../services/commonService"
-import MultiSelect from "../common/MultiSelect"
 import GroupedSelect from "../common/GroupedSelect"
-import { IOption } from "../ModelGenerator/ModelConfigForm/ModelConfigForm"
 import { toast } from "sonner"
 import { downloadBlob, resizeImage } from "./resizeImage"
 import JSZip from "jszip"
@@ -306,16 +304,14 @@ export default function ModelEditor({
   const accessoryOptionsList = useMemo(() => getGroupedAccessoryOptions(gender), [gender])
   const jewelryOptionsList = useMemo(() => getGroupedJewelryOptions(gender), [gender])
   const predefinedDescriptions = useMemo(() => getAllPredefinedDescriptions(gender), [gender])
-  const flatPosesOptions = useMemo((): IOption[] => {
+  const groupedPosesOptions = useMemo((): Record<string, string[]> => {
     const data = (gender === "female" ? femalePosesData : malePosesData) as PosesData
-    const result: IOption[] = []
+    const result: Record<string, string[]> = {}
     Object.entries(data.poses).forEach(([category, items]) => {
-      result.push({ value: "divider", label: category.replace(/_/g, " ").toUpperCase() })
-      items.forEach((p) => result.push({ value: p.description, label: p.description }))
+      result[category.replace(/_/g, " ").toUpperCase()] = items.map((p) => p.description)
     })
     if (customPoseItems.length > 0) {
-      result.push({ value: "divider", label: "CUSTOM" })
-      customPoseItems.forEach((desc) => result.push({ value: desc, label: desc }))
+      result["CUSTOM"] = [...customPoseItems]
     }
     return result
   }, [gender, customPoseItems])
@@ -448,15 +444,16 @@ export default function ModelEditor({
                   <label className={labelClass}>
                     Select Predefined Poses
                   </label>
-                  <MultiSelect
-                    options={flatPosesOptions}
-                    noOfposes={poseLimit - poses.filter((p) => !predefinedDescriptions.has(p)).length}
-                    onChange={(selectedOptions: IOption[]) => {
-                      const selectedPredefined = selectedOptions.map((o) => o.value)
+                  <GroupedSelect
+                    multiSelect
+                    groupedOptions={groupedPosesOptions}
+                    multiValue={selectedPredefinedPoses}
+                    onMultiChange={(selected) => {
                       const customPoses = poses.filter((p) => !predefinedDescriptions.has(p))
-                      setPoses([...customPoses, ...selectedPredefined].slice(0, poseLimit))
+                      setPoses([...customPoses, ...selected].slice(0, poseLimit))
                     }}
-                    selectedPoses={selectedPredefinedPoses}
+                    maxSelections={poseLimit - poses.filter((p) => !predefinedDescriptions.has(p)).length}
+                    placeholder="Select predefined poses..."
                   />
                 </div>
 
