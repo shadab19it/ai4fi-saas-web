@@ -28,7 +28,8 @@ interface ModelSelectionProps {
   isCustomDimensions?: boolean
   onModelSelected: (selectedModel: string) => void
   onBack: () => void,
-  startGenerate:boolean
+  startGenerate:boolean,
+  garmentView?: "front" | "back"
 }
 
 
@@ -47,7 +48,8 @@ export default function ModelSelection({
   isCustomDimensions,
   onModelSelected,
   onBack,
-  startGenerate
+  startGenerate,
+  garmentView
 }: ModelSelectionProps) {
   const dispatch = useDispatch();
   const [isGenerating, setIsGenerating] = useState(false)
@@ -90,6 +92,7 @@ export default function ModelSelection({
       }
       formData.append("count", "1")
       formData.append("tier", tier)
+      if (garmentView) formData.append("pose", garmentView)
 
       if (tier === "professional") {
         if (aspectRatio) formData.append("aspect_ratio", aspectRatio)

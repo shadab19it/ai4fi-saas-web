@@ -334,8 +334,8 @@ export default function UnstitchedStudioPage() {
 
   const handleGenerate = async (parentId?: string) => {
     if (!canGenerate) return
-    if(tier === "professional" && !ecommercePlatform){
-      toast.error("Please select an ecommerce platform")
+    if(tier === "professional" && !ecommercePlatform && !resolution){
+      toast.error("Please select an ecommerce platform or resolution")
       return
     }
     setIsGenerating(true)
@@ -1039,10 +1039,6 @@ export default function UnstitchedStudioPage() {
                 )}
               </div>
             </div>
-
-      
-
-    
           </div>
         </div>
       </div>

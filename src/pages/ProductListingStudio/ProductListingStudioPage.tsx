@@ -20,6 +20,7 @@ import {
   Grid3x3,
   Ratio,
   Lock,
+  ZoomIn,
 } from "lucide-react"
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import AppHeader from "../../components/Layout/AppHeader"
@@ -31,6 +32,7 @@ import productListingService, {
 } from "../../services/productListingService"
 import { MODEL_FACE_RETURN_URL_KEY } from "../../constants/modelFace"
 import ModelGalleryModal from "../../components/common/ModelGalleryModal"
+import ZoomImageModal from "../../components/ui/ZoomImageModal"
 import {
   PRODUCT_LISTING_MARKETPLACES,
   type ProductListingMarketplace,
@@ -107,6 +109,8 @@ export default function ProductListingStudioPage() {
 
   // Results
   const [resultImages, setResultImages] = useState<string[]>([])
+  const [zoomOpen, setZoomOpen] = useState(false)
+  const [zoomIndex, setZoomIndex] = useState(0)
   const [resultTagline, setResultTagline] = useState("")
   const [listingData, setListingData] = useState<ListingData | null>(null)
   const [generationTime, setGenerationTime] = useState(0)
@@ -880,7 +884,8 @@ export default function ProductListingStudioPage() {
             {resultImages.map((url, idx) => (
               <div
                 key={idx}
-                className="group relative bg-white rounded-xl border border-[#E5E2DA] overflow-hidden shadow-[0_1px_3px_rgba(28,25,23,0.06)] hover:shadow-[0_6px_20px_rgba(28,25,23,0.1)] transition-all duration-200 hover:-translate-y-0.5"
+                onClick={() => { setZoomIndex(idx); setZoomOpen(true) }}
+                className="group relative bg-white rounded-xl border border-[#E5E2DA] overflow-hidden shadow-[0_1px_3px_rgba(28,25,23,0.06)] hover:shadow-[0_6px_20px_rgba(28,25,23,0.1)] transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
               >
                 <img
                   src={url}
@@ -888,7 +893,7 @@ export default function ProductListingStudioPage() {
                   className="w-full aspect-square object-cover"
                 />
                 {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-end justify-center p-3 opacity-0 group-hover:opacity-100">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-end justify-between p-3 opacity-0 group-hover:opacity-100">
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
@@ -898,6 +903,13 @@ export default function ProductListingStudioPage() {
                   >
                     <Download className="h-3 w-3" />
                     Download
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setZoomIndex(idx); setZoomOpen(true) }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/95 border border-[#E5E2DA] text-[11px] font-semibold text-stone-900 hover:bg-white transition-colors"
+                  >
+                    <ZoomIn className="h-3 w-3" />
+                    Zoom
                   </button>
                 </div>
                 {/* Index badge */}
@@ -1087,6 +1099,14 @@ export default function ProductListingStudioPage() {
         onSelect={handleGalleryModelSelect}
         source="model_faces"
         initialCategory="female"
+      />
+
+      <ZoomImageModal
+        open={zoomOpen}
+        onClose={() => setZoomOpen(false)}
+        images={resultImages}
+        initialIndex={zoomIndex}
+        alt="Generated image"
       />
     </div>
   )

@@ -203,7 +203,7 @@ export default function FeaturePage() {
           />
 
           <FeatureCard
-            title="MotionLab"
+            title="MotionLabs"
             subtitle="Ad Video Generator"
             description="Upload static product images and generate dynamic, scroll-stopping video ads optimized for TikTok, Instagram, and social media marketing."
             image={MotionLabImg}

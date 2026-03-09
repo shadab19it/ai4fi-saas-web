@@ -27,6 +27,7 @@ export default function Home() {
   const [garmentCategory, setGarmentCategory] = useState<string | undefined>()
   const [isCustomDimensions, setIsCustomDimensions] = useState<boolean | undefined>()
   const [startGenerate,setStartGenerate] = useState<boolean>(false)
+  const [garmentView, setGarmentView] = useState<"front" | "back">("front")
 
   useEffect(() => {
     const raw = localStorage.getItem(TRIAL_ROOM_HANDOFF_KEY)
@@ -68,7 +69,8 @@ export default function Home() {
     selectedHeight?: number,
     selectedSegment?: string,
     selectedGarmentCategory?: string,
-    customDimensions?: boolean
+    customDimensions?: boolean,
+    selectedGarmentView?: "front" | "back"
   ) => {
     setDressImage(dress)
     setGender(selectedGender)
@@ -82,6 +84,7 @@ export default function Home() {
     setSegment(selectedSegment)
     setGarmentCategory(selectedGarmentCategory)
     setIsCustomDimensions(customDimensions)
+    setGarmentView(selectedGarmentView || "front")
     setStartGenerate(true)
     setStep("selection")
   }
@@ -106,9 +109,7 @@ export default function Home() {
     console.log("[v0] Try-on complete!")
   }
 
-  
 
- console.log("st", step)
 
   return (
     <main className="min-h-screen bg-[#F4F3EF]">
@@ -186,6 +187,7 @@ export default function Home() {
           isCustomDimensions={isCustomDimensions}
           onModelSelected={handleModelSelected}
           onBack={handleBackToDress}
+          garmentView={garmentView}
         />
       )}
       {step === "editor" && selectedModel && dressImage && (
@@ -203,6 +205,7 @@ export default function Home() {
           segment={segment}
           garmentCategory={garmentCategory}
           isCustomDimensions={isCustomDimensions}
+          garmentView={garmentView}
         />
       )}
     </main>

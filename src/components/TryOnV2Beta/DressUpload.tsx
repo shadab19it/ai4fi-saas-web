@@ -29,7 +29,8 @@ interface DressUploadProps {
     height?: number,
     segment?: string,
     garmentCategory?: string,
-    isCustomDimensions?: boolean
+    isCustomDimensions?: boolean,
+    garmentView?: "front" | "back"
   ) => void
 }
 
@@ -59,6 +60,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   const [segment] = useState<string>("Women")
   const [garmentCategory] = useState<string>("Top wear")
   const [ecommercePlatform, setEcommercePlatform] = useState<EcommercePlatformKey | "">("")
+  const [garmentView, setGarmentView] = useState<"front" | "back">("front")
   const dressInputRef = useRef<HTMLInputElement>(null)
   const dropZoneRef = useRef<HTMLDivElement>(null)
 
@@ -172,8 +174,8 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
 
   const handleContinue = () => {
 
-    if(tier === "professional" && !ecommercePlatform){
-      toast.error("Please select an ecommerce platform")
+    if(tier === "professional" && !ecommercePlatform && !resolution){
+      toast.error("Please select an ecommerce platform or resolution")
       return
     }
 
@@ -193,7 +195,8 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
         tier === "professional" && height ? parseInt(height) : undefined,
         tier === "professional" ? segment : undefined,
         tier === "professional" ? garmentCategory : undefined,
-        tier === "professional" ? isCustom : undefined
+        tier === "professional" ? isCustom : undefined,
+        garmentView
       )
     }
   }
@@ -538,6 +541,34 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                   </div>
 
 
+
+                         {/* Garment View */}
+                  <div>
+                    <label className="flex mt-5 items-center gap-2 text-[11.5px] font-semibold text-[#6B6560] uppercase tracking-wider mb-2.5">
+                      Garment View
+                      <div className="group relative">
+                        <Info className="w-3.5 h-3.5 text-[#9E9893] cursor-help" />
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-stone-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                          Select whether this image shows the front or back of the garment
+                        </div>
+                      </div>
+                    </label>
+                    <div className="flex items-center bg-[#F4F3EF] rounded-xl p-1 gap-1">
+                      {(["front", "back"] as const).map((view) => (
+                        <button
+                          key={view}
+                          onClick={() => setGarmentView(view)}
+                          className={`flex-1 py-2 rounded-lg text-[12px] font-semibold capitalize transition-all ${
+                            garmentView === view
+                              ? "bg-white text-stone-900 shadow-sm border border-[#E5E2DA]"
+                              : "text-[#9E9893] hover:text-[#6B6560]"
+                          }`}
+                        >
+                          {view === "front" ? "Front" : "Back"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
                          {/* Model Face Image Section */}
                   <div className=" pt-5">

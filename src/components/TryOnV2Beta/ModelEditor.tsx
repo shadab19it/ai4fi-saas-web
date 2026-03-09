@@ -41,6 +41,12 @@ interface ModelEditorProps {
   segment?: string
   garmentCategory?: string
   isCustomDimensions?: boolean
+  garmentView?: "front" | "back"
+}
+
+const POSE_CATEGORIES_BY_VIEW: Record<"front" | "back", Set<string>> = {
+  front: new Set(["front", "side_profile", "professional", "casual"]),
+  back: new Set(["back", "side_profile"]),
 }
 
 type PoseItem = { id: number; description: string }
@@ -66,7 +72,8 @@ export default function ModelEditor({
   height: propHeight,
   segment: propSegment,
   garmentCategory: propGarmentCategory,
-  isCustomDimensions
+  isCustomDimensions,
+  garmentView,
 }: ModelEditorProps) {
   const user = useSelector((state: RootState) => state.user)
   const { poseLimit, isFeatureAllowed } = usePlanFeatures()
@@ -192,6 +199,8 @@ export default function ModelEditor({
         if (propGarmentCategory) formData.append("garment_category", propGarmentCategory)
       }
 
+      if (garmentView) formData.append("pose", garmentView)
+
       if (parentId && typeof parentId === "string") {
         formData.append("parentGenerationId", parentId)
       }
@@ -306,15 +315,17 @@ export default function ModelEditor({
   const predefinedDescriptions = useMemo(() => getAllPredefinedDescriptions(gender), [gender])
   const groupedPosesOptions = useMemo((): Record<string, string[]> => {
     const data = (gender === "female" ? femalePosesData : malePosesData) as PosesData
+    const allowedCategories = garmentView ? POSE_CATEGORIES_BY_VIEW[garmentView] : null
     const result: Record<string, string[]> = {}
     Object.entries(data.poses).forEach(([category, items]) => {
+      if (allowedCategories && !allowedCategories.has(category)) return
       result[category.replace(/_/g, " ").toUpperCase()] = items.map((p) => p.description)
     })
     if (customPoseItems.length > 0) {
       result["CUSTOM"] = [...customPoseItems]
     }
     return result
-  }, [gender, customPoseItems])
+  }, [gender, customPoseItems, garmentView])
 
   const selectedPredefinedPoses = useMemo(
     () => poses.filter((p) => predefinedDescriptions.has(p)),
