@@ -45,8 +45,8 @@ interface ModelEditorProps {
 }
 
 const POSE_CATEGORIES_BY_VIEW: Record<"front" | "back", Set<string>> = {
-  front: new Set(["front", "side_profile", "professional", "casual"]),
-  back: new Set(["back", "side_profile"]),
+  front: new Set(["front", "side_profile", "professional", "casual","back","side_profile"]),
+  back: new Set(["back"]),
 }
 
 type PoseItem = { id: number; description: string }
@@ -231,7 +231,11 @@ export default function ModelEditor({
       }
     } catch (error: any) {
       console.error("Error generating poses:", error)
-      toast.error(error?.response?.data?.message || error?.message || "Failed to generate poses. Please try again.")
+      const rawMsg = error?.response?.data?.message
+      const errMsg = Array.isArray(rawMsg)
+        ? rawMsg.map((e: any) => e.msg || e.message || "Validation error").join(", ")
+        : rawMsg || error?.message || "Failed to generate poses. Please try again."
+      toast.error(errMsg)
       setGeneratedImages([])
     } finally {
       setIsGenerating(false)

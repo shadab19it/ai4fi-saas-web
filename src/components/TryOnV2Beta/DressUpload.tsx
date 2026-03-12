@@ -2,9 +2,11 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { Upload, ZoomIn, X, Info, Sparkles, Grid3x3, Link as LinkIcon, Unlink, ChevronDown, ImagePlus, ArrowRight, SlidersHorizontal } from "lucide-react"
+import axios from "axios"
 import { usePlanFeatures } from "../../hooks/usePlanFeatures"
 import { female_model_tryon_prompt, male_model_tryon_prompt } from "../../services/prompt"
 import { MODEL_FACE_RETURN_URL_KEY, DRESS_IMAGE_PERSIST_KEY } from "../../constants/modelFace"
+import appConstant from "../../services/appConstant"
 import {
   ECOMMERCE_PLATFORM_OPTIONS,
   ECOMMERCE_PLATFORM_PRESETS,
@@ -48,6 +50,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   const [fileSize, setFileSize] = useState<string>("")
   const [modelImage, setModelImage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isValidating, setIsValidating] = useState(false)
   const [isGalleryOpen, setIsGalleryOpen] = useState(false)
   const [tier, setTier] = useState<"basic" | "professional">("basic")
   const [aspectRatio, setAspectRatio] = useState<string>("")
@@ -64,7 +67,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
   const dressInputRef = useRef<HTMLInputElement>(null)
   const dropZoneRef = useRef<HTMLDivElement>(null)
 
-  const handleImageUpload = (file: File) => {
+  const handleImageUpload = async (file: File) => {
     if (!file) return
 
     const mime = file.type || ""
@@ -81,6 +84,35 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
       setError(`File too large. Maximum upload size is ${Math.round(maxUploadSizeBytes / (1024 * 1024))} MB.`)
       if (dressInputRef.current) dressInputRef.current.value = ""
       setTimeout(() => setError(null), 4000)
+      return
+    }
+
+    setIsValidating(true)
+    setError(null)
+
+    try {
+      const token = localStorage.getItem(appConstant.JWT_AUTH_TOKEN)
+      const formData = new FormData()
+      formData.append("file", file)
+      const { data } = await axios.post(
+        `${appConstant.BACKEND_API_URL}/generate/validate-garment`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data", ...(token && { Authorization: token }) } }
+      )
+      if (!data.valid) {
+        const reason = data.reason || "Invalid garment image. Please upload a plain garment photo."
+        toast.error(reason, {
+          duration: 6000,
+          position: "top-center",
+        })
+        setIsValidating(false)
+        return
+      }
+    } catch (error) {
+      toast.error("Failed to validate garment image. Please try again.", {
+        duration: 6000,
+        position: "top-center",
+      })
       return
     }
 
@@ -348,7 +380,7 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    onClick={() => dressInputRef.current?.click()}
+                    onClick={() => !isValidating && dressInputRef.current?.click()}
                     className={`upload-drop-zone group relative w-full rounded-[1.75rem] p-16 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 overflow-hidden ${
                       isDragging ? "bg-violet-50/80" : "bg-zinc-50/50 hover:bg-zinc-50/80"
                     }`}
@@ -388,11 +420,24 @@ export default function DressUpload({ onUploadComplete }: DressUploadProps) {
 
                 {/* CTA */}
                 <button
-                  onClick={() => dressInputRef.current?.click()}
-                  className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-[0_4px_12px_rgba(99,102,241,0.35)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.45)] group  flex items-center justify-center gap-3 w-full sm:w-auto rounded-full px-12 py-4 text-white"
+                  onClick={() => !isValidating && dressInputRef.current?.click()}
+                  disabled={isValidating}
+                  className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed text-white shadow-[0_4px_12px_rgba(99,102,241,0.35)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.45)] group flex items-center justify-center gap-3 w-full sm:w-auto rounded-full px-12 py-4"
                 >
-                  <span className="font-bold tracking-wide">Upload to Continue</span>
-                  <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  {isValidating ? (
+                    <>
+                      <svg className="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                      </svg>
+                      <span className="font-bold tracking-wide">Validating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-bold tracking-wide">Upload to Continue</span>
+                      <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </>
+                  )}
                 </button>
 
                 <input ref={dressInputRef} type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
